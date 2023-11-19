@@ -83,9 +83,15 @@
 
 /*  Changelog
  *  
+ *  2023/11/19 (A10001986)
+ *    - Wake up on GPS/RotEnc speed change
+ *    - Soften end of time travel when going back to actual GPS/RotEnc speed in 
+ *      strict mode
+ *    - Oscillate slightly in GPS/RotEnc (strict and non-strict) mode
+ *    - Show "wait" symbol even when ss is active or fake power is off
  *  2023/11/05 (A10001986)
- *    - Settings: Write JSON to buffer before file
- *    - Fix corrupt CfgOnSD setting
+ *    - Settings: (De)serialize JSON from/to buffer instead of file
+ *    - Fix corrupted CfgOnSD setting
  *  2023/11/04 (A10001986)
  *    - Unmount filesystems before reboot
  *  2023/11/02 (A10001986)

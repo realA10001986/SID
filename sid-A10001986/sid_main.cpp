@@ -126,7 +126,7 @@ static const uint8_t idle5[ID5_STEPS][10] = {
 static bool useGPSS     = false;
 static bool usingGPSS   = false;
 static int16_t gpsSpeed = -1;
-static int16_t lastGPSspeed = -2;
+static int16_t oldGpsSpeed = -2;
 
 static bool useNM = false;
 static bool tcdNM = false;
@@ -1187,7 +1187,7 @@ static void showIdle(bool freezeBaseLine)
 
         if(!strictMode) {
             if(!freezeBaseLine) {
-                sidBaseLine = (gpsSpeed * 20 / 88) - 1;
+                sidBaseLine = (max(10, (int)gpsSpeed) * 20 / 88) - 1;
                 if(sidBaseLine > 19) sidBaseLine = 19;
                 if(abs(oldBaseLine - sidBaseLine) > 3) {
                     sidBaseLine = (sidBaseLine + oldBaseLine) / 2;
@@ -1196,9 +1196,28 @@ static void showIdle(bool freezeBaseLine)
         } else {
             if(!freezeBaseLine) {
                 strictBaseLine = gpsSpeed * 100 / (88 * 100 / (TT_SQF_LN - 1));
+                if(gpsSpeed == oldGpsSpeed) {
+                    if(strictBaseLine < 5) {
+                        strictBaseLine += (esp_random() % 5);
+                    } else if(strictBaseLine > TT_SQF_LN - 4) {
+                        // no modify
+                    } else {
+                        strictBaseLine += (((esp_random() % 5)) - 2);
+                    }
+                    if(strictBaseLine < 0) strictBaseLine = 0;
+                    if(strictBaseLine > TT_SQF_LN-2) strictBaseLine = TT_SQF_LN-2;
+                }
                 if(strictBaseLine > TT_SQF_LN-1) strictBaseLine = TT_SQF_LN-1;
+                if(abs(oldSBaseLine - strictBaseLine) > 3) {
+                    strictBaseLine = (strictBaseLine + oldSBaseLine) / 2;
+                }
             }
             sblFlags |= SBLF_STRICT;
+        }
+
+        if(gpsSpeed != oldGpsSpeed) {
+            wakeup();
+            oldGpsSpeed = gpsSpeed;
         }
 
     } else if(idleMode == SID_IDLE_BL) {     // "backlot mode"
@@ -2254,9 +2273,11 @@ static void dec_bri()
     sid.setBrightness(cb - 1);
 }
 
-void showWaitSequence()
+void showWaitSequence(bool force)
 {
     // Show a "wait" symbol
+    ssEnd();
+    if(force) sid.on();
     sid.clearDisplayDirect();
     sid.drawLetterAndShow('&', 0, 8);
 }
@@ -2613,6 +2634,7 @@ static void BTTFNCheckPacket()
 
         if(BTTFUDPBuf[5] & 0x02) {
             gpsSpeed = (int16_t)(BTTFUDPBuf[18] | (BTTFUDPBuf[19] << 8));
+            if(gpsSpeed > 88) gpsSpeed = 88;
         }
         if(BTTFUDPBuf[5] & 0x10) {
             tcdNM  = (BTTFUDPBuf[26] & 0x01) ? true : false;

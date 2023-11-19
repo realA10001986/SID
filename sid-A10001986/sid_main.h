@@ -66,7 +66,7 @@ void main_boot();
 void main_setup();
 void main_loop();
 
-void showWaitSequence();
+void showWaitSequence(bool force = false);
 void endWaitSequence();
 void allOff();
 
