@@ -126,6 +126,7 @@ static const uint8_t idle5[ID5_STEPS][10] = {
 static bool useGPSS     = false;
 static bool usingGPSS   = false;
 static int16_t gpsSpeed = -1;
+static int16_t prevGPSSpeed = -2;
 static int16_t oldGpsSpeed = -2;
 
 static bool useNM = false;
@@ -987,6 +988,14 @@ void main_loop()
 
             now = millis();
 
+            // Wake up on GPS/RotEnc speed changes
+            if(gpsSpeed != oldGpsSpeed) {
+                if(FPBUnitIsOn && gpsSpeed >= 0) {
+                    wakeup();
+                }
+                oldGpsSpeed = gpsSpeed;
+            }
+
             // "Screen saver"
             if(FPBUnitIsOn) {
                 if(!ssActive && ssDelay && (now - ssLastActivity > ssDelay)) {
@@ -1177,7 +1186,7 @@ static void showIdle(bool freezeBaseLine)
     idleDelay2 = 800 + ((int)(esp_random() % 200) - 100);
 
     if(useGPSS && gpsSpeed >= 0) {
-        
+
         if(now - lastChange < 500)
             return;
 
@@ -1196,7 +1205,7 @@ static void showIdle(bool freezeBaseLine)
         } else {
             if(!freezeBaseLine) {
                 strictBaseLine = gpsSpeed * 100 / (88 * 100 / (TT_SQF_LN - 1));
-                if(gpsSpeed == oldGpsSpeed) {
+                if(gpsSpeed == prevGPSSpeed) {
                     if(strictBaseLine < 5) {
                         strictBaseLine += (esp_random() % 5);
                     } else if(strictBaseLine > TT_SQF_LN - 4) {
@@ -1215,10 +1224,7 @@ static void showIdle(bool freezeBaseLine)
             sblFlags |= SBLF_STRICT;
         }
 
-        if(gpsSpeed != oldGpsSpeed) {
-            wakeup();
-            oldGpsSpeed = gpsSpeed;
-        }
+        prevGPSSpeed = gpsSpeed;
 
     } else if(idleMode == SID_IDLE_BL) {     // "backlot mode"
 

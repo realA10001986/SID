@@ -83,6 +83,8 @@
 
 /*  Changelog
  *  
+ *  2023/11/20 (A10001986)
+ *    - Make Wakeup on GPS/RotEnc changes more immediate
  *  2023/11/19 (A10001986)
  *    - Wake up on GPS/RotEnc speed change
  *    - Soften end of time travel when going back to actual GPS/RotEnc speed in 
