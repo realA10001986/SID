@@ -460,7 +460,7 @@ If you connect your SID to the TCD's access point ("TCD-AP"), the TCD's IP addre
 
 ##### &#9654; Adapt to GPS speed
 
-If your TCD is equipped with a GPS sensor, the SID can adapt its display to current GPS speed. This option selects if GPS speed should be used.
+If this option is checked and your TCD is equipped with a GPS sensor or a rotary encoder, the SID will adapt its display pattern to current GPS speed or the reading of the encoder, respectively.
 
 ##### &#9654; Follow TCD night-mode
 
