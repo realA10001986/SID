@@ -287,6 +287,12 @@ Note that a wired connection only allows for synchronized time travel sequences,
 
 The TCD can communicate with the SID wirelessly, via WiFi. It can send out information about a time travel and an alarm, and the SID queries the TCD for speed and some other data. Furthermore, the TCD's keypad can be used to remote-control the SID.
 
+| [![Watch the video](https://img.youtube.com/vi/u9oTVXUIOXA/0.jpg)](https://youtu.be/u9oTVXUIOXA) |
+|:--:|
+| Click to watch the video |
+
+Note that the TCD's firmware must be up to date for BTTFN. You can use [this](http://tcd.backtothefutu.re) one or CircuitSetup's release 2.9 or later.
+
 ![BTTFN connection](https://github.com/realA10001986/SID/assets/76924199/404e4dd5-ac31-4ca4-b6a1-c8084d3a82e0)
 
 In order to connect your SID to the TCD using BTTFN, just enter the TCD's IP address or hostname in the **_IP address or hostname of TCD_** field in the SID's Config Portal. On the TCD, no special configuration is required. Note that you need TCD firmware 2.9.1 or later for using a hostname; previous versions only work with an IP address.
