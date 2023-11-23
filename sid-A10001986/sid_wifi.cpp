@@ -65,7 +65,7 @@ PubSubClient mqttClient(mqttWClient);
 
 static const char *aco = "autocomplete='off'";
 
-WiFiManagerParameter custom_ssDelay("ssDel", "Screen saver timer (minutes; 0=off)", settings.ssTimer, 3, "type='number' min='0' max='999' autocomplete='off'", WFM_LABEL_BEFORE);
+WiFiManagerParameter custom_ssDelay("ssDel", "Screen Saver timer (minutes; 0=off)", settings.ssTimer, 3, "type='number' min='0' max='999' autocomplete='off'", WFM_LABEL_BEFORE);
 
 #ifdef TC_NOCHECKBOXES  // --- Standard text boxes: -------
 WiFiManagerParameter custom_disDIR("dDIR", "Disable supplied IR control (0=off, 1=on)", settings.disDIR, 1, "autocomplete='off' title='Set to 1 to disable the supplied IR remote control'");
@@ -115,6 +115,11 @@ WiFiManagerParameter custom_uNM("uNM", "Follow TCD night-mode<br><span style='fo
 WiFiManagerParameter custom_uFPO("uFPO", "Follow TCD fake power (0=no, 1=yes)", settings.useFPO, 1, "autocomplete='off'");
 #else // -------------------- Checkbox hack: --------------
 WiFiManagerParameter custom_uFPO("uFPO", "Follow TCD fake power", settings.useFPO, 1, "autocomplete='off' type='checkbox' style='margin-bottom:0px;'", WFM_LABEL_AFTER);
+#endif // -------------------------------------------------
+#ifdef TC_NOCHECKBOXES  // --- Standard text boxes: -------
+WiFiManagerParameter custom_ssClock("ssClk", "Show clock when Screen Saver is active (0=no, 1=yes)", settings.ssClock, 1, "autocomplete='off' ");
+#else // -------------------- Checkbox hack: --------------
+WiFiManagerParameter custom_ssClock("ssClk", "Show clock when Screen Saver is active", settings.ssClock, 1, "type='checkbox' style='margin-bottom:0px;'", WFM_LABEL_AFTER);
 #endif // -------------------------------------------------
 
 #ifdef TC_NOCHECKBOXES  // --- Standard text boxes: -------
@@ -309,12 +314,13 @@ void wifi_setup()
     wm.addParameter(&custom_TCDpresent);
     wm.addParameter(&custom_noETTOL);
 
-    wm.addParameter(&custom_sectstart);     // 7 (8)
+    wm.addParameter(&custom_sectstart);     // 7
     wm.addParameter(&custom_bttfnHint);
     wm.addParameter(&custom_tcdIP);
     wm.addParameter(&custom_uGPS);
     wm.addParameter(&custom_uNM);
     wm.addParameter(&custom_uFPO);
+    wm.addParameter(&custom_ssClock);
 
     wm.addParameter(&custom_sectstart);     // 4
     wm.addParameter(&custom_sStrict);
@@ -582,8 +588,6 @@ void wifi_loop()
             
             #ifdef TC_NOCHECKBOXES // --------- Plain text boxes:
 
-            mystrcpy(settings.SApeaks, &custom_SApeaks);
-
             mystrcpy(settings.disDIR, &custom_disDIR);
 
             mystrcpy(settings.TCDpresent, &custom_TCDpresent);
@@ -592,8 +596,10 @@ void wifi_loop()
             mystrcpy(settings.useGPSS, &custom_uGPS);
             mystrcpy(settings.useNM, &custom_uNM);
             mystrcpy(settings.useFPO, &custom_uFPO);
+            mystrcpy(settings.ssClock, &custom_ssClock);
 
             mystrcpy(settings.skipTTAnim, &custom_sTTANI);
+            mystrcpy(settings.SApeaks, &custom_SApeaks);
 
             #ifdef SID_HAVEMQTT
             mystrcpy(settings.useMQTT, &custom_useMQTT);
@@ -605,8 +611,6 @@ void wifi_loop()
 
             #else // -------------------------- Checkboxes:
 
-            strcpyCB(settings.SApeaks, &custom_SApeaks);
-            
             strcpyCB(settings.disDIR, &custom_disDIR);
 
             strcpyCB(settings.TCDpresent, &custom_TCDpresent);
@@ -615,8 +619,10 @@ void wifi_loop()
             strcpyCB(settings.useGPSS, &custom_uGPS);
             strcpyCB(settings.useNM, &custom_uNM);
             strcpyCB(settings.useFPO, &custom_uFPO);
+            strcpyCB(settings.ssClock, &custom_ssClock);
 
             strcpyCB(settings.skipTTAnim, &custom_sTTANI);
+            strcpyCB(settings.SApeaks, &custom_SApeaks);
 
             #ifdef SID_HAVEMQTT
             strcpyCB(settings.useMQTT, &custom_useMQTT);
@@ -1006,8 +1012,6 @@ void updateConfigPortalValues()
 
     #ifdef TC_NOCHECKBOXES  // Standard text boxes: -------
 
-    custom_SApeaks.setValue(settings.SApeaks, 1);
-
     custom_disDIR.setValue(settings.disDIR, 1);
 
     custom_TCDpresent.setValue(settings.TCDpresent, 1);
@@ -1016,8 +1020,10 @@ void updateConfigPortalValues()
     custom_uGPS.setValue(settings.useGPSS, 1);
     custom_uNM.setValue(settings.useNM, 1);
     custom_uFPO.setValue(settings.useFPO, 1);
+    custom_ssClock.setValue(settings.ssClock, 1);
 
     custom_sTTANI.setValue(settings.skipTTAnim, 1);
+    custom_SApeaks.setValue(settings.SApeaks, 1);
 
     #ifdef SID_HAVEMQTT
     custom_useMQTT.setValue(settings.useMQTT, 1);
@@ -1028,8 +1034,6 @@ void updateConfigPortalValues()
     
     #else   // For checkbox hack --------------------------
 
-    setCBVal(&custom_SApeaks, settings.SApeaks);
-
     setCBVal(&custom_disDIR, settings.disDIR);
 
     setCBVal(&custom_TCDpresent, settings.TCDpresent);
@@ -1038,8 +1042,10 @@ void updateConfigPortalValues()
     setCBVal(&custom_uGPS, settings.useGPSS);
     setCBVal(&custom_uNM, settings.useNM);
     setCBVal(&custom_uFPO, settings.useFPO);
+    setCBVal(&custom_ssClock, settings.ssClock);
 
     setCBVal(&custom_sTTANI, settings.skipTTAnim);
+    setCBVal(&custom_SApeaks, settings.SApeaks);
 
     #ifdef SID_HAVEMQTT
     setCBVal(&custom_useMQTT, settings.useMQTT);

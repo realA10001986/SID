@@ -44,7 +44,6 @@ extern uint8_t musFolderNum;
 // Default settings - change settings in the web interface 192.168.4.1
 
 #define DEF_SS_TIMER        0     // "Screen saver" timeout in minutes; 0 = ss off
-#define DEF_SA_PEAKS        0     // 1: Show peaks in SA, 0: don't
 
 #define DEF_DISDIR          0     // 0: Do not disable default IR remote control; 1: do
 
@@ -59,16 +58,17 @@ extern uint8_t musFolderNum;
 #define DEF_USE_GPSS        0     // 0: Ignore GPS speed; 1: Use it for chase speed
 #define DEF_USE_NM          0     // 0: Ignore TCD night mode; 1: Follow TCD night mode
 #define DEF_USE_FPO         0     // 0: Ignore TCD fake power; 1: Follow TCD fake power
+#define DEF_SS_CLK          0     // "Screen saver" is clock (0=off, 1=on)
 
 #define DEF_STRICT          1     // 0: Allow random diviations from movie patterns; 1: no not
 #define DEF_SKIP_TTANIM     1     // 0: Don't skip tt anim; 1: do
+#define DEF_SA_PEAKS        0     // 1: Show peaks in SA, 0: don't
 
 #define DEF_CFG_ON_SD       1     // Default: Save vol/spd/IR settings on SD card
 #define DEF_SD_FREQ         0     // SD/SPI frequency: Default 16MHz
 
 struct Settings {
     char ssTimer[6]         = MS(DEF_SS_TIMER);
-    char SApeaks[4]         = MS(DEF_SA_PEAKS);
     
     char disDIR[4]          = MS(DEF_DISDIR);
     
@@ -85,9 +85,11 @@ struct Settings {
     char useGPSS[4]         = MS(DEF_USE_GPSS);
     char useNM[4]           = MS(DEF_USE_NM);
     char useFPO[4]          = MS(DEF_USE_FPO);
+    char ssClock[4]         = MS(DEF_SS_CLK);
 
     char strictMode[4]      = MS(DEF_STRICT);       // saved, but overruled by idlePat config file
     char skipTTAnim[4]      = MS(DEF_SKIP_TTANIM);
+    char SApeaks[4]         = MS(DEF_SA_PEAKS);
 
 #ifdef SID_HAVEMQTT  
     char useMQTT[4]         = "0";

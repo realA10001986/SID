@@ -83,6 +83,10 @@
 
 /*  Changelog
  *  
+ *  2023/11/22 (A10001986)
+ *    - Add option to show clock when screen saver is active (requires BTTFN
+ *      connection to TCD for time information)
+ *    - Wake up only if "speed" is from RotEnc, not when from GPS
  *  2023/11/20 (A10001986)
  *    - Make Wakeup on GPS/RotEnc changes more immediate
  *  2023/11/19 (A10001986)

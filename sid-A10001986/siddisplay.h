@@ -66,6 +66,7 @@ class sidDisplay {
 
         void drawLetterAndShow(char alpha, int x = 0, int y = 8);
         void drawLetterMask(char alpha, int x, int y);
+        void drawClockAndShow(uint8_t *dateBuf, int dx, int dy);
 
     private:
         void directCmd(uint8_t val);

@@ -128,6 +128,7 @@ static bool usingGPSS   = false;
 static int16_t gpsSpeed = -1;
 static int16_t prevGPSSpeed = -2;
 static int16_t oldGpsSpeed = -2;
+static bool spdIsRotEnc = false;
 
 static bool useNM = false;
 static bool tcdNM = false;
@@ -278,6 +279,10 @@ static unsigned long ssLastActivity = 0;
 static unsigned long ssDelay = 0;
 static unsigned long ssOrigDelay = 0;
 static bool          ssActive = false;
+static bool          ssClock = false;
+static bool          ssIsClock = false;
+static int           ssClkPos = 0;
+static uint8_t       ssDateBuf[8];
 
 static bool          nmOld = false;
 static bool          fpoOld = false;
@@ -372,6 +377,9 @@ static int      iCmdIdx = 0;
 static int      oCmdIdx = 0;
 static uint32_t commandQueue[16] = { 0 };
 
+static uint8_t  bttfnDateBuf[8] = { 0xff };
+static unsigned long bttfnDateNow = 0;
+
 // Forward declarations ------
 
 static void startIRLearn();
@@ -408,6 +416,7 @@ static void TTKeyHeld();
 static void ssStart();
 static void ssEnd();
 static void ssRestartTimer();
+static void ssUpdateClock();
 
 static void bttfn_setup();
 static void BTTFNCheckPacket();
@@ -435,6 +444,7 @@ void main_setup()
     useGPSS = (atoi(settings.useGPSS) > 0);
     useNM = (atoi(settings.useNM) > 0);
     useFPO = (atoi(settings.useFPO) > 0);
+    ssClock = (atoi(settings.ssClock) > 0);
 
     skipTTAnim = (atoi(settings.skipTTAnim) > 0);
 
@@ -476,6 +486,8 @@ void main_setup()
     Serial.println(F("Booting IR Receiver"));
     #endif
     ir_remote.begin();
+
+    memset(bttfnDateBuf, 0xff, sizeof(bttfnDateBuf));
 
     // Initialize BTTF network
     bttfn_setup();
@@ -578,7 +590,7 @@ void main_loop()
             play_startup();
 
             ssRestartTimer();
-            ssActive = false;
+            ssActive = ssIsClock = false;
 
             sidBaseLine = strictBaseLine = 0;
             LMState = LMIdx = id5idx = 0;
@@ -981,6 +993,7 @@ void main_loop()
         if(networkAlarm && !IRLearning) {
 
             networkAlarm = false;
+            ssEnd();
             // play alarm sequence
             showWordSequence("ALARM", 4);
         
@@ -990,7 +1003,7 @@ void main_loop()
 
             // Wake up on GPS/RotEnc speed changes
             if(gpsSpeed != oldGpsSpeed) {
-                if(FPBUnitIsOn && gpsSpeed >= 0) {
+                if(FPBUnitIsOn && spdIsRotEnc && gpsSpeed >= 0) {
                     wakeup();
                 }
                 oldGpsSpeed = gpsSpeed;
@@ -1005,7 +1018,11 @@ void main_loop()
           
             // Default idle sequence
             if(FPBUnitIsOn) {
-                showIdle();
+                if(ssActive && ssClock) {
+                    ssUpdateClock();
+                } else {
+                    showIdle();
+                }
             }
 
         }
@@ -2378,13 +2395,30 @@ static void TTKeyHeld()
 }
 
 // "Screen saver"
+
+static void ssDoClock()
+{
+    const int ssClkx[4] = {0, 1, 1, 0};
+    const int ssClky[4] = {1, 1, 2, 2};
+    ssClkPos++;
+    ssClkPos&=0x03;
+    sid.drawClockAndShow(bttfnDateBuf, ssClkx[ssClkPos], ssClky[ssClkPos]);
+    memcpy(ssDateBuf, bttfnDateBuf, sizeof(bttfnDateBuf));
+}
+
 static void ssStart()
 {
     if(ssActive)
         return;
 
-    // Display off
-    sid.off();
+    if(ssClock && (bttfnDateBuf[0] != 0xff)) {
+        ssDoClock();
+        ssIsClock = true;
+    } else {
+        // Display off
+        sid.off();
+        ssIsClock = false;
+    }
 
     ssActive = true;
 }
@@ -2404,9 +2438,33 @@ static void ssEnd()
     if(!ssActive)
         return;
 
-    sid.on();
+    if(ssIsClock) {
+         sid.clearDisplayDirect();
+    } else {
+        sid.on();
+    }
 
     ssActive = false;
+}
+
+static void ssUpdateClock()
+{
+    if(ssIsClock) {
+        if(millis() - bttfnDateNow > 5000) {
+            // Lost contact - switch off clock
+            ssIsClock = false;
+            sid.off();
+        } else {
+          if(memcmp(ssDateBuf+4, bttfnDateBuf+4, 2)) {
+              ssDoClock();
+          }
+        }
+    } else if(millis() - bttfnDateNow < 2000) {
+        // Regained contact, switch clock on again
+        ssDoClock();
+        ssIsClock = true;
+        sid.on();
+    }
 }
 
 // Prepare TT: Stop games, disable s-s
@@ -2638,9 +2696,14 @@ static void BTTFNCheckPacket()
         }
         #endif
 
+        if(BTTFUDPBuf[5] & 0x01) {
+            memcpy(bttfnDateBuf, &BTTFUDPBuf[10], sizeof(bttfnDateBuf));
+            bttfnDateNow = mymillis;
+        }
         if(BTTFUDPBuf[5] & 0x02) {
             gpsSpeed = (int16_t)(BTTFUDPBuf[18] | (BTTFUDPBuf[19] << 8));
             if(gpsSpeed > 88) gpsSpeed = 88;
+            spdIsRotEnc = (BTTFUDPBuf[26] & 0x80) ? true : false;
         }
         if(BTTFUDPBuf[5] & 0x10) {
             tcdNM  = (BTTFUDPBuf[26] & 0x01) ? true : false;
@@ -2694,7 +2757,7 @@ static void BTTFNSendPacket()
     BTTFUDPBuf[10+13] = BTTFN_TYPE_SID;
 
     BTTFUDPBuf[4] = BTTFN_VERSION;  // Version
-    BTTFUDPBuf[5] = 0x12;           // Request GPS speed & status
+    BTTFUDPBuf[5] = 0x13;           // Request date/time, GPS speed and status
 
     #ifdef BTTFN_MC
     if(!haveTCDIP) {

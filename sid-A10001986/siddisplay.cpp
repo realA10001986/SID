@@ -497,7 +497,6 @@ void sidDisplay::drawLetterAndShow(char alpha, int x, int y)
 
 void sidDisplay::drawLetterMask(char alpha, int x, int y)
 {
-    uint8_t field[20*10] = { 0 };
     int w = 8, h = 8, fx = 0, fy = 0, a = 0x80, s;
 
     if(x < -7 || x > 9 || y < -7 || y > 19) {
@@ -547,6 +546,70 @@ void sidDisplay::drawLetterMask(char alpha, int x, int y)
         }
     }
 }
+
+void sidDisplay::drawClockAndShow(uint8_t *dateBuf, int dx, int dy)
+{
+    uint8_t field[20*10] = { 0 };
+    uint8_t fields[11*9] = { 0 };
+    int x[4], y[4], nums[4];
+    int ampm = -1;
+    uint8_t t = dateBuf[4];
+    int s, c, cx, h, w, ox, oy, yyy;
+
+    if(dx < -9 || dy < -11 || dx > 9 || dy > 19) {
+        clearDisplayDirect();   
+        return;
+    }
+
+    x[0] = x[2] = 0; x[1] = x[3] = 5;
+    y[0] = y[1] = 0; y[2] = y[3] = 6;
+    if(!(dateBuf[7] & 0x80)) {
+        ampm = (t > 11) ? 0 : 1;
+        if(!t)          t = 12;
+        else if(t > 12) t -= 12;
+    }
+    nums[0] = t / 10;
+    nums[1] = t % 10;
+    nums[2] = dateBuf[5] / 10;
+    nums[3] = dateBuf[5] % 10;
+    
+    for(c = 0; c < 4; c++) {
+        for(int yy = y[c], yyy = 0; yy < y[c] + 5; yy++, yyy++) {
+            uint8_t font = numChars4[nums[c]][yyy];
+            for(int xx = x[c], s = 0x08; xx < x[c] + 4; xx++, s >>= 1) {
+                if(font & s) {
+                    fields[(yy*9) + xx] = 1;
+                }
+            }
+        }
+    }
+    
+    if(dx < 0) {
+        ox = -dx;
+        w = 9 - ox;
+        dx = 0;
+    } else {
+        ox = 0;
+        w = min((10 - dx), 9);
+    }
+    if(dy < 0) {
+        oy = -dy;
+        h = 11 - oy;
+        dy = 0;
+    } else {
+        oy = 0;
+        h = min((20-dy), 11);
+    }
+
+    for(int yy = dy, c = oy; c < h; yy++, c++) {
+        for(int xx = dx, cx = ox; cx < w; xx++, cx++) {
+            field[(yy*10)+xx] = fields[(c*9)+cx];
+        }
+    }
+    
+    drawFieldAndShow(field);
+}
+
 
 // Show the buffer
 void sidDisplay::show()

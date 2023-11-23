@@ -309,7 +309,6 @@ static bool read_settings(File configFile)
     if(!error) {
 
         wd |= CopyCheckValidNumParm(json["ssTimer"], settings.ssTimer, sizeof(settings.ssTimer), 0, 999, DEF_SS_TIMER);
-        wd |= CopyCheckValidNumParm(json["SApeaks"], settings.SApeaks, sizeof(settings.SApeaks), 0, 1, DEF_SA_PEAKS);
         
         wd |= CopyCheckValidNumParm(json["disDIR"], settings.disDIR, sizeof(settings.disDIR), 0, 1, DEF_DISDIR);
 
@@ -341,11 +340,13 @@ static bool read_settings(File configFile)
         wd |= CopyCheckValidNumParm(json["useGPSS"], settings.useGPSS, sizeof(settings.useGPSS), 0, 1, DEF_USE_GPSS);
         wd |= CopyCheckValidNumParm(json["useNM"], settings.useNM, sizeof(settings.useNM), 0, 1, DEF_USE_NM);
         wd |= CopyCheckValidNumParm(json["useFPO"], settings.useFPO, sizeof(settings.useFPO), 0, 1, DEF_USE_FPO);
+        wd |= CopyCheckValidNumParm(json["ssClock"], settings.ssClock, sizeof(settings.ssClock), 0, 1, DEF_SS_CLK);
 
         // strictMode is overruled by loadIdlePat later (if present)
         wd |= CopyCheckValidNumParm(json["strictMode"], settings.strictMode, sizeof(settings.strictMode), 0, 1, DEF_STRICT);
         strictMode = (settings.strictMode[0] == '1');
         wd |= CopyCheckValidNumParm(json["skipTTAnim"], settings.skipTTAnim, sizeof(settings.skipTTAnim), 0, 1, DEF_SKIP_TTANIM);
+        wd |= CopyCheckValidNumParm(json["SApeaks"], settings.SApeaks, sizeof(settings.SApeaks), 0, 1, DEF_SA_PEAKS);
 
         #ifdef SID_HAVEMQTT
         wd |= CopyCheckValidNumParm(json["useMQTT"], settings.useMQTT, sizeof(settings.useMQTT), 0, 1, 0);
@@ -387,7 +388,6 @@ void write_settings()
     #endif
 
     json["ssTimer"] = (const char *)settings.ssTimer;
-    json["SApeaks"] = (const char *)settings.SApeaks;
 
     json["disDIR"] = (const char *)settings.disDIR;
 
@@ -404,10 +404,12 @@ void write_settings()
     json["useGPSS"] = (const char *)settings.useGPSS;
     json["useNM"] = (const char *)settings.useNM;
     json["useFPO"] = (const char *)settings.useFPO;
+    json["ssClock"] = (const char *)settings.ssClock;
 
     sprintf(settings.strictMode, "%d", strictMode ? 1 : 0);
     json["strictMode"] = (const char *)settings.strictMode;
     json["skipTTAnim"] = (const char *)settings.skipTTAnim;
+    json["SApeaks"] = (const char *)settings.SApeaks;
 
     #ifdef SID_HAVEMQTT
     json["useMQTT"] = (const char *)settings.useMQTT;
