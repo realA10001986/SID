@@ -476,11 +476,15 @@ If this option is checked, and your TCD goes into night mode, the SID will activ
 
 If this option is checked, and your TCD is equipped with a fake power switch, the SID will also fake-power up/down. If fake power is off, no LED is active and the SID will ignore all input from buttons, knobs and the IR control.
 
+##### &#9654; Show clock when Screen Saver is active
+
+If this option is checked, the SID will show current local time - as queried from the TCD - when the Screen Saver is active.
+
 #### Visual options
 
 ##### &#9654; Adhere strictly to movie patterns
 
-If this is set, in idle modes 0-3 as well as when using GPS speed, only patterns which were extracted from the movies (plus some interpolations) are shown. If this option is unset, random variations will be shown, which is less accurate, but also less monotonous. Purists will want this option to be set, which is also the default. This option can also be changed by typing *50 followed by OK on the IR remote control.
+If this option is checked, in idle modes 0-3 as well as when using GPS speed, only patterns which were extracted from the movies (plus some interpolations) are shown. If this option is unchecked, random variations will be shown, which is less accurate, but also less monotonous. Purists will want this option to be set, which is also the default. This option can also be changed by typing *50 followed by OK on the IR remote control.
 
 ##### &#9654; Skip time tunnel animation
 
