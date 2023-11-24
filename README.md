@@ -259,7 +259,9 @@ Note that the SD card must be inserted before powering up the device. It is not 
 
 ### Connecting a TCD by wire
 
-Connect GND and GPIO on the SID's "Time Travel" connector to the TCD like in the table below:
+Note that a wired connection only allows for synchronized time travel sequences, no other communication takes place. Therefore I strongly recommend a wireless BTTFN connection, see immediately below.
+
+For a connection by wire, connect GND and GPIO on the SID's "Time Travel" connector to the TCD like in the table below:
 
 <table>
     <tr>
@@ -269,19 +271,19 @@ Connect GND and GPIO on the SID's "Time Travel" connector to the TCD like in the
     </tr>
    <tr>
      <td align="center">GND</td>
-     <td align="center">GND of "IO13" connector</td>
+     <td align="center">GND of "IO14" connector</td>
      <td align="center">GND on "Time Travel" connector</td>
     </tr>
     <tr>
      <td align="center">TT</td>
-     <td align="center">IO13 of "IO13" connector</td>
+     <td align="center">IO14 of "IO14" connector</td>
      <td align="center">TT OUT on "Time Travel" connector</td>
     </tr>
 </table>
 
 Next, head to the Config Portal and set the ooption **_TCD connected by wire_**. On the TCD, the option "Control props connected by wire" must be set.
 
-Note that a wired connection only allows for synchronized time travel sequences, no other communication takes place. Therefore I strongly recommend a wireless BTTFN connection, see immediately below.
+You can connect both the TCD and a button to the TT connector, which might be handy in case you want to have the FC learn an IR remote control without fiddling with cables. But the button should not be pressed when the option **_TCD connected by wire_** is set, as it might yield unwanted results. Also, note that the button connects to IO13 and 3_3V (not GND!).
 
 ### BTTF-Network ("BTTFN")
 
