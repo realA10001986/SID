@@ -340,6 +340,7 @@ static bool read_settings(File configFile)
         wd |= CopyCheckValidNumParm(json["useGPSS"], settings.useGPSS, sizeof(settings.useGPSS), 0, 1, DEF_USE_GPSS);
         wd |= CopyCheckValidNumParm(json["useNM"], settings.useNM, sizeof(settings.useNM), 0, 1, DEF_USE_NM);
         wd |= CopyCheckValidNumParm(json["useFPO"], settings.useFPO, sizeof(settings.useFPO), 0, 1, DEF_USE_FPO);
+        wd |= CopyCheckValidNumParm(json["bttfnTT"], settings.bttfnTT, sizeof(settings.bttfnTT), 0, 1, DEF_BTTFN_TT);
         wd |= CopyCheckValidNumParm(json["ssClock"], settings.ssClock, sizeof(settings.ssClock), 0, 1, DEF_SS_CLK);
 
         // strictMode is overruled by loadIdlePat later (if present)
@@ -404,6 +405,7 @@ void write_settings()
     json["useGPSS"] = (const char *)settings.useGPSS;
     json["useNM"] = (const char *)settings.useNM;
     json["useFPO"] = (const char *)settings.useFPO;
+    json["bttfnTT"] = (const char *)settings.bttfnTT;
     json["ssClock"] = (const char *)settings.ssClock;
 
     sprintf(settings.strictMode, "%d", strictMode ? 1 : 0);

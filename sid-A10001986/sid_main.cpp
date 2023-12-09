@@ -136,6 +136,7 @@ bool        sidNM = false;
 static bool useFPO = false;
 static bool tcdFPO = false;
 static int  FPOSAMode = -1;
+static bool bttfnTT = true;
 
 static bool skipTTAnim = false;
 
@@ -422,6 +423,7 @@ static void bttfn_setup();
 static void BTTFNCheckPacket();
 static bool BTTFNTriggerUpdate();
 static void BTTFNSendPacket();
+static bool BTTFNTriggerTT();
 
 void main_boot()
 {
@@ -444,6 +446,7 @@ void main_setup()
     useGPSS = (atoi(settings.useGPSS) > 0);
     useNM = (atoi(settings.useNM) > 0);
     useFPO = (atoi(settings.useFPO) > 0);
+    bttfnTT = (atoi(settings.bttfnTT) > 0);
     ssClock = (atoi(settings.ssClock) > 0);
 
     skipTTAnim = (atoi(settings.skipTTAnim) > 0);
@@ -683,7 +686,9 @@ void main_loop()
                 if(TCDconnected) {
                     ssEnd();
                 }
-                timeTravel(TCDconnected, noETTOLead ? 0 : ETTO_LEAD);
+                if(!bttfnTT || !BTTFNTriggerTT()) {
+                    timeTravel(TCDconnected, noETTOLead ? 0 : ETTO_LEAD);
+                }
             }
         }
     
@@ -999,8 +1004,6 @@ void main_loop()
         
         } else if(!IRLearning) {
 
-            now = millis();
-
             // Wake up on GPS/RotEnc speed changes
             if(gpsSpeed != oldGpsSpeed) {
                 if(FPBUnitIsOn && spdIsRotEnc && gpsSpeed >= 0) {
@@ -1008,6 +1011,8 @@ void main_loop()
                 }
                 oldGpsSpeed = gpsSpeed;
             }
+
+            now = millis();
 
             // "Screen saver"
             if(FPBUnitIsOn) {
@@ -1861,7 +1866,9 @@ static void handleIRKey(int key)
         } else if (snActive) {
             // Nothing
         } else {
-            timeTravel(false, ETTO_LEAD);
+            if(!bttfnTT || !BTTFNTriggerTT()) {
+                timeTravel(false, ETTO_LEAD);
+            }
         }
         break;
     case 1:                           // 1: si/sn: quit
@@ -2786,4 +2793,50 @@ static void BTTFNSendPacket()
     #endif
     sidUDP->write(BTTFUDPBuf, BTTF_PACKET_SIZE);
     sidUDP->endPacket();
+}
+
+static bool BTTFNTriggerTT()
+{
+    if(!useBTTFN)
+        return false;
+
+    #ifdef BTTFN_MC
+    if(!haveTCDIP)
+        return false;
+    #endif
+
+    if(WiFi.status() != WL_CONNECTED)
+        return false;
+
+    if(!lastBTTFNpacket)
+        return false;
+
+    if(TCDconnected || TTrunning || IRLearning)
+        return false;
+
+    memset(BTTFUDPBuf, 0, BTTF_PACKET_SIZE);
+
+    // ID
+    memcpy(BTTFUDPBuf, BTTFUDPHD, 4);
+
+    // Tell the TCD about our hostname (0-term., 13 bytes total)
+    strncpy((char *)BTTFUDPBuf + 10, settings.hostName, 12);
+    BTTFUDPBuf[10+12] = 0;
+
+    BTTFUDPBuf[10+13] = BTTFN_TYPE_SID;
+
+    BTTFUDPBuf[4] = BTTFN_VERSION;  // Version
+    BTTFUDPBuf[5] = 0x80;           // Trigger BTTFN-wide TT
+
+    uint8_t a = 0;
+    for(int i = 4; i < BTTF_PACKET_SIZE - 1; i++) {
+        a += BTTFUDPBuf[i] ^ 0x55;
+    }
+    BTTFUDPBuf[BTTF_PACKET_SIZE - 1] = a;
+        
+    sidUDP->beginPacket(bttfnTcdIP, BTTF_DEFAULT_LOCAL_PORT);
+    sidUDP->write(BTTFUDPBuf, BTTF_PACKET_SIZE);
+    sidUDP->endPacket();
+
+    return true;
 }

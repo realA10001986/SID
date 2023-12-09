@@ -58,6 +58,7 @@ extern uint8_t musFolderNum;
 #define DEF_USE_GPSS        0     // 0: Ignore GPS speed; 1: Use it for chase speed
 #define DEF_USE_NM          0     // 0: Ignore TCD night mode; 1: Follow TCD night mode
 #define DEF_USE_FPO         0     // 0: Ignore TCD fake power; 1: Follow TCD fake power
+#define DEF_BTTFN_TT        1     // 0: '0' on IR remove and TT button trigger stand-alone TT; 1: They trigger BTTFN-wide TT
 #define DEF_SS_CLK          0     // "Screen saver" is clock (0=off, 1=on)
 
 #define DEF_STRICT          1     // 0: Allow random diviations from movie patterns; 1: no not
@@ -85,6 +86,7 @@ struct Settings {
     char useGPSS[4]         = MS(DEF_USE_GPSS);
     char useNM[4]           = MS(DEF_USE_NM);
     char useFPO[4]          = MS(DEF_USE_FPO);
+    char bttfnTT[4]         = MS(DEF_BTTFN_TT);
     char ssClock[4]         = MS(DEF_SS_CLK);
 
     char strictMode[4]      = MS(DEF_STRICT);       // saved, but overruled by idlePat config file

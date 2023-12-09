@@ -83,6 +83,10 @@
 
 /*  Changelog
  *  
+ *  2023/12/08 (A10001986)
+ *    - Add option to trigger a BTTFN-wide TT when pressing 0 on the IR remote
+ *      or pressing the TT button (instead of a stand-alone TT).
+ *    - Fix wakeup vs. SS logic
  *  2023/11/22 (A10001986)
  *    - Add option to show clock when screen saver is active (requires BTTFN
  *      connection to TCD for time information)
