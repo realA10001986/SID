@@ -287,7 +287,7 @@ You can connect both the TCD and a button to the TT connector, which might be ha
 
 ### BTTF-Network ("BTTFN")
 
-The TCD can communicate with the SID wirelessly, via WiFi. It can send out information about a time travel and an alarm, and the SID queries the TCD for speed and some other data. Furthermore, the TCD's keypad can be used to remote-control the SID.
+The TCD can communicate with the SID wirelessly, via the built-in "Basic-Telematics-Transmission-Framework" over WiFi. It can send out information about a time travel and an alarm, and the SID queries the TCD for speed and some other data. Furthermore, the TCD's keypad can be used to remote-control the SID.
 
 | [![Watch the video](https://img.youtube.com/vi/u9oTVXUIOXA/0.jpg)](https://youtu.be/u9oTVXUIOXA) |
 |:--:|
