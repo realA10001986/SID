@@ -1,9 +1,9 @@
 /*
  * -------------------------------------------------------------------
  * CircuitSetup.us Status Indicator Display
- * (C) 2023 Thomas Winischhofer (A10001986)
+ * (C) 2023-2024 Thomas Winischhofer (A10001986)
  * https://github.com/realA10001986/SID
- * https://sid.backtothefutu.re
+ * https://sid.out-a-ti.me
  *
  * License: MIT
  * 
@@ -59,7 +59,16 @@
  *   The CH340 is supported out-of-the-box since Mojave. The port is named 
  *   /dev/cu.usbserial-XXXX (XXXX being some random number), and the maximum upload 
  *   speed is 460800.
- *   Windows: No idea. Not been using Windows since 1999.
+ *   Windows:
+ *   For the SLAB CP210x (which is used by NodeMCU-boards distributed by CircuitSetup)
+ *   installing a driver is required:
+ *   https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers?tab=downloads
+ *   After installing this driver, connect your ESP32, start the Device Manager, 
+ *   expand the "Ports (COM & LPT)" list and look for the port with the ESP32 name.
+ *   Choose this port under "Tools" -> "Port" in Arduino IDE.
+ *   For the CH340, another driver is needed. Try connecting the ESP32 and have
+ *   Windows install a driver automatically; otherwise search google for a suitable
+ *   driver. Note that the maximum upload speed is either 115200, or perhaps 460800.
  *
  * - Install required libraries. In the Arduino IDE, go to "Tools" -> "Manage Libraries" 
  *   and install the following libraries:
@@ -83,6 +92,10 @@
 
 /*  Changelog
  *  
+ *  2024/01/15 (A10001986)
+ *    - Flush outstanding delayed saves before rebooting and on fake-power-off
+ *    - Remove "Restart" menu item from CP, can't let WifiManager reboot behind
+ *      our back.
  *  2023/12/08 (A10001986)
  *    - Add option to trigger a BTTFN-wide TT when pressing 0 on the IR remote
  *      or pressing the TT button (instead of a stand-alone TT).

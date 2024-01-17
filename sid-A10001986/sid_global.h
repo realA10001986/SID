@@ -1,9 +1,9 @@
 /*
  * -------------------------------------------------------------------
  * CircuitSetup.us Status Indicator Display
- * (C) 2023 Thomas Winischhofer (A10001986)
+ * (C) 2023-2024 Thomas Winischhofer (A10001986)
  * https://github.com/realA10001986/SID
- * https://sid.backtothefutu.re
+ * https://sid.out-a-ti.me
  *
  * Global definitions
  */
@@ -11,9 +11,9 @@
 #ifndef _SID_GLOBAL_H
 #define _SID_GLOBAL_H
 
-// Version strings.
-#define SID_VERSION       "V1.10"
-#define SID_VERSION_EXTRA "DEC082023"
+// Version strings
+#define SID_VERSION       "V1.11"
+#define SID_VERSION_EXTRA "JAN152024"
 
 //#define SID_DBG              // debug output on Serial
 

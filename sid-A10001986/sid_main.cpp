@@ -1,9 +1,9 @@
 /*
  * -------------------------------------------------------------------
  * CircuitSetup.us Status Indicator Display
- * (C) 2023 Thomas Winischhofer (A10001986)
+ * (C) 2023-2024 Thomas Winischhofer (A10001986)
  * https://github.com/realA10001986/SID
- * https://sid.backtothefutu.re
+ * https://sid.out-a-ti.me
  *
  * Main controller
  *
@@ -101,7 +101,7 @@ static int            LMIdx, LMY, LMState;
 static unsigned long  LMAdvNow, LMDelay;
 static unsigned long  lastChange2 = 0;
 static unsigned long  idleDelay2 = 800;
-static const char     LM[] = "  BACK TO THE FUTURE ";   // Space at beginning for letting pattern grow first
+static char           LM[] = { 0xa8,0xa8,0xca,0xc9,0xcb,0xc3,0xa8,0xdc,0xc7,0xa8,0xdc,0xc0,0xcd,0xa8,0xce,0xdd,0xdc,0xdd,0xda,0xcd,0xa8,0 }; // Space at beginning for letting pattern grow first
 static const char     LMTT[] = { 36, 37, 38, 39, 0 };
 
 #define ID5_STEPS 14
@@ -433,6 +433,8 @@ void main_boot()
 
 void main_setup()
 {
+    char *s = LM;
+    
     Serial.println(F("Status Indicator Display version " SID_VERSION " " SID_VERSION_EXTRA));
 
     // Load settings
@@ -498,6 +500,8 @@ void main_setup()
 
     // Other inits
     idleDelay2 = 800 + ((int)(esp_random() % 200) - 100);
+
+    for( ; *s; ++s) *s ^= (SBLF_SKIPSHOW + SBLF_STRICT);
 
     // If "Follow TCD fake power" is set,
     // stay silent and dark
@@ -573,6 +577,8 @@ void main_loop()
             span_stop();
             siddly_stop();
             snake_stop();
+
+            flushDelayedSave();
             
             // FIXME - anything else?
             
@@ -1084,6 +1090,24 @@ void main_loop()
     }
 }
 
+void flushDelayedSave()
+{
+    if(brichanged) {
+        brichanged = false;
+        saveBrightness();
+    }
+
+    if(ipachanged) {
+        ipachanged = false;
+        saveIdlePat();
+    }
+
+    if(irlchanged) {
+        irlchanged = false;
+        saveIRLock();
+    }
+}
+
 static void showBaseLine(int variation, uint16_t flags)
 {
     const int mods[21][10] = {
@@ -1504,6 +1528,8 @@ static void timeTravel(bool TCDtriggered, uint16_t P0Dur)
 
     siddly_stop();
     snake_stop();
+
+    flushDelayedSave();
     
     if(initScreen) {
         lastChange = 0;
@@ -2161,6 +2187,7 @@ static bool execute(bool isIR)
                     span_stop();
                     siddly_stop();
                     snake_stop();
+                    flushDelayedSave();
                     showWordSequence(ipbuf, 5);
                     ir_remote.loop(); // Flush IR afterwards
                 }
@@ -2183,6 +2210,7 @@ static bool execute(bool isIR)
             if(!strcmp(inputBuffer, "64738")) {
                 allOff();
                 endIRfeedback();
+                flushDelayedSave();
                 unmount_fs();
                 delay(50);
                 esp_restart();
@@ -2194,6 +2222,7 @@ static bool execute(bool isIR)
         if(!isIRLocked) {
             if(!TTrunning) {
                 if(!strcmp(inputBuffer, "123456")) {
+                    flushDelayedSave();
                     deleteIpSettings();               // *123456OK deletes IP settings
                     settings.appw[0] = 0;             // and clears AP mode WiFi password
                     write_settings();
@@ -2521,7 +2550,7 @@ void mydelay(unsigned long mydel, bool withIR)
 
 
 /*
- * BTTF network communication
+ * Basic Telematics Transmission Framework (BTTFN)
  */
 
 static void addCmdQueue(uint32_t command)
