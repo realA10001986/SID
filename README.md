@@ -1,8 +1,8 @@
 # Firmware for Status Indicator Display (SID)
 
-This repository holds the most current firmware for CircuitSetup's magnificent [SID](https://circuitsetup.us/product/delorean-time-machine-status-indicator-display-sid/). The SID, also known as "Field Containment System Display", is an important part of Doc Brown's time machine in the "Back to the Future" movies.
+This repository holds the most current firmware for CircuitSetup's magnificent [SID](https://circuitsetup.us/product/delorean-time-machine-status-indicator-display-sid/) kit. The SID, also known as "Field Containment System Display", is an important part of Doc Brown's Delorean Time Machine.
 
-The hardware is available [here](https://circuitsetup.us/product/delorean-time-machine-status-indicator-display-sid/).
+The parts are available [here](https://circuitsetup.us/product/delorean-time-machine-status-indicator-display-sid/).
 
 ![mysid](https://github.com/realA10001986/SID/assets/76924199/cdd8f609-1248-41f2-92cc-0489fe0397bf)
 
