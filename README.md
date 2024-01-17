@@ -8,11 +8,11 @@ The parts are available [here](https://circuitsetup.us/product/delorean-time-mac
 
 Features include
 - various idle patterns
-- [Time Travel](#time-travel) function, triggered by button, [Time Circuits Display](https://tcd.backtothefutu.re) or via [MQTT](#home-assistant--mqtt)
+- [Time Travel](#time-travel) function, triggered by button, [Time Circuits Display](https://tcd.out-a-ti.me) or via [MQTT](#home-assistant--mqtt)
 - [IR remote controlled](#ir-remote-control); can learn keys from third-party remote
 - Spectrum Analyzer mode via built-in microphone
 - Advanced network-accessible [Config Portal](#the-config-portal) for setup with mDNS support for easy access (http://sid.local, hostname configurable)
-- Wireless communication with [Time Circuits Display](https://tcd.backtothefutu.re) ("[BTTF-Network](#bttf-network-bttfn)"); used for synchonized time travels, GPS-speed adapted patterns, alarm, night mode, fake power and remote control through TCD keypad
+- Wireless communication with [Time Circuits Display](https://tcd.out-a-ti.me) ("[BTTF-Network](#bttf-network-bttfn)"); used for synchonized time travels, GPS-speed adapted patterns, alarm, night mode, fake power and remote control through TCD keypad
 - [Home Assistant](#home-assistant--mqtt) (MQTT 3.1.1) support
 - [*Siddly*](#siddly) and [*Snake*](#snake) games
 - [SD card](#sd-card) support
@@ -293,7 +293,7 @@ The TCD can communicate with the SID wirelessly, via WiFi. It can send out infor
 |:--:|
 | Click to watch the video |
 
-Note that the TCD's firmware must be up to date for BTTFN. You can use [this](http://tcd.backtothefutu.re) one or CircuitSetup's release 2.9 or later.
+Note that the TCD's firmware must be up to date for BTTFN. You can use [this](http://tcd.out-a-ti.me) one or CircuitSetup's release 2.9 or later.
 
 ![BTTFN connection](https://github.com/realA10001986/SID/assets/76924199/404e4dd5-ac31-4ca4-b6a1-c8084d3a82e0)
 
@@ -339,11 +339,11 @@ Limitations: MQTT Protocol version 3.1.1; TLS/SSL not supported; ".local" domain
 
 ## Car setup
 
-If your SID, along with a [Time Circuits Display](https://tcd.backtothefutu.re), is mounted in a car, the following network configuration is recommended:
+If your SID, along with a [Time Circuits Display](https://tcd.out-a-ti.me), is mounted in a car, the following network configuration is recommended:
 
 #### TCD
 
-- Run your TCD in [*car mode*](https://tcd.backtothefutu.re/#car-mode);
+- Run your TCD in [*car mode*](https://tcd.out-a-ti.me/#car-mode);
 - disable WiFi power-saving on the TCD by setting **_WiFi power save timer for AP-mode_** to 0 (zero).
 
 #### SID
