@@ -92,6 +92,8 @@
 
 /*  Changelog
  *  
+ *  2024/01/21 (A10001986)
+ *    - Major cleanup, minor fixes
  *  2024/01/18 (A10001986)
  *    - Fix Wifi Menu size
  *  2024/01/15 (A10001986)

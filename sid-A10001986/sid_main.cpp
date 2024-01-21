@@ -354,6 +354,7 @@ static const char    IRLearnKeys[] = "0123456789*#^$<>~";
 #define BTTFN_TYPE_FLUX    1    // Flux Capacitor
 #define BTTFN_TYPE_SID     2    // SID
 #define BTTFN_TYPE_PCG     3    // Plutonium gauge panel
+#define BTTFN_TYPE_AUX     4    // Aux (user custom device)
 static const uint8_t BTTFUDPHD[4] = { 'B', 'T', 'T', 'F' };
 static bool          useBTTFN = false;
 static WiFiUDP       bttfUDP;

@@ -57,47 +57,43 @@
 // Needs to be adapted when config grows
 #define JSON_SIZE 1600
 
+static const char *cfgName    = "/sidconfig.json";  // Main config (flash)
+static const char *ipCfgName  = "/sidipcfg.json";   // IP config (flash)
+static const char *briCfgName = "/sidbricfg.json";  // Brightness config (flash/SD)
+static const char *irlCfgName = "/sidirlcfg.json";  // IR lock (flash/SD)
+static const char *irCfgName  = "/sidirkeys.json";  // IR keys (system-created) (flash/SD)
+static const char *irUCfgName = "/sidirkeys.txt";   // IR keys (user-created) (SD only)
+static const char *ipaCfgName = "/sidipat.json";    // Idle pattern (SD only)
+
+static const char *jsonNames[NUM_IR_KEYS] = {
+    "key0", "key1", "key2", "key3", "key4", 
+    "key5", "key6", "key7", "key8", "key9", 
+    "keySTAR", "keyHASH",
+    "keyUP", "keyDOWN",
+    "keyLEFT", "keyRIGHT",
+    "keyOK" 
+};
+
+static const char *fsNoAvail = "File System not available";
+static const char *badConfig = "Settings bad/missing/incomplete; writing new file";
+static const char *failFileWrite = "Failed to open file for writing";
+
 /* If SPIFFS/LittleFS is mounted */
 static bool haveFS = false;
 
 /* If a SD card is found */
 bool haveSD = false;
 
-/* Save alarm/volume on SD? */
+/* Save secondary settings on SD? */
 static bool configOnSD = false;
-
-/* Cache for brightness */
-static uint8_t prevSavedBri = 12;
-
-/* Cache for idleMode */
-static uint16_t prevSavedIM = 0;
-
-/* Cache for IR lock */
-static bool prevSavedIRL = 0;
 
 /* Paranoia: No writes Flash-FS  */
 bool FlashROMode = false;
 
-static const char *cfgName    = "/sidconfig.json";  // Main config (flash)
-static const char *ipCfgName  = "/sidipcfg.json";   // IP config (flash)
-static const char *briCfgName = "/sidbricfg.json";  // Brightness config (flash/SD)
-static const char *irCfgName  = "/sidirkeys.json";  // IR keys (system-created) (flash/SD)
-static const char *irlCfgName = "/sidirlcfg.json";  // IR lock (flash/SD)
-static const char *irUCfgName = "/sidirkeys.txt";   // IR keys (user-created) (SD)
-static const char *ipaCfgName = "/sidipat.json";    // Idle pattern (SD only)
-
-static const char *jsonNames[NUM_IR_KEYS] = {
-        "key0", "key1", "key2", "key3", "key4", 
-        "key5", "key6", "key7", "key8", "key9", 
-        "keySTAR", "keyHASH",
-        "keyUP", "keyDOWN",
-        "keyLEFT", "keyRIGHT",
-        "keyOK" 
-};
-
-static const char *fsNoAvail = "File System not available";
-static const char *badConfig = "Settings bad/missing/incomplete; writing new file";
-static const char *failFileWrite = "Failed to open file for writing";
+/* Cache */
+static uint8_t  prevSavedBri = 12;
+static uint16_t prevSavedIM  = 0;
+static bool     prevSavedIRL = 0;
 
 static bool read_settings(File configFile);
 
@@ -107,10 +103,6 @@ static bool checkValidNumParm(char *text, int lowerLim, int upperLim, int setDef
 static bool checkValidNumParmF(char *text, float lowerLim, float upperLim, float setDefault);
 
 static bool loadIRKeys();
-
-static void open_and_copy(const char *fn, int& haveErr);
-static bool filecopy(File source, File dest);
-static bool check_if_default_audio_present();
 
 static bool CopyIPParm(const char *json, char *text, uint8_t psize);
 
@@ -222,9 +214,7 @@ void settings_setup()
 
     } else {
 
-        #ifdef SID_DBG
         Serial.println(F("No SD card found"));
-        #endif
       
     }
 
@@ -269,14 +259,14 @@ void unmount_fs()
 {
     if(haveFS) {
         SPIFFS.end();
-        #ifdef TC_DBG
+        #ifdef SID_DBG
         Serial.println(F("Unmounted Flash FS"));
         #endif
         haveFS = false;
     }
     if(haveSD) {
         SD.end();
-        #ifdef TC_DBG
+        #ifdef SID_DBG
         Serial.println(F("Unmounted SD card"));
         #endif
         haveSD = false;
@@ -430,7 +420,6 @@ bool checkConfigExists()
     return FlashROMode ? SD.exists(cfgName) : (haveFS && SPIFFS.exists(cfgName));
 }
 
-
 /*
  *  Helpers for parm copying & checking
  */
@@ -539,200 +528,6 @@ static bool openCfgFileRead(const char *fn, File& f, bool SDonly = false)
 }
 
 /*
- *  Load/save the Brightness
- */
-
-bool loadBrightness()
-{
-    const char *funcName = "loadBrightness";
-    char temp[6];
-    File configFile;
-
-    if(!haveFS && !configOnSD) {
-        #ifdef SID_DBG
-        Serial.printf("%s: %s\n", funcName, fsNoAvail);
-        #endif
-        return false;
-    }
-
-    if(openCfgFileRead(briCfgName, configFile)) {
-        StaticJsonDocument<512> json;
-        //if(!deserializeJson(json, configFile)) {
-        if(!readJSONCfgFile(json, configFile, funcName)) {
-            if(!CopyCheckValidNumParm(json["brightness"], temp, sizeof(temp), 0, 15, 15)) {
-                sid.setBrightness((uint8_t)atoi(temp), true);
-            }
-        } 
-        configFile.close();
-    }
-
-    // Do not write a default file, use pre-set value
-
-    prevSavedBri = sid.getBrightness();
-
-    return true;
-}
-
-void saveBrightness(bool useCache)
-{
-    const char *funcName = "saveBrightness";
-    char buf[6];
-    StaticJsonDocument<512> json;
-
-    if(useCache && (prevSavedBri == sid.getBrightness())) {
-        #ifdef SID_DBG
-        Serial.printf("%s: Prev. saved bri identical, not writing\n", funcName);
-        #endif
-        return;
-    }
-
-    if(!haveFS && !configOnSD) {
-        Serial.printf("%s: %s\n", funcName, fsNoAvail);
-        return;
-    }
-
-    sprintf(buf, "%d", sid.getBrightness());
-    json["brightness"] = (const char *)buf;
-
-    if(writeJSONCfgFile(json, briCfgName, configOnSD, funcName)) {
-        prevSavedBri = sid.getBrightness();
-    }
-}
-
-/*
- *  Load/save the idle pattern (SD only)
- */
-
-bool loadIdlePat()
-{
-    const char *funcName = "loadIdlePat";
-    char temp[6];
-    File configFile;
-
-    if(!haveSD) {
-        #ifdef SID_DBG
-        Serial.printf("%s: %s\n", funcName, fsNoAvail);
-        #endif
-        return false;
-    }
-
-    if(openCfgFileRead(ipaCfgName, configFile, true)) {
-        StaticJsonDocument<512> json;
-        //if(!deserializeJson(json, configFile)) {
-        if(!readJSONCfgFile(json, configFile, funcName)) {
-            if(!CopyCheckValidNumParm(json["pattern"], temp, sizeof(temp), 0, 0x1f, 0)) {
-                idleMode = (uint16_t)atoi(temp);
-                strictMode = (idleMode & 0x10) ? true : false;
-                idleMode &= 0x0f;
-                if(idleMode > SID_MAX_IDLE_MODE) idleMode = 0;
-            }
-        } 
-        configFile.close();
-    }
-
-    // Do not write a default file, use pre-set value
-
-    prevSavedIM = idleMode;
-    if(strictMode) prevSavedIM |= 0x10;
-
-    #ifdef SID_DBG
-    Serial.printf("%s: idleMode %d, strict %d\n", funcName, idleMode, strictMode);
-    #endif
-
-    return true;
-}
-
-void saveIdlePat(bool useCache)
-{
-    const char *funcName = "saveIdlePat";
-    char buf[6];
-    uint16_t tempIM = idleMode;
-    StaticJsonDocument<512> json;
-
-    if(strictMode) tempIM |= 0x10;
-
-    if(useCache && (prevSavedIM == tempIM)) {
-        #ifdef SID_DBG
-        Serial.printf("%s: Prev. saved idle pattern identical, not writing\n", funcName);
-        #endif
-        return;
-    }
-
-    if(!haveSD) {
-        Serial.printf("%s: %s\n", funcName, fsNoAvail);
-        return;
-    }
-
-    sprintf(buf, "%d", tempIM);
-    json["pattern"] = (const char *)buf;
-
-    if(writeJSONCfgFile(json, ipaCfgName, true, funcName)) {
-        prevSavedIM = tempIM;
-    }
-}
-
-/*
- *  Load/save the IR lock status
- */
-
-bool loadIRLock()
-{
-    const char *funcName = "loadIRLock";
-    char temp[6];
-    File configFile;
-
-    if(!haveFS && !configOnSD) {
-        #ifdef SID_DBG
-        Serial.printf("%s: %s\n", funcName, fsNoAvail);
-        #endif
-        return false;
-    }
-
-    if(openCfgFileRead(irlCfgName, configFile)) {
-        StaticJsonDocument<512> json;
-        //if(!deserializeJson(json, configFile)) {
-        if(!readJSONCfgFile(json, configFile, funcName)) {
-            if(!CopyCheckValidNumParm(json["lock"], temp, sizeof(temp), 0, 1, 0)) {
-                irLocked = (atoi(temp) > 0);
-            }
-        } 
-        configFile.close();
-    }
-
-    // Do not write a default file, use pre-set value
-
-    prevSavedIRL = irLocked;
-
-    return true;
-}
-
-void saveIRLock(bool useCache)
-{
-    const char *funcName = "saveIRLock";
-    char buf[6];
-    StaticJsonDocument<512> json;
-
-    if(useCache && (prevSavedIRL == irLocked)) {
-        #ifdef SID_DBG
-        Serial.printf("%s: Prev. saved irl identical, not writing\n", funcName);
-        #endif
-        return;
-    }
-
-    if(!haveFS && !configOnSD) {
-        Serial.printf("%s: %s\n", funcName, fsNoAvail);
-        return;
-    }
-
-    sprintf(buf, "%d", irLocked ? 1 : 0);
-    json["lock"] = (const char *)buf;
-
-    if(writeJSONCfgFile(json, irlCfgName, configOnSD, funcName)) {
-        prevSavedIRL = irLocked;
-    }
-}
-
-/*
  * Load custom IR config
  */
 
@@ -829,28 +624,198 @@ void deleteIRKeys()
     }
 }
 
-/* Copy secondary settings from/to SD if user
- * changed "save to SD"-option in CP
+/*
+ *  Load/save the Brightness
  */
 
-void copySettings()
+bool loadBrightness()
 {
-    if(!haveSD || !haveFS)
-        return;
+    const char *funcName = "loadBrightness";
+    char temp[6];
+    File configFile;
 
-    configOnSD = !configOnSD;
-
-    if(configOnSD || !FlashROMode) {
+    if(!haveFS && !configOnSD) {
         #ifdef SID_DBG
-        Serial.println(F("copySettings: Copying secondary settings to other medium"));
+        Serial.printf("%s: %s\n", funcName, fsNoAvail);
         #endif
-        saveBrightness(false);
-        saveIRLock(false);
-        saveIRKeys();
-        // NOT idlePat, is only stored on SD
+        return false;
     }
 
-    configOnSD = !configOnSD;
+    if(openCfgFileRead(briCfgName, configFile)) {
+        StaticJsonDocument<512> json;
+        //if(!deserializeJson(json, configFile)) {
+        if(!readJSONCfgFile(json, configFile, funcName)) {
+            if(!CopyCheckValidNumParm(json["brightness"], temp, sizeof(temp), 0, 15, 15)) {
+                sid.setBrightness((uint8_t)atoi(temp), true);
+            }
+        } 
+        configFile.close();
+    }
+
+    // Do not write a default file, use pre-set value
+
+    prevSavedBri = sid.getBrightness();
+
+    return true;
+}
+
+void saveBrightness(bool useCache)
+{
+    const char *funcName = "saveBrightness";
+    char buf[6];
+    StaticJsonDocument<512> json;
+
+    if(useCache && (prevSavedBri == sid.getBrightness())) {
+        #ifdef SID_DBG
+        Serial.printf("%s: Prev. saved bri identical, not writing\n", funcName);
+        #endif
+        return;
+    }
+
+    if(!haveFS && !configOnSD) {
+        Serial.printf("%s: %s\n", funcName, fsNoAvail);
+        return;
+    }
+
+    sprintf(buf, "%d", sid.getBrightness());
+    json["brightness"] = (const char *)buf;
+
+    if(writeJSONCfgFile(json, briCfgName, configOnSD, funcName)) {
+        prevSavedBri = sid.getBrightness();
+    }
+}
+
+/*
+ *  Load/save the IR lock status
+ */
+
+bool loadIRLock()
+{
+    const char *funcName = "loadIRLock";
+    char temp[6];
+    File configFile;
+
+    if(!haveFS && !configOnSD) {
+        #ifdef SID_DBG
+        Serial.printf("%s: %s\n", funcName, fsNoAvail);
+        #endif
+        return false;
+    }
+
+    if(openCfgFileRead(irlCfgName, configFile)) {
+        StaticJsonDocument<512> json;
+        //if(!deserializeJson(json, configFile)) {
+        if(!readJSONCfgFile(json, configFile, funcName)) {
+            if(!CopyCheckValidNumParm(json["lock"], temp, sizeof(temp), 0, 1, 0)) {
+                irLocked = (atoi(temp) > 0);
+            }
+        } 
+        configFile.close();
+    }
+
+    // Do not write a default file, use pre-set value
+
+    prevSavedIRL = irLocked;
+
+    return true;
+}
+
+void saveIRLock(bool useCache)
+{
+    const char *funcName = "saveIRLock";
+    char buf[6];
+    StaticJsonDocument<512> json;
+
+    if(useCache && (prevSavedIRL == irLocked)) {
+        #ifdef SID_DBG
+        Serial.printf("%s: Prev. saved irl identical, not writing\n", funcName);
+        #endif
+        return;
+    }
+
+    if(!haveFS && !configOnSD) {
+        Serial.printf("%s: %s\n", funcName, fsNoAvail);
+        return;
+    }
+
+    sprintf(buf, "%d", irLocked ? 1 : 0);
+    json["lock"] = (const char *)buf;
+
+    if(writeJSONCfgFile(json, irlCfgName, configOnSD, funcName)) {
+        prevSavedIRL = irLocked;
+    }
+}
+
+/*
+ *  Load/save the idle pattern (SD only)
+ */
+
+bool loadIdlePat()
+{
+    const char *funcName = "loadIdlePat";
+    char temp[6];
+    File configFile;
+
+    if(!haveSD) {
+        #ifdef SID_DBG
+        Serial.printf("%s: %s\n", funcName, fsNoAvail);
+        #endif
+        return false;
+    }
+
+    if(openCfgFileRead(ipaCfgName, configFile, true)) {
+        StaticJsonDocument<512> json;
+        //if(!deserializeJson(json, configFile)) {
+        if(!readJSONCfgFile(json, configFile, funcName)) {
+            if(!CopyCheckValidNumParm(json["pattern"], temp, sizeof(temp), 0, 0x1f, 0)) {
+                idleMode = (uint16_t)atoi(temp);
+                strictMode = (idleMode & 0x10) ? true : false;
+                idleMode &= 0x0f;
+                if(idleMode > SID_MAX_IDLE_MODE) idleMode = 0;
+            }
+        } 
+        configFile.close();
+    }
+
+    // Do not write a default file, use pre-set value
+
+    prevSavedIM = idleMode;
+    if(strictMode) prevSavedIM |= 0x10;
+
+    #ifdef SID_DBG
+    Serial.printf("%s: idleMode %d, strict %d\n", funcName, idleMode, strictMode);
+    #endif
+
+    return true;
+}
+
+void saveIdlePat(bool useCache)
+{
+    const char *funcName = "saveIdlePat";
+    char buf[6];
+    uint16_t tempIM = idleMode;
+    StaticJsonDocument<512> json;
+
+    if(strictMode) tempIM |= 0x10;
+
+    if(useCache && (prevSavedIM == tempIM)) {
+        #ifdef SID_DBG
+        Serial.printf("%s: Prev. saved idle pattern identical, not writing\n", funcName);
+        #endif
+        return;
+    }
+
+    if(!haveSD) {
+        Serial.printf("%s: %s\n", funcName, fsNoAvail);
+        return;
+    }
+
+    sprintf(buf, "%d", tempIM);
+    json["pattern"] = (const char *)buf;
+
+    if(writeJSONCfgFile(json, ipaCfgName, true, funcName)) {
+        prevSavedIM = tempIM;
+    }
 }
 
 /*
@@ -962,14 +927,33 @@ void deleteIpSettings()
  * Various helpers
  */
 
-void formatFlashFS()
+
+/* Copy secondary settings from/to SD if user
+ * changed "save to SD"-option in CP
+ */
+void copySettings()
 {
-    #ifdef SID_DBG
-    Serial.println(F("Formatting flash FS"));
-    #endif
-    SPIFFS.format();
+    if(!haveSD || !haveFS)
+        return;
+
+    configOnSD = !configOnSD;
+
+    if(configOnSD || !FlashROMode) {
+        #ifdef SID_DBG
+        Serial.println(F("copySettings: Copying secondary settings to other medium"));
+        #endif
+        saveBrightness(false);
+        saveIRLock(false);
+        saveIRKeys();
+        // NOT idlePat, is only stored on SD
+    }
+
+    configOnSD = !configOnSD;
 }
 
+/*
+ * Helpers for JSON config files
+ */
 static DeserializationError readJSONCfgFile(JsonDocument& json, File& configFile, const char *funcName)
 {
     char *buf = NULL;
@@ -1031,6 +1015,9 @@ static bool writeJSONCfgFile(const JsonDocument& json, const char *fn, bool useS
     return success;
 }
 
+/*
+ * Generic file readers/writes for external
+ */
 static bool writeFileToSD(const char *fn, uint8_t *buf, int len)
 {
     size_t bytesw;

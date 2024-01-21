@@ -120,8 +120,6 @@ void unmount_fs();
 void write_settings();
 bool checkConfigExists();
 
-void copySettings();
-
 bool loadBrightness();
 void saveBrightness(bool useCache = true);
 
@@ -138,6 +136,6 @@ bool loadIpSettings();
 void writeIpSettings();
 void deleteIpSettings();
 
-void formatFlashFS();
+void copySettings();
 
 #endif
