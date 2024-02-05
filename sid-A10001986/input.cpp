@@ -235,25 +235,15 @@ SIDButton::SIDButton(const int pin, const boolean activeLow, const bool pullupAc
     pinMode(pin, pullupActive ? INPUT_PULLUP : INPUT);
 }
 
-
-// Number of millisec that have to pass by before a click is assumed stable.
-void SIDButton::setDebounceTicks(const int ticks)
+// Setup buttom timin:
+// dticks: Number of millisec for a stable click to be assumed
+// pticks: Number of millisec to pass for a short press 
+// lticks: Number of millisec to pass for a long press
+void SIDButton::setTicks(const int dticks, const int pticks, const int lticks)
 {
-    _debounceTicks = ticks;
-}
-
-
-// Number of millisec that have to pass by before a short press is detected.
-void SIDButton::setPressTicks(const int ticks)
-{
-    _pressTicks = ticks;
-}
-
-
-// Number of millisec that have to pass by before a long press is detected.
-void SIDButton::setLongPressTicks(const int ticks)
-{
-    _longPressTicks = ticks;
+    _debounceTicks = dticks;
+    _pressTicks = pticks;
+    _longPressTicks = lticks;
 }
 
 // Register function for short press event

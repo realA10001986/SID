@@ -46,7 +46,7 @@
  * - Go to "Tools" > "Board: ..." -> "ESP32 Arduino" and select your board model (the
  *   CircuitSetup original boards are "NodeMCU-32S")
  *   
- * - Connect your ESP32 board.
+ * - Connect your ESP32 board using a suitable USB cable.
  *   Note that NodeMCU ESP32 boards come in two flavors that differ in which serial 
  *   communications chip is used: Either SLAB CP210x USB-to-UART or CH340. Installing
  *   a driver might be required.
@@ -72,13 +72,6 @@
  *
  * - Install required libraries. In the Arduino IDE, go to "Tools" -> "Manage Libraries" 
  *   and install the following libraries:
- *   - WifiManager (tablatronix, tzapu) https://github.com/tzapu/WiFiManager
- *     (Tested with 2.0.13beta, 2.0.15-rc1, 2.0.16-rc2)
- *     For versions 2.0.16-rc2 and below, in order to avoid a delay when powering up
- *     several BTTFN-connected props, change _preloadwifiscan to false in WiFiManager.h 
- *     before compiling:
- *     -boolean       _preloadwifiscan        = true;
- *     +boolean       _preloadwifiscan        = false;
  *   - ArduinoJSON >= 6.19: https://arduinojson.org/v6/doc/installation/
  *
  * - Download the complete firmware source code:
@@ -92,6 +85,11 @@
 
 /*  Changelog
  *  
+ *  2024/02/04 (A10001986)
+ *    - Include fork of WiFiManager (2.0.16rc2 with minor patches) in order to cut 
+ *      down bin size
+ *  2024/01/30 (A10001986)
+ *    - Minor optimizations
  *  2024/01/22 (A10001986)
  *    - Fix for BTTFN-wide TT vs. TCD connected by wire
  *  2024/01/21 (A10001986)

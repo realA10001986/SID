@@ -475,15 +475,11 @@ void main_setup()
     if(!TCDconnected) {
         // If we are in fact a physical button, we need
         // reasonable values for debounce and press
-        TTKey.setDebounceTicks(TT_DEBOUNCE);
-        TTKey.setPressTicks(TT_PRESS_TIME);
-        TTKey.setLongPressTicks(TT_HOLD_TIME);
+        TTKey.setTicks(TT_DEBOUNCE, TT_PRESS_TIME, TT_HOLD_TIME);
         TTKey.attachLongPressStart(TTKeyHeld);
     } else {
         // If the TCD is connected, we can go more to the edge
-        TTKey.setDebounceTicks(5);
-        TTKey.setPressTicks(50);
-        TTKey.setLongPressTicks(100000);
+        TTKey.setTicks(5, 50, 100000);
         // Long press ignored when TCD is connected
         // IRLearning only possible if "TCD connected by wire" unset.
     }
@@ -1134,7 +1130,7 @@ static void showBaseLine(int variation, uint16_t flags)
         {  90, 60, 25,  60,  15,  80,  60,  40,  90,  60 }, // r 19
         {  90, 90, 70, 100,  90, 110,  90,  60,  95,  80 }  // extra for TT
     };
-    static const uint8_t maxTTHeight[10] = {
+    const uint8_t maxTTHeight[10] = {
         19, 19, 12, 19, 19, 18, 19,  9, 19, 16
     };
 
@@ -2492,9 +2488,9 @@ static void ssUpdateClock()
             ssIsClock = false;
             sid.off();
         } else {
-          if(memcmp(ssDateBuf+4, bttfnDateBuf+4, 2)) {
-              ssDoClock();
-          }
+            if(memcmp(ssDateBuf+4, bttfnDateBuf+4, 2)) {
+                ssDoClock();
+            }
         }
     } else if(millis() - bttfnDateNow < 2000) {
         // Regained contact, switch clock on again

@@ -38,7 +38,7 @@
 #include <ESPmDNS.h>
 #endif
 
-#include <WiFiManager.h>
+#include "src/WiFiManager/WiFiManager.h"
 
 #include "sid_settings.h"
 #include "sid_wifi.h"

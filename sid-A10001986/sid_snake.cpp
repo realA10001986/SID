@@ -58,7 +58,7 @@ static int snake[MAXLENGTH][2] = { { 0, 0 } };
 static int apx = 0;
 static int apy = 0;
 
-static unsigned long ldelays[NUM_LEVELS] = {
+static const unsigned long ldelays[NUM_LEVELS] = {
     700, 600, 550, 500, 450, 400, 300, 200, 100
 };
 

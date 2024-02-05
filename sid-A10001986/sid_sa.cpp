@@ -67,19 +67,17 @@ static FTYPE freqBandsHistory[FQ_HIST][NUMBANDS] = { 0 };
 
 // The frequency bands
 // First one is "garbage bin", not used for display
-static int freqSteps[NUMBANDS] = {
-   //110,  200,  400,  600,  800, 1000, 2500, 3500, 5000, 7000, 9000
-   // 60,  150,  250,  400,  650, 1000, 1600, 2500, 4000, 6250, 10000
-      80,  100,  150,  250,  430,  600, 1000, 2000, 4000, 7000, 10000
+static const int freqSteps[NUMBANDS] = {
+    80,  100,  150,  250,  430,  600, 1000, 2000, 4000, 7000, 10000
 };
 
 // Noise threshold per band. Lower bands have more noise.
-static int minTreshold[NUMBANDS] = {
-       0, 5000, 5000, 5000, 3000, 1000, 1000, 1000, 1000, 1000, 1000
+static const int minTreshold[NUMBANDS] = {
+    0, 5000, 5000, 5000, 3000, 1000, 1000, 1000, 1000, 1000, 1000
 };
 
 static const uint8_t maxTTHeight[10] = {
-        20, 20, 13, 20, 20, 20, 20, 10, 20, 17
+    20, 20, 13, 20, 20, 20, 20, 10, 20, 17
 };
 
 static int oldHeight[DISPLAYBANDS]  = { 0 };
