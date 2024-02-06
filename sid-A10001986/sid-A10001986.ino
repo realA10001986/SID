@@ -72,7 +72,8 @@
  *
  * - Install required libraries. In the Arduino IDE, go to "Tools" -> "Manage Libraries" 
  *   and install the following libraries:
- *   - ArduinoJSON >= 6.19: https://arduinojson.org/v6/doc/installation/
+ *   - ArduinoJSON 6 (>= 6.19): https://arduinojson.org/v6/doc/installation/
+ *     (might already be installed). Version 7 of that library is NOT supported.
  *
  * - Download the complete firmware source code:
  *   https://github.com/realA10001986/SID/archive/refs/heads/main.zip
@@ -85,6 +86,8 @@
 
 /*  Changelog
  *  
+ *  2024/02/06 (A10001986)
+ *    - Fix reading and parsing of JSON document
  *  2024/02/04 (A10001986)
  *    - Include fork of WiFiManager (2.0.16rc2 with minor patches) in order to cut 
  *      down bin size
