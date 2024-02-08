@@ -55,7 +55,15 @@
 
 // Size of main config JSON
 // Needs to be adapted when config grows
-#define JSON_SIZE 1600
+#define JSON_SIZE 2000
+#if ARDUINOJSON_VERSION_MAJOR >= 7
+#error "ArduinoJSON v7 not supported"
+#define DECLARE_S_JSON(x,n) JsonDocument n;
+#define DECLARE_D_JSON(x,n) JsonDocument n;
+#else
+#define DECLARE_S_JSON(x,n) StaticJsonDocument<x> n;
+#define DECLARE_D_JSON(x,n) DynamicJsonDocument n(x);
+#endif 
 
 static const char *cfgName    = "/sidconfig.json";  // Main config (flash)
 static const char *ipCfgName  = "/sidipcfg.json";   // IP config (flash)
@@ -278,12 +286,15 @@ static bool read_settings(File configFile)
     const char *funcName = "read_settings";
     bool wd = false;
     size_t jsonSize = 0;
+    DECLARE_D_JSON(JSON_SIZE,json);
+    /*
     //StaticJsonDocument<JSON_SIZE> json;
     DynamicJsonDocument json(JSON_SIZE);
+    */
     
-    //DeserializationError error = deserializeJson(json, configFile);
     DeserializationError error = readJSONCfgFile(json, configFile, funcName);
 
+    #if ARDUINOJSON_VERSION_MAJOR < 7
     jsonSize = json.memoryUsage();
     if(jsonSize > JSON_SIZE) {
         Serial.printf("%s: ERROR: Config file too large (%d vs %d), memory corrupted, awaiting doom.\n", funcName, jsonSize, JSON_SIZE);
@@ -294,6 +305,7 @@ static bool read_settings(File configFile)
           Serial.printf("%s: WARNING: JSON_SIZE needs to be adapted **************\n", funcName);
     }
     Serial.printf("%s: Size of document: %d (JSON_SIZE %d)\n", funcName, jsonSize, JSON_SIZE);
+    #endif
     #endif
 
     if(!error) {
@@ -332,6 +344,7 @@ static bool read_settings(File configFile)
         wd |= CopyCheckValidNumParm(json["useFPO"], settings.useFPO, sizeof(settings.useFPO), 0, 1, DEF_USE_FPO);
         wd |= CopyCheckValidNumParm(json["bttfnTT"], settings.bttfnTT, sizeof(settings.bttfnTT), 0, 1, DEF_BTTFN_TT);
         wd |= CopyCheckValidNumParm(json["ssClock"], settings.ssClock, sizeof(settings.ssClock), 0, 1, DEF_SS_CLK);
+        wd |= CopyCheckValidNumParm(json["ssClkOffNM"], settings.ssClockOffNM, sizeof(settings.ssClockOffNM), 0, 1, DEF_SS_CLK_NMOFF);
 
         // strictMode is overruled by loadIdlePat later (if present)
         wd |= CopyCheckValidNumParm(json["strictMode"], settings.strictMode, sizeof(settings.strictMode), 0, 1, DEF_STRICT);
@@ -366,8 +379,11 @@ static bool read_settings(File configFile)
 void write_settings()
 {
     const char *funcName = "write_settings";
+    DECLARE_D_JSON(JSON_SIZE,json);
+    /*
     //StaticJsonDocument<JSON_SIZE> json;
     DynamicJsonDocument json(JSON_SIZE);
+    */
 
     if(!haveFS && !FlashROMode) {
         Serial.printf("%s: %s\n", funcName, fsNoAvail);
@@ -397,6 +413,7 @@ void write_settings()
     json["useFPO"] = (const char *)settings.useFPO;
     json["bttfnTT"] = (const char *)settings.bttfnTT;
     json["ssClock"] = (const char *)settings.ssClock;
+    json["ssClkOffNM"] = (const char *)settings.ssClockOffNM;
 
     sprintf(settings.strictMode, "%d", strictMode ? 1 : 0);
     json["strictMode"] = (const char *)settings.strictMode;
@@ -534,9 +551,9 @@ static bool openCfgFileRead(const char *fn, File& f, bool SDonly = false)
 static bool loadIRkeysFromFile(File configFile, int index)
 {
     uint32_t ir_keys[NUM_IR_KEYS];
-    StaticJsonDocument<1024> json;
+    DECLARE_S_JSON(1024,json);
+    //StaticJsonDocument<1024> json;
     
-    //DeserializationError err = deserializeJson(json, configFile);
     DeserializationError err = readJSONCfgFile(json, configFile, "loadIRkeysFromFile");
     
     if(!err) {
@@ -596,7 +613,8 @@ static bool loadIRKeys()
 
 bool saveIRKeys()
 {
-    StaticJsonDocument<1024> json;
+    DECLARE_S_JSON(1024,json);
+    //StaticJsonDocument<1024> json;
     uint32_t ir_keys[NUM_IR_KEYS];
     char buf[12];
 
@@ -642,8 +660,8 @@ bool loadBrightness()
     }
 
     if(openCfgFileRead(briCfgName, configFile)) {
-        StaticJsonDocument<512> json;
-        //if(!deserializeJson(json, configFile)) {
+        DECLARE_S_JSON(512,json);
+        //StaticJsonDocument<512> json;
         if(!readJSONCfgFile(json, configFile, funcName)) {
             if(!CopyCheckValidNumParm(json["brightness"], temp, sizeof(temp), 0, 15, 15)) {
                 sid.setBrightness((uint8_t)atoi(temp), true);
@@ -663,7 +681,8 @@ void saveBrightness(bool useCache)
 {
     const char *funcName = "saveBrightness";
     char buf[6];
-    StaticJsonDocument<512> json;
+    DECLARE_S_JSON(512,json);
+    //StaticJsonDocument<512> json;
 
     if(useCache && (prevSavedBri == sid.getBrightness())) {
         #ifdef SID_DBG
@@ -703,8 +722,8 @@ bool loadIRLock()
     }
 
     if(openCfgFileRead(irlCfgName, configFile)) {
-        StaticJsonDocument<512> json;
-        //if(!deserializeJson(json, configFile)) {
+        DECLARE_S_JSON(512,json);
+        //StaticJsonDocument<512> json;
         if(!readJSONCfgFile(json, configFile, funcName)) {
             if(!CopyCheckValidNumParm(json["lock"], temp, sizeof(temp), 0, 1, 0)) {
                 irLocked = (atoi(temp) > 0);
@@ -724,7 +743,8 @@ void saveIRLock(bool useCache)
 {
     const char *funcName = "saveIRLock";
     char buf[6];
-    StaticJsonDocument<512> json;
+    DECLARE_S_JSON(512,json);
+    //StaticJsonDocument<512> json;
 
     if(useCache && (prevSavedIRL == irLocked)) {
         #ifdef SID_DBG
@@ -764,8 +784,8 @@ bool loadIdlePat()
     }
 
     if(openCfgFileRead(ipaCfgName, configFile, true)) {
-        StaticJsonDocument<512> json;
-        //if(!deserializeJson(json, configFile)) {
+        DECLARE_S_JSON(512,json);
+        //StaticJsonDocument<512> json;
         if(!readJSONCfgFile(json, configFile, funcName)) {
             if(!CopyCheckValidNumParm(json["pattern"], temp, sizeof(temp), 0, 0x1f, 0)) {
                 idleMode = (uint16_t)atoi(temp);
@@ -794,7 +814,8 @@ void saveIdlePat(bool useCache)
     const char *funcName = "saveIdlePat";
     char buf[6];
     uint16_t tempIM = idleMode;
-    StaticJsonDocument<512> json;
+    DECLARE_S_JSON(512,json);
+    //StaticJsonDocument<512> json;
 
     if(strictMode) tempIM |= 0x10;
 
@@ -837,8 +858,9 @@ bool loadIpSettings()
 
         if(configFile) {
 
-            StaticJsonDocument<512> json;
-            //DeserializationError error = deserializeJson(json, configFile);
+            DECLARE_S_JSON(512,json);
+            //StaticJsonDocument<512> json;
+            
             DeserializationError error = readJSONCfgFile(json, configFile, "loadIpSettings");
 
             if(!error) {
@@ -894,7 +916,8 @@ static bool CopyIPParm(const char *json, char *text, uint8_t psize)
 
 void writeIpSettings()
 {
-    StaticJsonDocument<512> json;
+    DECLARE_S_JSON(512,json);
+    //StaticJsonDocument<512> json;
 
     if(!haveFS && !FlashROMode)
         return;

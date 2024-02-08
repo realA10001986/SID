@@ -284,6 +284,8 @@ static bool          ssClock = false;
 static bool          ssIsClock = false;
 static int           ssClkPos = 0;
 static uint8_t       ssDateBuf[8];
+static bool          ssNMbuf = false;
+static bool          ssClockOffinNM = false;
 
 static bool          nmOld = false;
 static bool          fpoOld = false;
@@ -451,6 +453,7 @@ void main_setup()
     useFPO = (atoi(settings.useFPO) > 0);
     bttfnTT = (atoi(settings.bttfnTT) > 0);
     ssClock = (atoi(settings.ssClock) > 0);
+    ssClockOffinNM = (atoi(settings.ssClockOffNM) > 0);
 
     skipTTAnim = (atoi(settings.skipTTAnim) > 0);
 
@@ -2437,6 +2440,16 @@ static void ssDoClock()
     ssClkPos&=0x03;
     sid.drawClockAndShow(bttfnDateBuf, ssClkx[ssClkPos], ssClky[ssClkPos]);
     memcpy(ssDateBuf, bttfnDateBuf, sizeof(bttfnDateBuf));
+    if(sidNM) {
+        if(ssClockOffinNM) {
+            sid.off();
+        } else {
+            sid.setBrightnessDirect(0);
+        }
+    } else {
+        sid.setBrightness(255);
+    }
+    ssNMbuf = sidNM;
 }
 
 static void ssStart()
@@ -2472,10 +2485,11 @@ static void ssEnd()
         return;
 
     if(ssIsClock) {
-         sid.clearDisplayDirect();
-    } else {
-        sid.on();
+        sid.clearDisplayDirect();
     }
+    
+    sid.on();
+    sid.setBrightness(255);
 
     ssActive = false;
 }
@@ -2488,7 +2502,7 @@ static void ssUpdateClock()
             ssIsClock = false;
             sid.off();
         } else {
-            if(memcmp(ssDateBuf+4, bttfnDateBuf+4, 2)) {
+            if(memcmp(ssDateBuf+4, bttfnDateBuf+4, 2) || (ssNMbuf != sidNM)) {
                 ssDoClock();
             }
         }

@@ -60,6 +60,7 @@ extern uint8_t musFolderNum;
 #define DEF_USE_FPO         0     // 0: Ignore TCD fake power; 1: Follow TCD fake power
 #define DEF_BTTFN_TT        1     // 0: '0' on IR remove and TT button trigger stand-alone TT; 1: They trigger BTTFN-wide TT
 #define DEF_SS_CLK          0     // "Screen saver" is clock (0=off, 1=on)
+#define DEF_SS_CLK_NMOFF    0     // 0: Clock dimmed in NM 1: Clock off in NM
 
 #define DEF_STRICT          1     // 0: Allow random diviations from movie patterns; 1: no not
 #define DEF_SKIP_TTANIM     1     // 0: Don't skip tt anim; 1: do
@@ -88,6 +89,7 @@ struct Settings {
     char useFPO[4]          = MS(DEF_USE_FPO);
     char bttfnTT[4]         = MS(DEF_BTTFN_TT);
     char ssClock[4]         = MS(DEF_SS_CLK);
+    char ssClockOffNM[4]    = MS(DEF_SS_CLK_NMOFF);
 
     char strictMode[4]      = MS(DEF_STRICT);       // saved, but overruled by idlePat config file
     char skipTTAnim[4]      = MS(DEF_SKIP_TTANIM);

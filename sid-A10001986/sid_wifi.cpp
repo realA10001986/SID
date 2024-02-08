@@ -126,6 +126,11 @@ WiFiManagerParameter custom_ssClock("ssClk", "Show clock when Screen Saver is ac
 #else // -------------------- Checkbox hack: --------------
 WiFiManagerParameter custom_ssClock("ssClk", "Show clock when Screen Saver is active", settings.ssClock, 1, "type='checkbox' style='margin-bottom:0px;'", WFM_LABEL_AFTER);
 #endif // -------------------------------------------------
+#ifdef TC_NOCHECKBOXES  // --- Standard text boxes: -------
+WiFiManagerParameter custom_ssClockO("ssClkO", "Clock off in Night Mode (0=no, 1=yes)", settings.ssClockOffNM, 1, "autocomplete='off' ");
+#else // -------------------- Checkbox hack: --------------
+WiFiManagerParameter custom_ssClockO("ssClkO", "Clock off in Night Mode", settings.ssClockOffNM, 1, "type='checkbox' style='margin-bottom:0px;margin-left:20px'", WFM_LABEL_AFTER);
+#endif // -------------------------------------------------
 
 #ifdef TC_NOCHECKBOXES  // --- Standard text boxes: -------
 WiFiManagerParameter custom_sStrict("sStrict", "Adhere strictly to movie patterns (0=no, 1=yes)<br><span style='font-size:80%'>Check to strictly show movie patterns in idle modes 0-3 and with GPS speed; uncheck if variations are allowed.</span>", settings.strictMode, 1, "autocomplete='off'");
@@ -327,6 +332,7 @@ void wifi_setup()
     wm.addParameter(&custom_uFPO);
     wm.addParameter(&custom_bttfnTT);
     wm.addParameter(&custom_ssClock);
+    wm.addParameter(&custom_ssClockO);
 
     wm.addParameter(&custom_sectstart);     // 4
     wm.addParameter(&custom_sStrict);
@@ -604,6 +610,7 @@ void wifi_loop()
             mystrcpy(settings.useFPO, &custom_uFPO);
             mystrcpy(settings.bttfnTT, &custom_bttfnTT);
             mystrcpy(settings.ssClock, &custom_ssClock);
+            mystrcpy(settings.ssClockOffNM, &custom_ssClockO);
 
             mystrcpy(settings.skipTTAnim, &custom_sTTANI);
             mystrcpy(settings.SApeaks, &custom_SApeaks);
@@ -628,6 +635,7 @@ void wifi_loop()
             strcpyCB(settings.useFPO, &custom_uFPO);
             strcpyCB(settings.bttfnTT, &custom_bttfnTT);
             strcpyCB(settings.ssClock, &custom_ssClock);
+            strcpyCB(settings.ssClockOffNM, &custom_ssClockO);
 
             strcpyCB(settings.skipTTAnim, &custom_sTTANI);
             strcpyCB(settings.SApeaks, &custom_SApeaks);
@@ -1034,6 +1042,7 @@ void updateConfigPortalValues()
     custom_uFPO.setValue(settings.useFPO, 1);
     custom_bttfnTT.setValue(settings.bttfnTT, 1);
     custom_ssClock.setValue(settings.ssClock, 1);
+    custom_ssClockO.setValue(settings.ssClockOffNM, 1);
 
     custom_sTTANI.setValue(settings.skipTTAnim, 1);
     custom_SApeaks.setValue(settings.SApeaks, 1);
@@ -1057,6 +1066,7 @@ void updateConfigPortalValues()
     setCBVal(&custom_uFPO, settings.useFPO);
     setCBVal(&custom_bttfnTT, settings.bttfnTT);
     setCBVal(&custom_ssClock, settings.ssClock);
+    setCBVal(&custom_ssClockO, settings.ssClockOffNM);
 
     setCBVal(&custom_sTTANI, settings.skipTTAnim);
     setCBVal(&custom_SApeaks, settings.SApeaks);
