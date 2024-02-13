@@ -85,9 +85,12 @@
 
 /*  Changelog
  *  
+ *  2024/02/09 (A10001986)
+ *    - Add command to directly set brightness: *4xx (400-415) (64xx from TCD)
  *  2024/02/08 (A10001986)
  *    - Dim screen saver clock if TCD is in night mode; add option to disable
  *      clock in night mode.
+ *    - CP: Add header to "Saved" page so one can return to main menu
  *  2024/02/06 (A10001986)
  *    - Fix reading and parsing of JSON document
  *    - Fixes for using ArduinoJSON 7; not used in bin yet, too immature IMHO.

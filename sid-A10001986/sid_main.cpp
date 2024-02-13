@@ -1201,7 +1201,10 @@ static void showBaseLine(int variation, uint16_t flags)
                 }
             }
             if(TTBri || (flags & SBLF_LMTT)) {
-                sid.setBrightnessDirect((esp_random() % 13) + 3);
+                int temp1 = sid.getBrightness(), temp2 = 3;
+                if(temp1 >= 4) temp1 -= 2;
+                else { temp1 = 2; temp2 = 0; }
+                sid.setBrightnessDirect((esp_random() % temp1) + temp2); //       13) + 3);
             }
             if(flags & SBLF_LMTT) {
                 if(LMTT[TTLMIdx]) {
@@ -2201,8 +2204,16 @@ static bool execute(bool isIR)
         break;
     case 3:
         if(!isIRLocked) {
-            //temp = atoi(inputBuffer);
-            doBadInp = true;
+            temp = atoi(inputBuffer);
+            if(temp >= 400 && temp <= 415) {
+                if(!TTrunning) {
+                    sid.setBrightness(temp - 400);
+                    brichanged = true;
+                    brichgnow = now;
+                }
+            } else {
+                doBadInp = true;
+            }
         }
         break;
     case 5:
