@@ -207,6 +207,10 @@ In order to only disable the supplied IR remote control, check the option **_Dis
      <td align="left">Display current IP address</td>
      <td align="left">*90&#9166;</td><td>6090</td>
     </tr>
+   <tr>
+     <td align="left">Set brightness level (00-15)</td>
+     <td align="left">*4xx&#9166;</td><td>64xx</td>
+    </tr>
     <tr>
      <td align="left">Reboot the device</td>
      <td align="left">*64738&#9166;</td><td>6064738</td>
