@@ -11,7 +11,7 @@ Features include
 - [Time Travel](#time-travel) function, triggered by button, [Time Circuits Display](https://tcd.out-a-ti.me) or via [MQTT](#home-assistant--mqtt)
 - [IR remote controlled](#ir-remote-control); can learn keys from third-party remote
 - Spectrum Analyzer mode via built-in microphone
-- Advanced network-accessible [Config Portal](#the-config-portal) for setup with mDNS support for easy access (http://sid.local, hostname configurable)
+- Advanced network-accessible [Config Portal](#the-config-portal) for setup (http://sid.local, hostname configurable)
 - [Wireless communication](#bttf-network-bttfn) with [Time Circuits Display](https://tcd.out-a-ti.me); used for synchonized time travels, GPS-speed adapted patterns, alarm, night mode, fake power and remote control through TCD keypad
 - [Home Assistant](#home-assistant--mqtt) (MQTT 3.1.1) support
 - [*Siddly*](#siddly) and [*Snake*](#snake) games
