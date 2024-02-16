@@ -209,7 +209,7 @@ In order to only disable the supplied IR remote control, check the option **_Dis
     </tr>
    <tr>
      <td align="left">Set brightness level (00-15)</td>
-     <td align="left">*4xx&#9166;</td><td>64xx</td>
+     <td align="left">*400&#9166; - *414&#9166;</td><td>6400-6415</td>
     </tr>
     <tr>
      <td align="left">Reboot the device</td>
