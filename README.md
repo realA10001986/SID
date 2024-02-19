@@ -253,7 +253,7 @@ Snakes like apples (at least so I have heard). You control a snake that feels a 
 
 ## SD card
 
-Preface note on SD cards: For unknown reasons, some SD cards simply do not work with this device. For instance, I had no luck with Sandisk Ultra 32GB and  "Intenso" cards. If your SD card is not recognized, check if it is formatted in FAT32 format (not exFAT!). Also, the size must not exceed 32GB (as larger cards cannot be formatted with FAT32). Transcend SDHC 4GB cards work fine.
+Preface note on SD cards: For unknown reasons, some SD cards simply do not work with this device. For instance, I had no luck with Sandisk Ultra 32GB and  "Intenso" cards. If your SD card is not recognized, check if it is formatted in FAT32 format (not exFAT!). Also, the size must not exceed 32GB (as larger cards cannot be formatted with FAT32). Transcend SDHC cards and those work fine in my experience.
 
 The SD card is used for saving [secondary settings](#-save-secondary-settings-on-sd), in order to avoid [Flash Wear](#flash-wear) on the SID's ESP32. The chosen idle pattern (*1x), along with the ["strictly movie patterns"](#-adhere-strictly-to-movie-patterns) setting, is only stored on SD, so for your selection to be persistent accross reboots, an SD card is required. 
 
