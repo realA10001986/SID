@@ -36,7 +36,9 @@ As long as the device is unconfigured, as is the case with a brand new SID, or l
 - Power up the device and wait until the startup sequence has completed.
 - Connect your computer or handheld device to the WiFi network "SID-AP".
 - Navigate your browser to http://sid.local or http://192.168.4.1 to enter the Config Portal.
- 
+
+#### Connecting to a WiFi network
+
 If you want your SID to connect to your WiFi network, click on "Configure WiFi". The bare minimum is to select an SSID (WiFi network name) and a WiFi password. 
 
 Note that the device requests an IP address via DHCP, unless you entered valid data in the fields for static IP addresses (IP, gateway, netmask, DNS). 
@@ -47,7 +49,7 @@ If the device is inaccessible as a result of wrong static IPs, wait until the SI
 
 If you have your SID, along with a Time Circuits Display, mounted in a car, see also [here](#car-setup).
 
-### The Config Portal
+## The Config Portal
 
 The Config Portal is accessible exclusively through WiFi. As outlined above, if the device is not connected to a WiFi network, it creates its own WiFi network (named "SID-AP"), to which your WiFi-enabled hand held device or computer first needs to connect in order to access the Config Portal.
 
