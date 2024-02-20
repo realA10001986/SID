@@ -39,7 +39,7 @@ As long as the device is unconfigured, as is the case with a brand new SID, or l
 
 #### Connecting to a WiFi network
 
-If you want your SID to connect to your WiFi network, click on "Configure WiFi". The bare minimum is to select an SSID (WiFi network name) and a WiFi password. 
+If you want to connect your SID to your WiFi network, click on "Configure WiFi". The bare minimum is to select an SSID (WiFi network name) and a WiFi password. 
 
 Note that the device requests an IP address via DHCP, unless you entered valid data in the fields for static IP addresses (IP, gateway, netmask, DNS). 
 
