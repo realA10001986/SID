@@ -19,47 +19,55 @@ Features include
 
 ## Installation
 
-There are different alternative ways to install this firmware:
+If a previous version of the SID firmware is installed on your device, you can update easily using the pre-compiled binary. Enter the [Config Portal](#the-config-portal), click on "Update" and select the pre-compiled binary file provided in this repository ([install/sid-A10001986.ino.nodemcu-32s.bin[(https://github.com/realA10001986/SID/blob/main/install/sid-A10001986.ino.nodemcu-32s.bin)).
 
-1) If a previous version of the SID firmware is installed on your device, you can update easily using the pre-compiled binary. Enter the [Config Portal](#the-config-portal), click on "Update" and select the pre-compiled binary file provided in this repository ([install/sid-A10001986.ino.nodemcu-32s.bin[(https://github.com/realA10001986/SID/blob/main/install/sid-A10001986.ino.nodemcu-32s.bin)).
+If you are using a fresh ESP32 board, please see [sid-A10001986.ino](https://github.com/realA10001986/SID/blob/main/sid-A10001986/sid-A10001986.ino) for detailed build information.
 
-2) Using the Arduino IDE or PlatformIO: Download the sketch source code, all required libraries, compile and upload it. This method is the one for fresh ESP32 boards and/or folks familiar with the programming tool chain. Detailed build information is in [sid-A10001986.ino](https://github.com/realA10001986/SID/blob/main/sid-A10001986/sid-A10001986.ino).
+ *Important: After a firmware update, a "wait" symbol (hourglass) might be shown for a short while after reboot. Do NOT unplug the device during this time.*
 
- *Important: After a firmware update, a "wait" symbol (hourglass) might be shown for up to a minute after reboot. Do NOT unplug the device during this time.*
+## Initial Configuration
 
-## Short summary of first steps
+The first step is to establish access to the SID's configuration web site ("Config Portal") in order to configure your SID:
 
-A good first step would be to establish access to the Config Portal in order to configure your SID.
-
-As long as the device is unconfigured, as is the case with a brand new SID, or later if it for some reason fails to connect to a configured WiFi network, it creates a WiFi network of its own named "SID-AP". This is called "Access Point mode", or "AP-mode".
-
-- Power up the device and wait until the startup sequence has completed.
+- Power up the SID and wait until the startup sequence has completed.
 - Connect your computer or handheld device to the WiFi network "SID-AP".
 - Navigate your browser to http://sid.local or http://192.168.4.1 to enter the Config Portal.
 
 #### Connecting to a WiFi network
 
-If you want to connect your SID to your WiFi network, click on "Configure WiFi". The bare minimum is to select an SSID (WiFi network name) and a WiFi password. 
+As long as the device is unconfigured, it creates a WiFi network of its own named "SID-AP". This is called "Access point mode", or "AP-mode". 
 
-Note that the device requests an IP address via DHCP, unless you entered valid data in the fields for static IP addresses (IP, gateway, netmask, DNS). 
+It is ok to leave the SID in this mode, especially if it run stand-alone. In a typical home setup and/or if you also have a [Time Circuits Display](https://tcd.out-a-ti.me), however, you might want to connect the SID to a WiFi network (in case of using it together with a TCD: to the same WiFi network the TCD is connected to). If you have your SID, along with a Time Circuits Display, mounted in a car, you might want to connect the SID to the TCD's very own WiFi network "TCD-AP"; see [here](#car-setup).
 
-After saving the WiFi network settings, the device reboots and tries to connect to your configured WiFi network. If that fails, it will again start in access point mode.
+In order to connect your SID to a WiFi network, click on "Configure WiFi". The bare minimum is to select an SSID (WiFi network name) and a WiFi password.
 
-If the device is inaccessible as a result of wrong static IPs, wait until the SID has completed its startup sequence, then type \*123456OK on the IR remote; static IP data will be deleted and the device will return to DHCP after a reboot.
+(Note that the SID requests an IP address via DHCP, unless you entered valid data in the fields for static IP addresses (IP, gateway, netmask, DNS). If the device is inaccessible as a result of incorrect static IPs, wait until the SID has completed its startup sequence, then type \*123456OK on the IR remote; static IP data will be deleted and the device will return to DHCP after a reboot.)
 
-If you have your SID, along with a Time Circuits Display, mounted in a car, see also [here](#car-setup).
+After saving the WiFi network settings, the SID reboots and tries to connect to your configured WiFi network. If that fails, it will again start in access point mode.
+
+After completing this step, your SID is basically ready for use; you can also continue configuring it to your personal preferences through the Config Portal.
 
 ## The Config Portal
 
-The Config Portal is accessible exclusively through WiFi. As outlined above, if the device is not connected to a WiFi network, it creates its own WiFi network (named "SID-AP"), to which your WiFi-enabled hand held device or computer first needs to connect in order to access the Config Portal.
+The "Config Portal" is the SID's configuration web site. 
 
-If the operating system on your handheld or computer supports Bonjour (a.k.a. "mDNS"), you can enter the Config Portal by directing your browser to http://sid.local. (mDNS is supported on Windows 10 version TH2 (1511) [other sources say 1703] and later, Android 13 and later, MacOS, iOS)
+It can be accessed as follows:
 
-If that fails, the way to enter the Config Portal depends on whether the device is in access point mode or not. 
-- If it is in access point mode (and your handheld/computer is connected to the WiFi network "SID-AP"), navigate your browser to http://192.168.4.1 
-- Otherwise type *90 followed by OK on the remote control; the IP address will be shown on the display.
+#### If SID is in AP mode
 
-In the main menu, click on "Setup" to configure your SID.
+- Connect your computer or handheld device to the WiFi network "SID-AP".
+- Navigate your browser to http://sid.local or http://192.168.4.1 to enter the Config Portal.
+
+#### If SID is connected to WiFi network
+
+- Connect your hand-held/computer to the same WiFi network to which the SID is connected, and
+- navigate your browser to http://sid.local
+
+  Accessing the Config Portal through this address requires the operating system of your hand-held/computer to support Bonjour/mDNS: Windows 10 version TH2     (1511) [other sources say 1703] and later, Android 13 and later; MacOS and iOS since the dawn of time.
+
+  If connecting to http://sid.local fails due to a name resultion error, you need to find out the SID's IP address: Type *90 followed by OK on the remote control; the IP address will be shown on the display. Then, on your handheld or computer, navigate to http://a.b.c.d (a.b.c.d being the IP address as shown on the SID's display) in order to enter the Config Portal.
+
+In the main menu, click on "Setup" to configure your SID. 
 
 | ![The Config Portal](https://github.com/realA10001986/SID/assets/76924199/8c60dc7a-9d3c-4b65-be3a-411640874c48) |
 |:--:| 
