@@ -51,6 +51,10 @@ After completing this step, your SID is basically ready for use; you can also co
 
 The "Config Portal" is the SID's configuration web site. 
 
+| ![The Config Portal](https://github.com/realA10001986/SID/assets/76924199/cf8c0e1e-2887-4b01-aea2-d525150bd4ad) |
+|:--:| 
+| *The Config Portal's main page* |
+
 It can be accessed as follows:
 
 #### If SID is in AP mode
@@ -69,7 +73,7 @@ It can be accessed as follows:
 
 In the main menu, click on "Setup" to configure your SID. 
 
-| ![The Config Portal](https://github.com/realA10001986/SID/assets/76924199/8c60dc7a-9d3c-4b65-be3a-411640874c48) |
+| ![The Config Portal](https://github.com/realA10001986/SID/assets/76924199/38e74e9a-c61e-4d77-b041-8d8359a2082a) |
 |:--:| 
 | *The Config Portal's Setup page* |
 
