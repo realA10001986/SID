@@ -968,7 +968,7 @@ void copySettings()
         saveBrightness(false);
         saveIRLock(false);
         saveIRKeys();
-        // NOT idlePat, is only stored on SD
+        // NOT idlePat/strict, is only stored on SD
     }
 
     configOnSD = !configOnSD;

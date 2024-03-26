@@ -12,8 +12,8 @@
 #define _SID_GLOBAL_H
 
 // Version strings
-#define SID_VERSION       "V1.17"
-#define SID_VERSION_EXTRA "FEB092024"
+#define SID_VERSION       "V1.18"
+#define SID_VERSION_EXTRA "MAR262024"
 
 //#define SID_DBG              // debug output on Serial
 
@@ -26,12 +26,11 @@
 // <hostname> is configurable in the Config Portal
 // This needs to be commented if WiFiManager provides mDNS
 #define SID_MDNS
+// Uncomment this if WiFiManager has mDNS enabled
+//#define SID_WM_HAS_MDNS  
 
 // Uncomment when using WiFiManager 2.0.17 or later
-//#define WIFIMANAGER_2_0_17
-
-// Uncomment this if WiFiManager has mDNS enabled
-//#define SID_WM_HAS_MDNS          
+//#define WIFIMANAGER_2_0_17       
 
 /*************************************************************************
  ***             Configuration for peripherals/features                ***
