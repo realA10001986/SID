@@ -315,7 +315,7 @@ The TCD can communicate with the SID wirelessly, via the built-in "**B**asic-**T
 
 Note that the TCD's firmware must be up to date for BTTFN. You can use [this](http://tcd.out-a-ti.me) one or CircuitSetup's release 2.9 or later.
 
-![BTTFN connection](https://github.com/realA10001986/SID/assets/76924199/404e4dd5-ac31-4ca4-b6a1-c8084d3a82e0)
+![BTTFN connection](https://github.com/realA10001986/SID/assets/76924199/c1dcb5dd-3bc0-4cd4-9f58-a7f5693f9ae5)
 
 In order to connect your SID to the TCD using BTTFN, just enter the TCD's IP address or hostname in the **_IP address or hostname of TCD_** field in the SID's Config Portal. On the TCD, no special configuration is required. Note that you need TCD firmware 2.9.1 or later for using a hostname; previous versions only work with an IP address.
 
@@ -345,7 +345,7 @@ The SID can - to a some extent - be controlled through messages sent to topic **
 
 If both TCD and SID are connected to the same broker, and the option **_Send event notifications_** is checked on the TCD's side, the SID will receive information on time travel and alarm and play their sequences in sync with the TCD. Unlike BTTFN, however, no other communication takes place.
 
-![MQTT connection](https://github.com/realA10001986/SID/assets/76924199/4a7f3c63-91cf-4206-af36-ab39c28dfb3e)
+![MQTT connection](https://github.com/realA10001986/SID/assets/76924199/cfd79bd5-0733-498d-a7e6-b3958b3e9f70)
 
 MQTT and BTTFN can co-exist. However, the TCD only sends out time travel and alarm notifications through either MQTT or BTTFN, never both. If you have other MQTT-aware devices listening to the TCD's public topic (bttf/tcd/pub) in order to react to time travel or alarm messages, use MQTT (ie check **_Send event notifications_**). If only BTTFN-aware devices are to be used, uncheck this option to use BTTFN as it has less latency.
 
