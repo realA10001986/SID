@@ -85,6 +85,10 @@
 
 /*  Changelog
  *  
+ *  2024/04/03 (A10001986)
+ *    - Rewrite settings upon clearing AP-PW only if AP-PW was actually set.
+ *  2024/03/26 (A10001986)
+ *    - BTTFN device type update
  *  2024/02/09 (A10001986)
  *    - Add command to directly set brightness: *4xx (400-415) (64xx from TCD)
  *  2024/02/08 (A10001986)
