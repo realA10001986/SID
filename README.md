@@ -75,9 +75,9 @@ It can be accessed as follows:
 
 In the main menu, click on "Setup" to configure your SID. 
 
-| ![The Config Portal](https://github.com/realA10001986/SID/assets/76924199/38e74e9a-c61e-4d77-b041-8d8359a2082a) |
+| [<img src="https://github.com/realA10001986/SID/assets/76924199/38e74e9a-c61e-4d77-b041-8d8359a2082a">](img/cp_setup.png) |
 |:--:| 
-| *The Config Portal's Setup page* |
+| *Click for full screenshot* |
 
 A full reference of the Config Portal is [here](#appendix-a-the-config-portal).
 
