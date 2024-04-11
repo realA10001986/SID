@@ -4,7 +4,7 @@ This repository holds the most current firmware for CircuitSetup's magnificent [
 
 The parts are available [here](https://circuitsetup.us/product/delorean-time-machine-status-indicator-display-sid/). The SID replica can be used stand-alone, or in connection with CircuitSetup's [Time Circuits Display](https://tcd.out-a-ti.me). It's made of metal and perfectly fit for mounting in an actual Delorean.
 
-![mysid](https://github.com/realA10001986/SID/assets/76924199/cdd8f609-1248-41f2-92cc-0489fe0397bf)
+![mysid](img/thesid.jpg)
 
 Features include
 - various idle patterns
@@ -53,7 +53,7 @@ After completing this step, your SID is basically ready for use; you can also co
 
 The "Config Portal" is the SID's configuration web site. 
 
-| ![The Config Portal](https://github.com/realA10001986/SID/assets/76924199/cf8c0e1e-2887-4b01-aea2-d525150bd4ad) |
+| ![The Config Portal](img/cpm.png) |
 |:--:| 
 | *The Config Portal's main page* |
 
@@ -75,7 +75,7 @@ It can be accessed as follows:
 
 In the main menu, click on "Setup" to configure your SID. 
 
-| [<img src="https://github.com/realA10001986/SID/assets/76924199/38e74e9a-c61e-4d77-b041-8d8359a2082a">](img/cp_setup.png) |
+| [<img src="img/cps-frag.png">](img/cp_setup.png) |
 |:--:| 
 | *Click for full screenshot* |
 
@@ -95,7 +95,7 @@ The main control device is the supplied IR remote control. If a TCD is connected
 
 Your SID has an IR remote control included. This remote works out-of-the-box and needs no setup. 
 
-| ![Supplied IR remote control](https://github.com/realA10001986/SID/assets/76924199/2a3bfd40-2a44-4cc0-8209-13468115ae17) |
+| ![Supplied IR remote control](img/irremote.jpg) |
 |:--:| 
 | *The default IR remote control* |
 
@@ -315,7 +315,7 @@ The TCD can communicate with the SID wirelessly, via the built-in "**B**asic-**T
 
 Note that the TCD's firmware must be up to date for BTTFN. You can use [this](http://tcd.out-a-ti.me) one or CircuitSetup's release 2.9 or later.
 
-![BTTFN connection](https://github.com/realA10001986/SID/assets/76924199/c1dcb5dd-3bc0-4cd4-9f58-a7f5693f9ae5)
+![BTTFN connection](img/family-wifi-bttfn.png)
 
 In order to connect your SID to the TCD using BTTFN, just enter the TCD's IP address or hostname in the **_IP address or hostname of TCD_** field in the SID's Config Portal. On the TCD, no special configuration is required. Note that you need TCD firmware 2.9.1 or later for using a hostname; previous versions only work with an IP address.
 
@@ -345,7 +345,7 @@ The SID can - to a some extent - be controlled through messages sent to topic **
 
 If both TCD and SID are connected to the same broker, and the option **_Send event notifications_** is checked on the TCD's side, the SID will receive information on time travel and alarm and play their sequences in sync with the TCD. Unlike BTTFN, however, no other communication takes place.
 
-![MQTT connection](https://github.com/realA10001986/SID/assets/76924199/cfd79bd5-0733-498d-a7e6-b3958b3e9f70)
+![MQTT connection](img/family-wifi-mqtt.png)
 
 MQTT and BTTFN can co-exist. However, the TCD only sends out time travel and alarm notifications through either MQTT or BTTFN, never both. If you have other MQTT-aware devices listening to the TCD's public topic (bttf/tcd/pub) in order to react to time travel or alarm messages, use MQTT (ie check **_Send event notifications_**). If only BTTFN-aware devices are to be used, uncheck this option to use BTTFN as it has less latency.
 
