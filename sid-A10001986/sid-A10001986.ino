@@ -85,6 +85,10 @@
 
 /*  Changelog
  *  
+ *  2024/05/09 (A10001986)
+ *    - Enable internal pull-down for time travel connector
+ *  2024/04/10 (A10001986)
+ *    - Minor CP optimization
  *  2024/04/03 (A10001986)
  *    - Rewrite settings upon clearing AP-PW only if AP-PW was actually set.
  *  2024/03/26 (A10001986)

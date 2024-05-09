@@ -226,13 +226,13 @@ bool IRRemote::calcHash()
  * activeLow: Set to true when the input level is LOW when the button is pressed, Default is true.
  * pullupActive: Activate the internal pullup when available. Default is true.
  */
-SIDButton::SIDButton(const int pin, const boolean activeLow, const bool pullupActive)
+SIDButton::SIDButton(const int pin, const boolean activeLow, const bool pullupActive, const bool pulldownActive)
 {
     _pin = pin;
 
     _buttonPressed = activeLow ? LOW : HIGH;
   
-    pinMode(pin, pullupActive ? INPUT_PULLUP : INPUT);
+    pinMode(pin, pullupActive ? INPUT_PULLUP : (pulldownActive ? INPUT_PULLDOWN : INPUT));
 }
 
 // Setup buttom timin:

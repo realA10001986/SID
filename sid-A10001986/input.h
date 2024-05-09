@@ -87,7 +87,7 @@ typedef enum {
 class SIDButton {
   
     public:
-        SIDButton(const int pin, const boolean activeLow = true, const bool pullupActive = true);
+        SIDButton(const int pin, const boolean activeLow = true, const bool pullupActive = true, const bool pulldownActive = false);
       
         void setTicks(const int dticks, const int pticks, const int lticks);
       

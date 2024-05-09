@@ -55,7 +55,8 @@ static uint8_t IRFeedBackPin = IR_FB_PIN;
 // The tt button / TCD tt trigger
 static SIDButton TTKey = SIDButton(TT_IN_PIN,
     false,    // Button/Trigger is active HIGH
-    false     // Disable internal pull-up resistor
+    false,    // Disable internal pull-up resistor
+    true      // Enable internal pull-down resistor
 );
 
 #define TT_DEBOUNCE    50    // tt button debounce time in ms
