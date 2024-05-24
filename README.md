@@ -287,7 +287,7 @@ For a connection by wire, connect GND and GPIO on the SID's "Time Travel" connec
     <tr>
      <td align="center">SID</td>
      <td align="center">TCD with control board 1.2</td>
-     <td align="center">TCD with control board 1.3</td>
+     <td align="center">TCD with control board >=1.3</td>
     </tr>
    <tr>
      <td align="center">GND of 3-pin connector</td>
