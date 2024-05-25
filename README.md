@@ -301,7 +301,7 @@ For a connection by wire, connect GND and GPIO on the SID's "Time Travel" connec
     </tr>
 </table>
 
-Next, head to the Config Portal and set the ooption **_TCD connected by wire_**. On the TCD, the option "Control props connected by wire" must be set.
+Next, head to the Config Portal and set the option **_TCD connected by wire_**. On the TCD, the option "Control props connected by wire" must be set.
 
 >You can connect both the TCD and a button to the TT connector, which might be handy in case you want to have the SID learn an IR remote control without fiddling with cables. But the button should not be pressed when the option **_TCD connected by wire_** is set, as it might yield unwanted results. Also, note that the button connects to IO13 and 3_3V (not GND!).
 
