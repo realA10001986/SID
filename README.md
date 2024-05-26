@@ -247,7 +247,7 @@ In order to only disable the supplied IR remote control, check the option **_Dis
 
 To travel through time, type "0" on the remote control. The SID will play its time travel sequence.
 
-You can also connect a physical button to your SID; the button must connect "TT" and "3.3V" on the "Time Travel" connector. Pressing this button briefly will trigger a time travel.
+You can also connect a physical button to your SID; the button must connect "TT" to "3.3V" on the "Time Travel" connector. Pressing this button briefly will trigger a time travel.
 
 Other ways of triggering a time travel are available if a [Time Circuits Display](#connecting-a-time-circuits-display) is connected.
 
