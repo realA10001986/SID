@@ -85,6 +85,9 @@
 
 /*  Changelog
  *  
+ *  2024/06/05 (A10001986)
+ *    - Minor fixes for WiFiManager
+ *    * Switched to esp32-arduino 2.0.17 for pre-compiled binary.
  *  2024/05/09 (A10001986)
  *    - Enable internal pull-down for time travel connector
  *  2024/04/10 (A10001986)
