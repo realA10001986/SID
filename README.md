@@ -21,7 +21,7 @@ Features include
 
 If a previous version of the SID firmware is installed on your device, you can update easily using the pre-compiled binary. Enter the [Config Portal](#the-config-portal), click on "Update" and select the pre-compiled binary file provided in this repository ([install/sid-A10001986.ino.nodemcu-32s.bin](https://github.com/realA10001986/SID/blob/main/install/sid-A10001986.ino.nodemcu-32s.bin)).
 
-If you are using a fresh ESP32 board, please see [sid-A10001986.ino](https://github.com/realA10001986/SID/blob/main/sid-A10001986/sid-A10001986.ino) for detailed build information.
+If you are using a fresh ESP32 board, please see [sid-A10001986.ino](https://github.com/realA10001986/SID/blob/main/sid-A10001986/sid-A10001986.ino) for detailed build and upload information.
 
  *Important: After a firmware update, a "wait" symbol (hourglass) might be shown for a short while after reboot. Do NOT unplug the device during this time.*
 
