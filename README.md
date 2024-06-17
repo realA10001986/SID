@@ -279,7 +279,7 @@ Note that the SD card must be inserted before powering up the device. It is not 
 
 ### Connecting a TCD by wire
 
->Note that a wired connection only allows for synchronized time travel sequences, no other communication takes place. Therefore I strongly recommend a wireless BTTFN connection, see immediately below.
+>Note that a wired connection only allows for synchronized time travel sequences, no other communication takes place. A wireless connection over BTTFN/WiFi is much more powerful and therefore recommended over a wired connection.
 
 For a connection by wire, connect GND and GPIO on the SID's "Time Travel" connector to the TCD like in the table below:
 
