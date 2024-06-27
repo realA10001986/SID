@@ -27,7 +27,7 @@ If you are using a fresh ESP32 board, please see [sid-A10001986.ino](https://git
 
 ## Initial Configuration
 
->The following instructions only need to be followed once, on fresh TCDs. They do not need to be repeated after a firmware update.
+>The following instructions only need to be followed once, on fresh SIDs. They do not need to be repeated after a firmware update.
 
 The first step is to establish access to the SID's configuration web site ("Config Portal") in order to configure your SID:
 
