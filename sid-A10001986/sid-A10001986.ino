@@ -5,7 +5,7 @@
  * https://github.com/realA10001986/SID
  * https://sid.out-a-ti.me
  *
- * License: MIT
+ * License: MIT NON-AI
  * 
  * Permission is hereby granted, free of charge, to any person 
  * obtaining a copy of this software and associated documentation 
