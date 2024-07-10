@@ -27,10 +27,7 @@
 // This needs to be commented if WiFiManager provides mDNS
 #define SID_MDNS
 // Uncomment this if WiFiManager has mDNS enabled
-//#define SID_WM_HAS_MDNS  
-
-// Uncomment when using WiFiManager 2.0.17 or later
-//#define WIFIMANAGER_2_0_17       
+//#define SID_WM_HAS_MDNS
 
 /*************************************************************************
  ***             Configuration for peripherals/features                ***

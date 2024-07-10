@@ -21,6 +21,25 @@
  * The above copyright notice and this permission notice shall be 
  * included in all copies or substantial portions of the Software.
  *
+ * In addition, the following restrictions apply:
+ * 
+ * 1. The Software and any modifications made to it may not be used 
+ * for the purpose of training or improving machine learning algorithms, 
+ * including but not limited to artificial intelligence, natural 
+ * language processing, or data mining. This condition applies to any 
+ * derivatives, modifications, or updates based on the Software code. 
+ * Any usage of the Software in an AI-training dataset is considered a 
+ * breach of this License.
+ *
+ * 2. The Software may not be included in any dataset used for 
+ * training or improving machine learning algorithms, including but 
+ * not limited to artificial intelligence, natural language processing, 
+ * or data mining.
+ *
+ * 3. Any person or organization found to be in violation of these 
+ * restrictions will be subject to legal action and may be held liable 
+ * for any damages resulting from such use.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, 
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF 
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. 
@@ -482,11 +501,11 @@ void main_setup()
     if(!TCDconnected) {
         // If we are in fact a physical button, we need
         // reasonable values for debounce and press
-        TTKey.setTicks(TT_DEBOUNCE, TT_PRESS_TIME, TT_HOLD_TIME);
+        TTKey.setTiming(TT_DEBOUNCE, TT_PRESS_TIME, TT_HOLD_TIME);
         TTKey.attachLongPressStart(TTKeyHeld);
     } else {
         // If the TCD is connected, we can go more to the edge
-        TTKey.setTicks(5, 50, 100000);
+        TTKey.setTiming(5, 50, 100000);
         // Long press ignored when TCD is connected
         // IRLearning only possible if "TCD connected by wire" unset.
     }
