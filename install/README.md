@@ -1,4 +1,4 @@
-This folder holds all files necessary for immediate installation on your Flux Capacitor. Here you'll find a binary of the current firmware, ready for upload to the device.
+This folder holds a binary of the current SID firmware, ready for upload to your device.
 
 ## Firmware Installation
 
