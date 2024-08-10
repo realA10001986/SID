@@ -103,7 +103,7 @@ Each time you press a (recognized) key on the remote, an IR feedback LED will br
 
 ### IR learning
 
-Your SID can learn the codes of another IR remote control. Most remotes with a carrier signal of 38kHz (which most IR remotes use) will work. However, some remote controls, expecially ones for TVs, send keys repeatedly and/or send different codes alternately. If you had the SID learn a remote and the keys are not (always) recognized afterwards or appear to the pressed repeatedly while held, that remote is of that type and cannot be used.
+Your SID can learn the codes of another IR remote control. Most remotes with a carrier signal of 38kHz (which most IR remotes use) will work. However, some remote controls, especially ones for TVs, send keys repeatedly and/or send different codes alternately. If you had the SID learn a remote and the keys are not (always) recognized afterwards or appear to the pressed repeatedly while held, that remote is of that type and cannot be used.
 
 First, go to the Config Portal, uncheck **_TCD connected by wire_** on the Setup page and save. The SID reboots. Afterwards, to start the learning process, hold the [Time Travel](#time-travel) button for a few seconds, until the displays shows "GO" followed by "0". Then press "0" on your remote, which the SID will visually acknowledge by displaying the next key to press. Then press "1", wait for the acknowledgement, and so on. Enter your keys in the following order:
 
