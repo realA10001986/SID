@@ -172,7 +172,7 @@ In order to only disable the supplied IR remote control, check the option **_Dis
     <tr>
      <td align="center" colspan="3">Special sequences<br>(&#9166; = OK key)</td>
     </tr>
-   <tr><td>Function</td><td>Code on IR</td><td>Code on TCD</td></tr>
+   <tr><td>Function</td><td>Code on remote</td><td>Code on TCD</td></tr>
     <tr>
      <td align="left">Default idle pattern</td>
      <td align="left">*10&#9166;</td><td>6010</td>
