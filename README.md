@@ -83,7 +83,7 @@ A full reference of the Config Portal is [here](#appendix-a-the-config-portal).
 
 ## Basic Operation
 
-When the SID is idle, it shows an idle pattern. There are alternative idle patterns to choose from, selected by *10OK through *14OK on the remote, or via MQTT. If an SD card is present, the setting will be persistent accross reboots.
+When the SID is idle, it shows an idle pattern. There are alternative idle patterns to choose from, selected by *10OK through *14OK on the remote, or via MQTT. If an SD card is present, the setting will be persistent across reboots.
 
 If the option **_Adhere strictly to movie patterns_** is set (which is the default), the idle patterns #0 through #3 will only use patterns extracted from the movies (plus some interpolations); the same goes for when [GPS speed](#bttf-network-bttfn) is used. If this option is unset, random variations are shown, which is less boring, but also less accurate.
 
@@ -119,9 +119,9 @@ To make the SID forget a learned IR remote control, type *654321 followed by OK.
 
 ### Locking IR control
 
-You can have your SID ignore IR commands from any IR remote control (be it the default supplied one, be it one you had the SID learn) by entering *71 followed by OK. After this sequence the SID will ignore all IR commands until *71OK is entered again. The purpose of this function is to enable you to use the same IR control for your SID and other props (such as Flux Capacitor).
+You can have your SID ignore IR commands from any IR remote control (be it the default supplied one, be it one you had the SID learn) by entering *71 followed by OK. After this sequence, the SID will ignore all IR commands until *71OK is entered again. The purpose of this function is to enable you to use the same remote for your SID and other props (such as the Flux Capacitor).
 
-Note that the status of the IR lock is saved 10 seconds after its last change, and is persistent accross reboots.
+Note that the status of the IR lock is saved 10 seconds after its last change, and is persistent across reboots.
 
 In order to only disable the supplied IR remote control, check the option **_Disable supplied IR remote control_** in the [Config Portal](#-disable-supplied-ir-remote-control). In that case, any learned remote will still work.
 
@@ -273,7 +273,7 @@ Snakes like apples (at least so I have heard). You control a snake that feels a 
 
 Preface note on SD cards: For unknown reasons, some SD cards simply do not work with this device. For instance, I had no luck with Sandisk Ultra 32GB and  "Intenso" cards. If your SD card is not recognized, check if it is formatted in FAT32 format (not exFAT!). Also, the size must not exceed 32GB (as larger cards cannot be formatted with FAT32). Transcend SDHC cards and those work fine in my experience.
 
-The SD card is used for saving [secondary settings](#-save-secondary-settings-on-sd), in order to avoid [Flash Wear](#flash-wear) on the SID's ESP32. The chosen idle pattern (*1x), along with the ["strictly movie patterns"](#-adhere-strictly-to-movie-patterns) setting, is only stored on SD, so for your selection to be persistent accross reboots, an SD card is required. 
+The SD card is used for saving [secondary settings](#-save-secondary-settings-on-sd), in order to avoid [Flash Wear](#flash-wear) on the SID's ESP32. The chosen idle pattern (*1x), along with the ["strictly movie patterns"](#-adhere-strictly-to-movie-patterns) setting, is only stored on SD, so for your selection to be persistent across reboots, an SD card is required. 
 
 Note that the SD card must be inserted before powering up the device. It is not recognized if inserted while the SID is running. Furthermore, do not remove the SD card while the device is powered.
 
