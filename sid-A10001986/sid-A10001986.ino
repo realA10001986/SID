@@ -104,6 +104,8 @@
 
 /*  Changelog
  *  
+ *  2024/08/28 (A10001986)
+ *    - Treat TCD-speed from Remote like speed from RotEnc
  *  2024/06/05 (A10001986)
  *    - Minor fixes for WiFiManager
  *    * Switched to esp32-arduino 2.0.17 for pre-compiled binary.

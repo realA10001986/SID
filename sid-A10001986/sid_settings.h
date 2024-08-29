@@ -77,7 +77,7 @@ extern uint8_t musFolderNum;
 #define DEF_USE_GPSS        0     // 0: Ignore GPS speed; 1: Use it for chase speed
 #define DEF_USE_NM          0     // 0: Ignore TCD night mode; 1: Follow TCD night mode
 #define DEF_USE_FPO         0     // 0: Ignore TCD fake power; 1: Follow TCD fake power
-#define DEF_BTTFN_TT        1     // 0: '0' on IR remove and TT button trigger stand-alone TT; 1: They trigger BTTFN-wide TT
+#define DEF_BTTFN_TT        1     // 0: '0' on IR remote and TT button trigger stand-alone TT; 1: They trigger BTTFN-wide TT
 #define DEF_SS_CLK          0     // "Screen saver" is clock (0=off, 1=on)
 #define DEF_SS_CLK_NMOFF    0     // 0: Clock dimmed in NM 1: Clock off in NM
 
@@ -85,7 +85,7 @@ extern uint8_t musFolderNum;
 #define DEF_SKIP_TTANIM     1     // 0: Don't skip tt anim; 1: do
 #define DEF_SA_PEAKS        0     // 1: Show peaks in SA, 0: don't
 
-#define DEF_CFG_ON_SD       1     // Default: Save vol/spd/IR settings on SD card
+#define DEF_CFG_ON_SD       1     // Default: Save secondary settings on SD card
 #define DEF_SD_FREQ         0     // SD/SPI frequency: Default 16MHz
 
 struct Settings {
