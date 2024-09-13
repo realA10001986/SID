@@ -104,6 +104,11 @@
 
 /*  Changelog
  *  
+ *  2024/09/13 (A10001986)
+ *    - Command *50 is now *60, command *51 is now *61
+ *      (Changed for uniformity with other props)
+ *  2024/09/11 (A10001986)
+ *    - Fix C99-compliance
  *  2024/09/09 (A10001986)
  *    - Tune BTTFN poll interval
  *  2024/08/28 (A10001986)
