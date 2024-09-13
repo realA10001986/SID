@@ -211,11 +211,11 @@ In order to only disable the supplied IR remote control, check the option **_Dis
     </tr>
     <tr>
      <td align="left">Enable/disable "<a href="#-adhere-strictly-to-movie-patterns">strictly movie patterns</a>"</td>
-     <td align="left">*50&#9166;</td><td>6050</td>
+     <td align="left">*60&#9166;</td><td>6060</td>
     </tr>
    <tr>
      <td align="left">Enable/disable peaks in Spectrum Analyzer</td>
-     <td align="left">*51&#9166;</td><td>6051</td>
+     <td align="left">*61&#9166;</td><td>6061</td>
     </tr>
     <tr>
      <td align="left"><a href="#locking-ir-control">Disable/Enable</a> IR remote commands</td>
