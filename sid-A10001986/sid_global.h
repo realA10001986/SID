@@ -12,7 +12,7 @@
 #define _SID_GLOBAL_H
 
 // Version strings
-#define SID_VERSION       "V1.3"
+#define SID_VERSION       "V1.30"
 #define SID_VERSION_EXTRA "SEP132024"
 
 //#define SID_DBG              // debug output on Serial
