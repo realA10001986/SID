@@ -104,6 +104,11 @@
 
 /*  Changelog
  *  
+ *  2024/10/26 (A10001986) [1.40]
+ *    - Add support for TCD multicast notifications: This brings more immediate speed 
+ *      updates (no more polling; TCD sends out speed info when appropriate), and 
+ *      less network traffic in time travel sequences.
+ *      The TCD supports this since Oct 26, 2024.
  *  2024/09/13 (A10001986)
  *    - Command *50 is now *60, command *51 is now *61
  *      (Changed for uniformity with other props)

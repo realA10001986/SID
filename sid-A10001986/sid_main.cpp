@@ -360,8 +360,9 @@ static bool          IRLearnBlink = false;
 static const char    IRLearnKeys[] = "0123456789*#^$<>~";
 
 #define BTTFN_VERSION              1
+#define BTTFN_SUP_MC            0x80
 #define BTTF_PACKET_SIZE          48
-#define BTTF_DEFAULT_LOCAL_PORT 1338    // 1339 for multicast
+#define BTTF_DEFAULT_LOCAL_PORT 1338    // 1339, 1340 for multicast
 #define BTTFN_POLL_INT          1000
 #define BTTFN_POLL_INT_FAST      800
 #define BTTFN_NOT_PREPARE  1
@@ -376,7 +377,7 @@ static const char    IRLearnKeys[] = "0123456789*#^$<>~";
 #define BTTFN_NOT_WAKEUP   10
 #define BTTFN_NOT_AUX_CMD  11
 #define BTTFN_NOT_VSR_CMD  12
-#define BTTFN_NOT_REM_CMD  13
+#define BTTFN_NOT_SPD      15
 #define BTTFN_TYPE_ANY     0    // Any, unknown or no device
 #define BTTFN_TYPE_FLUX    1    // Flux Capacitor
 #define BTTFN_TYPE_SID     2    // SID
@@ -384,10 +385,21 @@ static const char    IRLearnKeys[] = "0123456789*#^$<>~";
 #define BTTFN_TYPE_VSR     4    // VSR
 #define BTTFN_TYPE_AUX     5    // Aux (user custom device)
 #define BTTFN_TYPE_REMOTE  6    // Futaba remote control
+#define BTTFN_SSRC_NONE         0
+#define BTTFN_SSRC_GPS          1
+#define BTTFN_SSRC_ROTENC       2
+#define BTTFN_SSRC_REM          3
+#define BTTFN_SSRC_P0           4
+#define BTTFN_SSRC_P1           5
+#define BTTFN_SSRC_P2           6
 static const uint8_t BTTFUDPHD[4] = { 'B', 'T', 'T', 'F' };
 static bool          useBTTFN = false;
 static WiFiUDP       bttfUDP;
 static UDP*          sidUDP;
+#ifdef BTTFN_MC
+static WiFiUDP       bttfMcUDP;
+static UDP*          sidMcUDP;
+#endif
 static byte          BTTFUDPBuf[BTTF_PACKET_SIZE];
 static unsigned long BTTFNUpdateNow = 0;
 static unsigned long bttfnSIDPollInt = BTTFN_POLL_INT;
@@ -401,8 +413,12 @@ static unsigned long lastBTTFNpacket = 0;
 static bool          BTTFNBootTO = false;
 static bool          haveTCDIP = false;
 static IPAddress     bttfnTcdIP;
+static uint32_t      bttfnTCDSeqCnt = 0;
+static uint8_t       bttfnReqStatus = 0x53; // Request capabilities, status, speed, date/time
 #ifdef BTTFN_MC
 static uint32_t      tcdHostNameHash = 0;
+static byte          BTTFMCBuf[BTTF_PACKET_SIZE];
+static uint8_t       bttfnMcMarker = 0;
 #endif    
 
 static int      iCmdIdx = 0;
@@ -417,13 +433,11 @@ static unsigned long bttfnDateNow = 0;
     (((a)[(b)+1]) << 8)  |  \
     (((a)[(b)+2]) << 16) |  \
     (((a)[(b)+3]) << 24))
-//#define GET32(a,b)    *((uint32_t *)((a) + (b)))
 #define SET32(a,b,c)                        \
     (a)[b]       = ((uint32_t)(c)) & 0xff;  \
     ((a)[(b)+1]) = ((uint32_t)(c)) >> 8;    \
     ((a)[(b)+2]) = ((uint32_t)(c)) >> 16;   \
     ((a)[(b)+3]) = ((uint32_t)(c)) >> 24; 
-//#define SET32(a,b,c)   *((uint32_t *)((a) + (b))) = c
 
 // Forward declarations ------
 
@@ -464,6 +478,9 @@ static void ssRestartTimer();
 static void ssUpdateClock();
 
 static void bttfn_setup();
+#ifdef BTTFN_MC
+static bool bttfn_checkmc();
+#endif
 static void BTTFNCheckPacket();
 static bool BTTFNTriggerUpdate();
 static void BTTFNSendPacket();
@@ -1280,16 +1297,16 @@ static void showIdle(bool freezeBaseLine)
 
     if(useGPSS && gpsSpeed >= 0) {
 
-        bttfnSIDPollInt = BTTFN_POLL_INT_FAST;
-
-        if(now - lastChange < 500)
-            return;
+        if(!bttfnTCDSeqCnt) {
+            bttfnSIDPollInt = BTTFN_POLL_INT_FAST;
+        }
 
         usingGPSS = true;
-        
-        lastChange = now;
-
+       
         if(!strictMode) {
+            if(now - lastChange < 500) 
+                return;
+
             if(!freezeBaseLine) {
                 sidBaseLine = (max(10, (int)gpsSpeed) * 20 / 88) - 1;
                 if(sidBaseLine > 19) sidBaseLine = 19;
@@ -1297,7 +1314,12 @@ static void showIdle(bool freezeBaseLine)
                     sidBaseLine = (sidBaseLine + oldBaseLine) / 2;
                 }
             }
+            
         } else {
+          
+            if((gpsSpeed == prevGPSSpeed) && (now - lastChange < 500))
+                return;
+            
             if(!freezeBaseLine) {
                 strictBaseLine = gpsSpeed * 100 / (88 * 100 / (TT_SQF_LN - 1));
                 if(gpsSpeed == prevGPSSpeed) {
@@ -1317,8 +1339,10 @@ static void showIdle(bool freezeBaseLine)
                 }
             }
             sblFlags |= SBLF_STRICT;
-        }
 
+        }
+        
+        lastChange = now;
         prevGPSSpeed = gpsSpeed;
 
     } else if(idleMode == SID_IDLE_BL) {     // "backlot mode"
@@ -2658,14 +2682,28 @@ static void bttfn_setup()
     
     sidUDP = &bttfUDP;
     sidUDP->begin(BTTF_DEFAULT_LOCAL_PORT);
+
+    #ifdef BTTFN_MC
+    sidMcUDP = &bttfMcUDP;
+    sidMcUDP->beginMulticast(IPAddress(224, 0, 0, 224), BTTF_DEFAULT_LOCAL_PORT + 2);
+    #endif
+    
     BTTFNfailCount = 0;
     useBTTFN = true;
 }
 
 void bttfn_loop()
 {
+    #ifdef BTTFN_MC
+    int t = 10;
+    #endif
+    
     if(!useBTTFN)
         return;
+
+    #ifdef BTTFN_MC
+    while(bttfn_checkmc() && t--) {}
+    #endif
 
     BTTFNCheckPacket();
     
@@ -2679,6 +2717,139 @@ void bttfn_loop()
         }
     }
 }
+
+static bool check_packet(uint8_t *buf)
+{
+    // Basic validity check
+    if(memcmp(BTTFUDPBuf, BTTFUDPHD, 4))
+        return false;
+
+    uint8_t a = 0;
+    for(int i = 4; i < BTTF_PACKET_SIZE - 1; i++) {
+        a += BTTFUDPBuf[i] ^ 0x55;
+    }
+    if(BTTFUDPBuf[BTTF_PACKET_SIZE - 1] != a)
+        return false;
+
+    return true;
+}
+
+static void handle_tcd_notification(uint8_t *buf)
+{
+    uint32_t seqCnt;
+    
+    switch(buf[5]) {
+    case BTTFN_NOT_PREPARE:
+        // Prepare for TT. Comes at some undefined point,
+        // an undefined time before the actual tt, and
+        // may not come at all.
+        // We don't ignore this if TCD is connected by wire,
+        // because this signal does not come via wire.
+        if(!TTrunning && !IRLearning) {
+            prepareTT();
+        }
+        break;
+    case BTTFN_NOT_TT:
+        // Trigger Time Travel (if not running already)
+        // Ignore command if TCD is connected by wire
+        if(!TCDconnected && !TTrunning && !IRLearning) {
+            networkTimeTravel = true;
+            networkTCDTT = true;
+            networkReentry = false;
+            networkAbort = false;
+            networkLead = buf[6] | (buf[7] << 8);
+        }
+        break;
+    case BTTFN_NOT_REENTRY:
+        // Start re-entry (if TT currently running)
+        // Ignore command if TCD is connected by wire
+        if(!TCDconnected && TTrunning && networkTCDTT) {
+            networkReentry = true;
+        }
+        break;
+    case BTTFN_NOT_ABORT_TT:
+        // Abort TT (if TT currently running)
+        // Ignore command if TCD is connected by wire
+        if(!TCDconnected && TTrunning && networkTCDTT) {
+            networkAbort = true;
+        }
+        break;
+    case BTTFN_NOT_ALARM:
+        networkAlarm = true;
+        // Eval this at our convenience
+        break;
+    case BTTFN_NOT_SID_CMD:
+        addCmdQueue( buf[6] | (buf[7] << 8) |
+                    (buf[8] | (buf[9] << 8)) << 16);
+        break;
+    case BTTFN_NOT_WAKEUP:
+        if(!TTrunning && !IRLearning) {
+            wakeup();
+        }
+        break;
+    case BTTFN_NOT_SPD:
+        seqCnt = GET32(buf, 12);
+        if(seqCnt == 1 || seqCnt > bttfnTCDSeqCnt) {
+            gpsSpeed = (int16_t)(buf[6] | (buf[7] << 8));
+            if(gpsSpeed > 88) gpsSpeed = 88;
+            switch(buf[8] | (buf[9] << 8)) {
+            case BTTFN_SSRC_GPS:
+                spdIsRotEnc = false;
+                break;
+            default:
+                spdIsRotEnc = true;
+            }
+        } else {
+            #ifdef SID_DBG
+            Serial.printf("Out-of-sequence packet received from TCD %d %d\n", seqCnt, bttfnTCDSeqCnt);
+            #endif
+        }
+        bttfnTCDSeqCnt = seqCnt;
+        break;
+    }
+}
+
+#ifdef BTTFN_MC
+static bool bttfn_checkmc()
+{
+    int psize = sidMcUDP->parsePacket();
+
+    if(!psize) {
+        return false;
+    }
+    
+    sidMcUDP->read(BTTFMCBuf, BTTF_PACKET_SIZE);
+
+    #ifdef SID_DBG
+    Serial.printf("Received multicast packet from %s\n", sidMcUDP->remoteIP().toString());
+    #endif
+
+    if(haveTCDIP) {
+        if(bttfnTcdIP != sidMcUDP->remoteIP())
+            return false;
+    } else {
+        // Do not use tcdHostNameHash; let DISCOVER do its work
+        // and wait for a result.
+        return false;
+    }
+
+    if(!check_packet(BTTFMCBuf))
+        return false;
+
+    if((BTTFMCBuf[4] & 0x4f) == (BTTFN_VERSION | 0x40)) {
+
+        // A notification from the TCD
+        handle_tcd_notification(BTTFMCBuf);
+    
+    } else {
+      
+        return false;
+
+    }
+
+    return true;
+}
+#endif
 
 // Check for pending packet and parse it
 static void BTTFNCheckPacket()
@@ -2706,82 +2877,23 @@ static void BTTFNCheckPacket()
     
     sidUDP->read(BTTFUDPBuf, BTTF_PACKET_SIZE);
 
-    // Basic validity check
-    if(memcmp(BTTFUDPBuf, BTTFUDPHD, 4))
+    if(!check_packet(BTTFUDPBuf))
         return;
 
-    uint8_t a = 0;
-    for(int i = 4; i < BTTF_PACKET_SIZE - 1; i++) {
-        a += BTTFUDPBuf[i] ^ 0x55;
-    }
-    if(BTTFUDPBuf[BTTF_PACKET_SIZE - 1] != a)
-        return;
-
-    if(BTTFUDPBuf[4] == (BTTFN_VERSION | 0x40)) {
+    if((BTTFUDPBuf[4] & 0x4f) == (BTTFN_VERSION | 0x40)) {
 
         // A notification from the TCD
-
-        switch(BTTFUDPBuf[5]) {
-        case BTTFN_NOT_PREPARE:
-            // Prepare for TT. Comes at some undefined point,
-            // an undefined time before the actual tt, and
-            // may not come at all.
-            // We don't ignore this if TCD is connected by wire,
-            // because this signal does not come via wire.
-            if(!TTrunning && !IRLearning) {
-                prepareTT();
-            }
-            break;
-        case BTTFN_NOT_TT:
-            // Trigger Time Travel (if not running already)
-            // Ignore command if TCD is connected by wire
-            if(!TCDconnected && !TTrunning && !IRLearning) {
-                networkTimeTravel = true;
-                networkTCDTT = true;
-                networkReentry = false;
-                networkAbort = false;
-                networkLead = BTTFUDPBuf[6] | (BTTFUDPBuf[7] << 8);
-            }
-            break;
-        case BTTFN_NOT_REENTRY:
-            // Start re-entry (if TT currently running)
-            // Ignore command if TCD is connected by wire
-            if(!TCDconnected && TTrunning && networkTCDTT) {
-                networkReentry = true;
-            }
-            break;
-        case BTTFN_NOT_ABORT_TT:
-            // Abort TT (if TT currently running)
-            // Ignore command if TCD is connected by wire
-            if(!TCDconnected && TTrunning && networkTCDTT) {
-                networkAbort = true;
-            }
-            break;
-        case BTTFN_NOT_ALARM:
-            networkAlarm = true;
-            // Eval this at our convenience
-            break;
-        case BTTFN_NOT_SID_CMD:
-            addCmdQueue( BTTFUDPBuf[6] | (BTTFUDPBuf[7] << 8) |
-                        (BTTFUDPBuf[8] | (BTTFUDPBuf[9] << 8)) << 16);
-            break;
-        case BTTFN_NOT_WAKEUP:
-            if(!TTrunning && !IRLearning) {
-                wakeup();
-            }
-            break;
-        }
+        handle_tcd_notification(BTTFUDPBuf);
       
     } else {
 
         // (Possibly) a response packet
     
-        //if(*((uint32_t *)(BTTFUDPBuf + 6)) != BTTFUDPID)
         if(GET32(BTTFUDPBuf, 6) != BTTFUDPID)
             return;
     
         // Response marker missing or wrong version, bail
-        if(BTTFUDPBuf[4] != (BTTFN_VERSION | 0x80))
+        if((BTTFUDPBuf[4] & 0x8f) != (BTTFN_VERSION | 0x80))
             return;
 
         BTTFNfailCount = 0;
@@ -2809,17 +2921,29 @@ static void BTTFNCheckPacket()
             memcpy(bttfnDateBuf, &BTTFUDPBuf[10], sizeof(bttfnDateBuf));
             bttfnDateNow = mymillis;
         }
+
         if(BTTFUDPBuf[5] & 0x02) {
             gpsSpeed = (int16_t)(BTTFUDPBuf[18] | (BTTFUDPBuf[19] << 8));
             if(gpsSpeed > 88) gpsSpeed = 88;
             spdIsRotEnc = (BTTFUDPBuf[26] & (0x80|0x20)) ? true : false;    // Speed is from RotEnc or Remote
         }
+
         if(BTTFUDPBuf[5] & 0x10) {
             tcdNM  = (BTTFUDPBuf[26] & 0x01) ? true : false;
             tcdFPO = (BTTFUDPBuf[26] & 0x02) ? true : false;   // 1 means fake power off
         } else {
             tcdNM = false;
             tcdFPO = false;
+        }
+
+        if(BTTFUDPBuf[5] & 0x40) {
+            bttfnReqStatus &= ~0x40;     // Do no longer poll capabilities
+            #ifdef BTTFN_MC
+            if(BTTFUDPBuf[31] & 0x01) {
+                bttfnMcMarker = BTTFN_SUP_MC;
+                bttfnReqStatus &= ~0x02; // Do no longer poll speed, comes over multicast
+            }
+            #endif
         }
 
         lastBTTFNpacket = mymillis;
@@ -2859,7 +2983,6 @@ static void BTTFNSendPacket()
     // Serial
     BTTFUDPID = (uint32_t)millis();
     SET32(BTTFUDPBuf, 6, BTTFUDPID);
-    //*((uint32_t *)(BTTFUDPBuf + 6)) =
 
     // Tell the TCD about our hostname (0-term., 13 bytes total)
     strncpy((char *)BTTFUDPBuf + 10, settings.hostName, 12);
@@ -2867,13 +2990,16 @@ static void BTTFNSendPacket()
 
     BTTFUDPBuf[10+13] = BTTFN_TYPE_SID;
 
-    BTTFUDPBuf[4] = BTTFN_VERSION;  // Version
-    BTTFUDPBuf[5] = 0x13;           // Request date/time, GPS speed and status
+    #ifdef BTTFN_MC
+    BTTFUDPBuf[4] = BTTFN_VERSION | bttfnMcMarker; // Version, MC-marker
+    #else
+    BTTFUDPBuf[4] = BTTFN_VERSION;
+    #endif
+    BTTFUDPBuf[5] = bttfnReqStatus;                // Request date/time, speed and status
 
     #ifdef BTTFN_MC
     if(!haveTCDIP) {
         BTTFUDPBuf[5] |= 0x80;
-        //memcpy(BTTFUDPBuf + 31, (void *)&tcdHostNameHash, 4);
         SET32(BTTFUDPBuf, 31, tcdHostNameHash);
     }
     #endif
@@ -2930,7 +3056,11 @@ static bool BTTFNTriggerTT()
 
     BTTFUDPBuf[10+13] = BTTFN_TYPE_SID;
 
-    BTTFUDPBuf[4] = BTTFN_VERSION;  // Version
+    #ifdef BTTFN_MC
+    BTTFUDPBuf[4] = BTTFN_VERSION | bttfnMcMarker; // Version, MC-marker
+    #else
+    BTTFUDPBuf[4] = BTTFN_VERSION;
+    #endif
     BTTFUDPBuf[5] = 0x80;           // Trigger BTTFN-wide TT
 
     uint8_t a = 0;
