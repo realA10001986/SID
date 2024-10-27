@@ -419,6 +419,7 @@ static uint8_t       bttfnReqStatus = 0x53; // Request capabilities, status, spe
 static uint32_t      tcdHostNameHash = 0;
 static byte          BTTFMCBuf[BTTF_PACKET_SIZE];
 static uint8_t       bttfnMcMarker = 0;
+static IPAddress     bttfnMcIP(224, 0, 0, 224);
 #endif    
 
 static int      iCmdIdx = 0;
@@ -478,6 +479,7 @@ static void ssRestartTimer();
 static void ssUpdateClock();
 
 static void bttfn_setup();
+static void bttfn_loop_quick();
 #ifdef BTTFN_MC
 static bool bttfn_checkmc();
 #endif
@@ -1065,9 +1067,19 @@ void main_loop()
         if(networkAlarm && !IRLearning) {
 
             networkAlarm = false;
+            
             ssEnd();
+            
+            if(!FPBUnitIsOn) {
+                sid.on();
+            }
+            
             // play alarm sequence
             showWordSequence("ALARM", 4);
+            
+            if(!FPBUnitIsOn) {
+                sid.off();
+            }
         
         } else if(!IRLearning) {
 
@@ -1131,20 +1143,17 @@ void main_loop()
     }
 
     if(!TTrunning) {
-        // Save brightness 10 seconds after last change
+        
         if(brichanged && (now - brichgnow > 10000)) {
+            // Save brightness 10 seconds after last change
             brichanged = false;
             saveBrightness();
-        }
-    
-        // Save idle pattern 10 seconds after last change
-        if(ipachanged && (now - ipachgnow > 10000)) {
+        } else if(ipachanged && (now - ipachgnow > 10000)) {
+            // Save idle pattern 10 seconds after last change
             ipachanged = false;
             saveIdlePat();
-        }
-    
-        // Save irlock 10 seconds after last change
-        if(irlchanged && (now - irlchgnow > 10000)) {
+        } else if(irlchanged && (now - irlchgnow > 10000)) {
+            // Save irlock 10 seconds after last change
             irlchanged = false;
             saveIRLock();
         }
@@ -2627,6 +2636,7 @@ void wakeup()
 static void myloop(bool withIR)
 {
     wifi_loop();
+    bttfn_loop_quick();
     if(withIR) ir_remote.loop();
 }
 
@@ -2685,7 +2695,7 @@ static void bttfn_setup()
 
     #ifdef BTTFN_MC
     sidMcUDP = &bttfMcUDP;
-    sidMcUDP->beginMulticast(IPAddress(224, 0, 0, 224), BTTF_DEFAULT_LOCAL_PORT + 2);
+    sidMcUDP->beginMulticast(bttfnMcIP, BTTF_DEFAULT_LOCAL_PORT + 2);
     #endif
     
     BTTFNfailCount = 0;
@@ -2716,6 +2726,20 @@ void bttfn_loop()
             BTTFNTriggerUpdate();
         }
     }
+}
+
+static void bttfn_loop_quick()
+{
+    #ifdef BTTFN_MC
+    int t = 10;
+    #endif
+    
+    if(!useBTTFN)
+        return;
+
+    #ifdef BTTFN_MC
+    while(bttfn_checkmc() && t--) {}
+    #endif
 }
 
 static bool check_packet(uint8_t *buf)
@@ -2779,8 +2803,7 @@ static void handle_tcd_notification(uint8_t *buf)
         // Eval this at our convenience
         break;
     case BTTFN_NOT_SID_CMD:
-        addCmdQueue( buf[6] | (buf[7] << 8) |
-                    (buf[8] | (buf[9] << 8)) << 16);
+        addCmdQueue(GET32(buf, 6));
         break;
     case BTTFN_NOT_WAKEUP:
         if(!TTrunning && !IRLearning) {
@@ -3019,7 +3042,7 @@ static void BTTFNSendPacket()
         #ifdef SID_DBG
         Serial.printf("Sending multicast (hostname hash %x)\n", tcdHostNameHash);
         #endif
-        sidUDP->beginPacket("224.0.0.224", BTTF_DEFAULT_LOCAL_PORT + 1);
+        sidUDP->beginPacket(bttfnMcIP, BTTF_DEFAULT_LOCAL_PORT + 1);
     }
     #endif
     sidUDP->write(BTTFUDPBuf, BTTF_PACKET_SIZE);
