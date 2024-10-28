@@ -301,7 +301,7 @@ Afterwards, the SID and the TCD can communicate wirelessly and
 - the SID queries the TCD for fake power and night mode, in order to react accordingly if so configured,
 - pressing "0" on the IR remote control or the SID's Time Travel button can trigger a synchronized Time Travel on all BTTFN-connected devices, just like if that Time Travel was triggered through the TCD.
 
-You can use BTTF-Network and MQTT at the same time, see below.
+You can use BTTF-Network and MQTT at the same time, see [below](#home-assistant--mqtt).
 
 ### Connecting a TCD by wire
 
