@@ -1,7 +1,7 @@
 /*
  * -------------------------------------------------------------------
  * CircuitSetup.us Status Indicator Display
- * (C) 2023-2024 Thomas Winischhofer (A10001986)
+ * (C) 2023-2025 Thomas Winischhofer (A10001986)
  * https://github.com/realA10001986/SID
  * https://sid.out-a-ti.me
  *
@@ -157,6 +157,7 @@ static bool useFPO = false;
 static bool tcdFPO = false;
 static int  FPOSAMode = -1;
 static bool bttfnTT = true;
+static bool oldSidNM = false;
 
 static bool skipTTAnim = false;
 
@@ -348,6 +349,10 @@ static int           maxIRctrls = NUM_REM_TYPES;
 #define IR_FEEDBACK_DUR 300
 static bool          irFeedBack = false;
 static unsigned long irFeedBackNow = 0;
+static unsigned long irFeedBackDur = IR_FEEDBACK_DUR;
+static bool          irErrFeedBack = false;
+static unsigned long irErrFeedBackNow = 0;
+static int           irErrFBState = 0;
 
 bool                 irLocked = false;
 
@@ -358,6 +363,11 @@ static unsigned long IRLearnNow;
 static unsigned long IRFBLearnNow;
 static bool          IRLearnBlink = false;
 static const char    IRLearnKeys[] = "0123456789*#^$<>~";
+
+uint32_t             myRemID = 0x12345678;
+static bool          remoteAllowed = false;
+static bool          remMode = false;
+static bool          remHoldKey = false;
 
 #define BTTFN_VERSION              1
 #define BTTFN_SUP_MC            0x80
@@ -385,6 +395,10 @@ static const char    IRLearnKeys[] = "0123456789*#^$<>~";
 #define BTTFN_TYPE_VSR     4    // VSR
 #define BTTFN_TYPE_AUX     5    // Aux (user custom device)
 #define BTTFN_TYPE_REMOTE  6    // Futaba remote control
+#define BTTFN_REMCMD_KP_PING    4
+#define BTTFN_REMCMD_KP_KEY     5
+#define BTTFN_REMCMD_KP_BYE     6
+#define BTTFN_REM_MAX_COMMAND   BTTFN_REMCMD_KP_BYE
 #define BTTFN_SSRC_NONE         0
 #define BTTFN_SSRC_GPS          1
 #define BTTFN_SSRC_ROTENC       2
@@ -415,12 +429,19 @@ static bool          haveTCDIP = false;
 static IPAddress     bttfnTcdIP;
 static uint32_t      bttfnTCDSeqCnt = 0;
 static uint8_t       bttfnReqStatus = 0x53; // Request capabilities, status, speed, date/time
+static bool          TCDSupportsRemKP = false;
 #ifdef BTTFN_MC
 static uint32_t      tcdHostNameHash = 0;
 static byte          BTTFMCBuf[BTTF_PACKET_SIZE];
 static uint8_t       bttfnMcMarker = 0;
 static IPAddress     bttfnMcIP(224, 0, 0, 224);
-#endif    
+#endif
+static uint32_t      bttfnSeqCnt[BTTFN_REM_MAX_COMMAND+1] = { 1 };
+
+enum {
+    BTTFN_KP_KS_PRESSED,
+    BTTFN_KP_KS_HOLD,
+};
 
 static int      iCmdIdx = 0;
 static int      oCmdIdx = 0;
@@ -486,7 +507,10 @@ static bool bttfn_checkmc();
 static void BTTFNCheckPacket();
 static bool BTTFNTriggerUpdate();
 static void BTTFNSendPacket();
-static bool BTTFNTriggerTT();
+static bool BTTFNConnected();
+
+static bool bttfn_trigger_tt();
+static bool bttfn_send_command(uint8_t cmd, uint8_t p1, uint8_t p2);
 
 void main_boot()
 {
@@ -528,6 +552,10 @@ void main_setup()
     // via wire, and is source of GPIO tt trigger
     TCDconnected = (atoi(settings.TCDpresent) > 0);
     noETTOLead = (atoi(settings.noETTOLead) > 0);
+
+    for(int i = 0; i < BTTFN_REM_MAX_COMMAND+1; i++) {
+        bttfnSeqCnt[i] = 1;
+    }
 
     // Init IR feedback LED
     pinMode(IRFeedBackPin, OUTPUT);
@@ -688,7 +716,17 @@ void main_loop()
     }
 
     // IR feedback
-    if(irFeedBack && now - irFeedBackNow > IR_FEEDBACK_DUR) {
+    if(irErrFeedBack && (now - irErrFeedBackNow > 250)) {
+        irErrFeedBackNow = now;
+        irErrFBState++;
+        if(irErrFBState > 3) {
+            irErrFeedBack = false;
+        } else {
+            (irErrFBState & 0x01) ? endIRfeedback() : startIRfeedback();
+            irErrFeedBack = true;
+        }
+    }
+    if(irFeedBack && (now - irFeedBackNow > irFeedBackDur)) {
         endIRfeedback();
         irFeedBack = false;
     }
@@ -755,7 +793,7 @@ void main_loop()
                 if(TCDconnected) {
                     ssEnd();
                 }
-                if(TCDconnected || !bttfnTT || !BTTFNTriggerTT()) {
+                if(TCDconnected || !bttfnTT || !bttfn_trigger_tt()) {
                     timeTravel(TCDconnected, noETTOLead ? 0 : ETTO_LEAD);
                 }
             }
@@ -1111,6 +1149,13 @@ void main_loop()
 
         }
         
+    } else if(saActive) {
+        if(sidNM != oldSidNM) {
+            if(sidNM) {
+                span_stop();
+            }
+            oldSidNM = sidNM;
+        }
     }
 
     // Follow TCD night mode
@@ -1791,11 +1836,22 @@ static void toggleStrictMode()
 static void startIRfeedback()
 {
     digitalWrite(IRFeedBackPin, HIGH);
+    irFeedBackDur = IR_FEEDBACK_DUR;
+    irErrFeedBack = false;
 }
 
 static void endIRfeedback()
 {
     digitalWrite(IRFeedBackPin, LOW);
+}
+
+static void startIRErrFeedback()
+{
+    startIRfeedback();
+    irErrFeedBack = true;
+    irErrFeedBackNow = millis();
+    irErrFBState = 0;
+    irFeedBack = false;
 }
 
 static void backupIR()
@@ -1964,6 +2020,23 @@ static void handleIRKey(int key)
     if(inputRecord && key >= 0 && key <= 9) {
         recordKey(key);
         return;
+    }  else if(remMode) {
+        // Remote mode for TCD keypad: (Must not be started while irlocked - user wouldn't be able to unlock IR)
+        if(key == 11) {   // # quits
+            remMode = remHoldKey = false;
+            clearInpBuf();    // Relevant if initiated by TCD (6096)
+            bttfn_send_command(BTTFN_REMCMD_KP_BYE, 0, 0);
+            irFeedBackDur = 1000;
+        } else if(key == 10) {   // * means the following key is "held" on TCD keypad
+            remHoldKey = true;
+        } else {
+            uint8_t rkey = (key >= 0 && key <= 9) ? key + '0' : ((key == 16) ? rkey = 'E' : 0);
+            if(rkey) {
+                bttfn_send_command(BTTFN_REMCMD_KP_KEY, rkey, remHoldKey ? BTTFN_KP_KS_HOLD : BTTFN_KP_KS_PRESSED);
+            }
+            remHoldKey = false;
+        }
+        return;
     }
     
     switch(key) {
@@ -1974,7 +2047,7 @@ static void handleIRKey(int key)
         } else if (snActive) {
             // Nothing
         } else {
-            if(!bttfnTT || !BTTFNTriggerTT()) {
+            if(!bttfnTT || !bttfn_trigger_tt()) {
                 timeTravel(false, ETTO_LEAD);
             }
         }
@@ -2085,9 +2158,9 @@ static void handleIRKey(int key)
         }
     }
 
-    if(!TTrunning && doBadInp) {
+    if(/*!TTrunning &&*/ doBadInp) {
         // bad input signal
-        // TODO
+        startIRErrFeedback();
     }
 }
 
@@ -2205,75 +2278,103 @@ static bool execute(bool isIR)
             }
         } else {
             switch(temp) {
-            case 0:
-            case 20:
-                if(!TTrunning && !isIRLocked) {   // *00(deprecated), *20 idle mode
-                    span_stop();
-                    siddly_stop();
-                    snake_stop();
+            case 20:                              // *20 idle mode
+                if(!isIRLocked) {
+                    if(!TTrunning) {
+                        span_stop();
+                        siddly_stop();
+                        snake_stop();
+                    } else doBadInp = true;
                 }
                 break;
-            case 1:                               // *01(deprecated), *21 sa mode
-            case 21:
-                if(!TTrunning && !isIRLocked) {
-                    siddly_stop();
-                    snake_stop();
-                    span_start();
+            case 21:                              // *21 sa mode
+                if(!isIRLocked) {
+                    if(!TTrunning) {
+                        siddly_stop();
+                        snake_stop();
+                        span_start();
+                    } else doBadInp = true;
                 }
                 break;
-            case 2:                               // *02(deprecated), *22 siddly
-            case 22:
-                if(!TTrunning && !isIRLocked) {
-                    span_stop();
-                    snake_stop();
-                    siddly_start();
+            case 22:                              // *22 siddly
+                if(!isIRLocked) {
+                    if(!TTrunning) {
+                        span_stop();
+                        snake_stop();
+                        siddly_start();
+                    } else doBadInp = true;
                 }
                 break;
-            case 3:                               // *03(deprecated), *23 snake
-            case 23:
-                if(!TTrunning && !isIRLocked) {
-                    siddly_stop();
-                    span_stop();
-                    snake_start();
+            case 23:                              // *23 snake
+                if(!isIRLocked) {
+                    if(!TTrunning) {
+                        siddly_stop();
+                        span_stop();
+                        snake_start();
+                    } else doBadInp = true;
                 }
                 break;
-            case 50:                              // *50(deprecated)
             case 60:                              // *60  enable/disable strict mode
-                if(!TTrunning && !isIRLocked) {
-                    toggleStrictMode();
+                if(!isIRLocked) {
+                    if(!TTrunning) {
+                        toggleStrictMode();
+                    } else doBadInp = true;
                 }
                 break;
-            case 51:                              // *51(deprecated))
             case 61:                              // *61  enable/disable "peaks" in Spectrum Analyzer
-                if(!TTrunning && !isIRLocked) {
-                    doPeaks = !doPeaks;
+                if(!isIRLocked) {
+                    if(!TTrunning) {
+                        doPeaks = !doPeaks;
+                    } else doBadInp = true;
                 }
                 break;
-            case 70:
-                // Taken by FC IR lock sequence
-                break;
+            // 70 taken by FC IR lock sequence
             case 71:                              // *71 lock/unlock ir
+                if(remMode) {
+                    // Need to quit remote mode before locking ir
+                    remMode = remHoldKey = false;                    
+                    bttfn_send_command(BTTFN_REMCMD_KP_BYE, 0, 0);
+                }
                 irLocked = !irLocked;
                 irlchanged = true;
                 irlchgnow = millis();
-                if(!TTrunning && !irLocked) {
+                if(/*!TTrunning &&*/ !irLocked) {
                     startIRfeedback();
                     irFeedBack = true;
                     irFeedBackNow = now;
                 }
                 break;
             case 90:                              // *90  display IP address
-                if(!TTrunning && !isIRLocked) {
-                    uint8_t a, b, c, d;
-                    char ipbuf[16];
-                    wifi_getIP(a, b, c, d);
-                    sprintf(ipbuf, "%d.%d.%d.%d", a, b, c, d);
-                    span_stop();
-                    siddly_stop();
-                    snake_stop();
-                    flushDelayedSave();
-                    showWordSequence(ipbuf, 5);
-                    ir_remote.loop(); // Flush IR afterwards
+                if(!isIRLocked) {
+                    if(!TTrunning) {
+                        uint8_t a, b, c, d;
+                        char ipbuf[16];
+                        wifi_getIP(a, b, c, d);
+                        sprintf(ipbuf, "%d.%d.%d.%d", a, b, c, d);
+                        span_stop();
+                        siddly_stop();
+                        snake_stop();
+                        flushDelayedSave();
+                        showWordSequence(ipbuf, 5);
+                        ir_remote.loop(); // Flush IR afterwards
+                    } else doBadInp = true;
+                }
+                break;
+            case 96:                              // *96  enter TCD keypad remote control mode
+                if(!irLocked) {                   //      yes, 'irLocked' - must not be entered while IR is locked
+                    if(!TTrunning) {
+                        if(BTTFNConnected() && TCDSupportsRemKP && remoteAllowed) {
+                            remMode = true;
+                            if(!isIR) {
+                                startIRfeedback();
+                                irFeedBack = true;
+                                irFeedBackNow = now;
+                            }
+                            irFeedBackDur = 1000;
+                        } else {
+                            doBadInp = true;
+                        }
+                    } else doBadInp = true;
                 }
                 break;
             default:
@@ -2291,7 +2392,7 @@ static bool execute(bool isIR)
                     sid.setBrightness(temp - 400);
                     brichanged = true;
                     brichgnow = now;
-                }
+                } else doBadInp = true;
             } else {
                 doBadInp = true;
             }
@@ -2328,7 +2429,7 @@ static bool execute(bool isIR)
                 } else {
                     doBadInp = true;
                 }
-            }
+            } else doBadInp = true;
         }
         break;
     default:
@@ -2336,6 +2437,7 @@ static bool execute(bool isIR)
             doBadInp = true;
         }
     }
+    
     clearInpBuf();
 
     return doBadInp;
@@ -2661,6 +2763,10 @@ void mydelay(unsigned long mydel, bool withIR)
 
 static void addCmdQueue(uint32_t command)
 {
+    #ifdef SID_DBG
+    Serial.printf("Received command %d\n", command);
+    #endif
+    
     if(!command) return;
 
     commandQueue[iCmdIdx] = command;
@@ -2761,6 +2867,10 @@ static bool check_packet(uint8_t *buf)
 static void handle_tcd_notification(uint8_t *buf)
 {
     uint32_t seqCnt;
+
+    #ifdef SID_DBG
+    Serial.printf("Received notification %d\n", buf[5]);
+    #endif
     
     switch(buf[5]) {
     case BTTFN_NOT_PREPARE:
@@ -2954,9 +3064,11 @@ static void BTTFNCheckPacket()
         if(BTTFUDPBuf[5] & 0x10) {
             tcdNM  = (BTTFUDPBuf[26] & 0x01) ? true : false;
             tcdFPO = (BTTFUDPBuf[26] & 0x02) ? true : false;   // 1 means fake power off
+            remoteAllowed = (BTTFUDPBuf[26] & 0x08) ? true : false;
         } else {
             tcdNM = false;
             tcdFPO = false;
+            remoteAllowed = false;
         }
 
         if(BTTFUDPBuf[5] & 0x40) {
@@ -2967,6 +3079,9 @@ static void BTTFNCheckPacket()
                 bttfnReqStatus &= ~0x02; // Do no longer poll speed, comes over multicast
             }
             #endif
+            if(BTTFUDPBuf[31] & 0x08) {
+                TCDSupportsRemKP = true;
+            }
         }
 
         lastBTTFNpacket = mymillis;
@@ -2996,16 +3111,12 @@ static bool BTTFNTriggerUpdate()
     return true;
 }
 
-static void BTTFNSendPacket()
-{   
+static void BTTFNPreparePacket()
+{
     memset(BTTFUDPBuf, 0, BTTF_PACKET_SIZE);
 
     // ID
     memcpy(BTTFUDPBuf, BTTFUDPHD, 4);
-
-    // Serial
-    BTTFUDPID = (uint32_t)millis();
-    SET32(BTTFUDPBuf, 6, BTTFUDPID);
 
     // Tell the TCD about our hostname (0-term., 13 bytes total)
     strncpy((char *)BTTFUDPBuf + 10, settings.hostName, 12);
@@ -3013,20 +3124,19 @@ static void BTTFNSendPacket()
 
     BTTFUDPBuf[10+13] = BTTFN_TYPE_SID;
 
+    // Version, MC-marker
     #ifdef BTTFN_MC
-    BTTFUDPBuf[4] = BTTFN_VERSION | bttfnMcMarker; // Version, MC-marker
+    BTTFUDPBuf[4] = BTTFN_VERSION | bttfnMcMarker;  
     #else
     BTTFUDPBuf[4] = BTTFN_VERSION;
     #endif
-    BTTFUDPBuf[5] = bttfnReqStatus;                // Request date/time, speed and status
 
-    #ifdef BTTFN_MC
-    if(!haveTCDIP) {
-        BTTFUDPBuf[5] |= 0x80;
-        SET32(BTTFUDPBuf, 31, tcdHostNameHash);
-    }
-    #endif
+    // Remote-ID
+    SET32(BTTFUDPBuf, 35, myRemID);                 
+}
 
+static void BTTFNDispatch()
+{
     uint8_t a = 0;
     for(int i = 4; i < BTTF_PACKET_SIZE - 1; i++) {
         a += BTTFUDPBuf[i] ^ 0x55;
@@ -3049,7 +3159,28 @@ static void BTTFNSendPacket()
     sidUDP->endPacket();
 }
 
-static bool BTTFNTriggerTT()
+static void BTTFNSendPacket()
+{   
+    BTTFNPreparePacket();
+    
+    // Serial
+    BTTFUDPID = (uint32_t)millis();
+    SET32(BTTFUDPBuf, 6, BTTFUDPID);
+
+    // Request date/time, speed and status
+    BTTFUDPBuf[5] = bttfnReqStatus;                
+
+    #ifdef BTTFN_MC
+    if(!haveTCDIP) {
+        BTTFUDPBuf[5] |= 0x80;
+        SET32(BTTFUDPBuf, 31, tcdHostNameHash);
+    }
+    #endif
+
+    BTTFNDispatch();
+}
+
+static bool BTTFNConnected()
 {
     if(!useBTTFN)
         return false;
@@ -3065,40 +3196,52 @@ static bool BTTFNTriggerTT()
     if(!lastBTTFNpacket)
         return false;
 
+    return true;
+}
+
+static bool bttfn_trigger_tt()
+{
+    if(!BTTFNConnected())
+        return false;
+
     if(TTrunning || IRLearning)
         return false;
 
-    memset(BTTFUDPBuf, 0, BTTF_PACKET_SIZE);
+    BTTFNPreparePacket();
 
-    // ID
-    memcpy(BTTFUDPBuf, BTTFUDPHD, 4);
+    // Trigger BTTFN-wide TT
+    BTTFUDPBuf[5] = 0x80;           
 
-    // Tell the TCD about our hostname (0-term., 13 bytes total)
-    strncpy((char *)BTTFUDPBuf + 10, settings.hostName, 12);
-    BTTFUDPBuf[10+12] = 0;
-
-    BTTFUDPBuf[10+13] = BTTFN_TYPE_SID;
-
-    #ifdef BTTFN_MC
-    BTTFUDPBuf[4] = BTTFN_VERSION | bttfnMcMarker; // Version, MC-marker
-    #else
-    BTTFUDPBuf[4] = BTTFN_VERSION;
-    #endif
-    BTTFUDPBuf[5] = 0x80;           // Trigger BTTFN-wide TT
-
-    uint8_t a = 0;
-    for(int i = 4; i < BTTF_PACKET_SIZE - 1; i++) {
-        a += BTTFUDPBuf[i] ^ 0x55;
-    }
-    BTTFUDPBuf[BTTF_PACKET_SIZE - 1] = a;
-        
-    sidUDP->beginPacket(bttfnTcdIP, BTTF_DEFAULT_LOCAL_PORT);
-    sidUDP->write(BTTFUDPBuf, BTTF_PACKET_SIZE);
-    sidUDP->endPacket();
+    BTTFNDispatch();
 
     #ifdef SID_DBG
     Serial.println("Triggered BTTFN-wide TT");
     #endif
+
+    return true;
+}
+
+static bool bttfn_send_command(uint8_t cmd, uint8_t p1, uint8_t p2)
+{
+    if(!TCDSupportsRemKP || !remoteAllowed)
+        return false;
+        
+    if(!BTTFNConnected())
+        return false;
+
+    BTTFNPreparePacket();
+    
+    BTTFUDPBuf[5] = 0x00;
+
+    SET32(BTTFUDPBuf, 6, bttfnSeqCnt[cmd]);
+    bttfnSeqCnt[cmd]++;
+    if(!bttfnSeqCnt[cmd]) bttfnSeqCnt[cmd]++;
+
+    BTTFUDPBuf[25] = cmd;
+    BTTFUDPBuf[26] = p1;
+    BTTFUDPBuf[27] = p2;
+
+    BTTFNDispatch();
 
     return true;
 }

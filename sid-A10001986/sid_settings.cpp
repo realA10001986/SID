@@ -1,7 +1,7 @@
 /*
  * -------------------------------------------------------------------
  * CircuitSetup.us Status Indicator Display
- * (C) 2023-2024 Thomas Winischhofer (A10001986)
+ * (C) 2023-2025 Thomas Winischhofer (A10001986)
  * https://github.com/realA10001986/SID
  * https://sid.out-a-ti.me
  *
@@ -85,6 +85,7 @@
 #endif 
 
 static const char *cfgName    = "/sidconfig.json";  // Main config (flash)
+static const char *idName     = "/fcid.json";       // SID remote ID (flash)
 static const char *ipCfgName  = "/sidipcfg.json";   // IP config (flash)
 static const char *briCfgName = "/sidbricfg.json";  // Brightness config (flash/SD)
 static const char *irlCfgName = "/sidirlcfg.json";  // IR lock (flash/SD)
@@ -132,6 +133,10 @@ static bool checkValidNumParmF(char *text, float lowerLim, float upperLim, float
 static bool loadIRKeys();
 
 static bool CopyIPParm(const char *json, char *text, uint8_t psize);
+
+static bool loadId();
+static uint32_t createId();
+static void saveId();
 
 static DeserializationError readJSONCfgFile(JsonDocument& json, File& configFile, const char *funcName);
 static bool writeJSONCfgFile(const JsonDocument& json, const char *fn, bool useSD, const char *funcName);
@@ -273,6 +278,15 @@ void settings_setup()
     if(haveFS && writedefault && !FlashROMode) {
         Serial.printf("%s: %s\n", funcName, badConfig);
         write_settings();
+    }
+
+    // Load/create "Remote ID"
+    if(!loadId()) {
+        myRemID = createId();
+        #ifdef SID_DBG
+        Serial.printf("Created Remote ID: 0x%lx\n", myRemID);
+        #endif
+        saveId();
     }
 
     // Determine if volume/ir settings are to be stored on SD
@@ -964,6 +978,81 @@ void deleteIpSettings()
         SPIFFS.remove(ipCfgName);
     }
 }
+
+/*
+ *  Load/save/delete remote ID
+ */
+
+static bool loadId()
+{
+    bool invalid = false;
+    bool haveConfig = false;
+  
+    if(!haveFS && !FlashROMode)
+        return false;
+  
+    if( (!FlashROMode && SPIFFS.exists(idName)) ||
+         (FlashROMode && SD.exists(idName)) ) {
+  
+        File configFile = FlashROMode ? SD.open(idName, "r") : SPIFFS.open(idName, "r");
+    
+        if(configFile) {
+    
+            DECLARE_S_JSON(512, json);
+            //StaticJsonDocument<512> json;
+      
+            DeserializationError error = readJSONCfgFile(json, configFile, "loadId");
+      
+            if(!error) {
+      
+                myRemID = (uint32_t)json["ID"];
+        
+                #ifdef FC_DBG
+                Serial.printf("Loaded Remote ID: 0x%lx\n", myRemID);
+                #endif
+        
+                invalid = (myRemID == 0);
+        
+                haveConfig = !invalid;
+      
+            } else {
+      
+                invalid = true;
+      
+            }
+      
+            configFile.close();
+  
+      }
+  
+    }
+  
+    if(invalid) {
+        // config file is invalid
+        Serial.println(F("loadId: ID invalid; creating new ID"));
+    }
+  
+    return haveConfig;
+}
+
+static uint32_t createId()
+{
+    return esp_random() ^ esp_random() ^ esp_random();
+}
+
+static void saveId()
+{
+    DECLARE_S_JSON(512, json);
+    //StaticJsonDocument<512> json;
+  
+    if(!haveFS && !FlashROMode)
+        return;
+  
+    json["ID"] = myRemID;
+  
+    writeJSONCfgFile(json, idName, FlashROMode, "saveId");
+}
+
 
 /*
  * Various helpers

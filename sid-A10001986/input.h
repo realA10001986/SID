@@ -1,7 +1,7 @@
 /*
  * -------------------------------------------------------------------
  * CircuitSetup.us Status Indicator Display
- * (C) 2023-2024 Thomas Winischhofer (A10001986)
+ * (C) 2023-2025 Thomas Winischhofer (A10001986)
  * https://github.com/realA10001986/SID
  * https://sid.out-a-ti.me
  *
@@ -106,7 +106,7 @@ typedef enum {
 class SIDButton {
   
     public:
-        SIDButton(const int pin, const boolean activeLow = true, const bool pullupActive = true, const bool pulldownActive = false);
+        SIDButton(const int pin, const bool activeLow = true, const bool pullupActive = true, const bool pulldownActive = false);
       
         void setTiming(const int dticks, const int pticks, const int lticks);
       

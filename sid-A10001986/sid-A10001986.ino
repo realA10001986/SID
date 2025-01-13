@@ -1,7 +1,7 @@
 /*
  * -------------------------------------------------------------------
  * CircuitSetup.us Status Indicator Display
- * (C) 2023-2024 Thomas Winischhofer (A10001986)
+ * (C) 2023-2025 Thomas Winischhofer (A10001986)
  * https://github.com/realA10001986/SID
  * https://sid.out-a-ti.me
  *
@@ -104,6 +104,13 @@
 
 /*  Changelog
  *  
+ *  2025/01/12-13 (A10001986) [1.50]
+ *    - Add support for remote controlling the TCD keypad through the IR remote
+ *      control. *96OK starts, "#" quits remote controlling. All keys until # 
+ *      are directly sent to the TCD. Holding a key on the TCD keypad is emulated 
+ *      by typing * followed by the key to be "held".
+ *    - BTTFN: Minor code optimizations
+ *    - Disable Spectrum analyzer when entering night mode
  *  2024/10/27 (A10001986)
  *    - Minor changes (bttfn_loop in delay-loops; etc)
  *  2024/10/26 (A10001986) [1.40]

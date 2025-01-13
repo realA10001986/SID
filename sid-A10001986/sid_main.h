@@ -1,7 +1,7 @@
 /*
  * -------------------------------------------------------------------
  * CircuitSetup.us Status Indicator Display
- * (C) 2023-2024 Thomas Winischhofer (A10001986)
+ * (C) 2023-2025 Thomas Winischhofer (A10001986)
  * https://github.com/realA10001986/SID
  * https://sid.out-a-ti.me
  *
@@ -80,6 +80,8 @@ extern bool networkReentry;
 extern bool networkAbort;
 extern bool networkAlarm;
 extern uint16_t networkLead;
+
+extern uint32_t myRemID;
 
 void main_boot();
 void main_setup();

@@ -1,7 +1,7 @@
 /*
  * -------------------------------------------------------------------
  * CircuitSetup.us Status Indicator Display
- * (C) 2023-2024 Thomas Winischhofer (A10001986)
+ * (C) 2023-2025 Thomas Winischhofer (A10001986)
  * https://github.com/realA10001986/SID
  * https://sid.out-a-ti.me
  *
@@ -15,8 +15,8 @@
  ***                          Version Strings                          ***
  *************************************************************************/
 
-#define SID_VERSION       "V1.41"
-#define SID_VERSION_EXTRA "OCT272024"
+#define SID_VERSION       "V1.50"
+#define SID_VERSION_EXTRA "JAN132025"
 
 //#define SID_DBG              // debug output on Serial
 
