@@ -104,6 +104,10 @@
 
 /*  Changelog
  *  
+ *  2025/01/14 (A10001986) [1.51]
+ *    - Use IR feedback LED for negative and positive feedback on IR/remote command
+ *      execution. 1 sec on = success, two blinks = fail
+ *    - IR input buffer is no longer reset when receiving commands from TCD
  *  2025/01/12-13 (A10001986) [1.50]
  *    - Add support for remote controlling the TCD keypad through the IR remote
  *      control. *96OK starts, "#" quits remote controlling. All keys until # 

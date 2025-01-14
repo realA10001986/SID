@@ -341,6 +341,7 @@ static uint32_t remote_codes[NUM_IR_KEYS][NUM_REM_TYPES] = {
 
 #define INPUTLEN_MAX 6
 static char          inputBuffer[INPUTLEN_MAX + 2];
+static char          inputBackup[INPUTLEN_MAX + 2];
 static int           inputIndex = 0;
 static bool          inputRecord = false;
 static unsigned long lastKeyPressed = 0;
@@ -468,7 +469,8 @@ static void endIRLearn(bool restore);
 static void handleIRinput();
 static void handleIRKey(int command);
 static void handleRemoteCommand();
-static bool execute(bool isIR);
+static void clearInpBuf();
+static int  execute(bool isIR);
 static void startIRfeedback();
 static void endIRfeedback();
 
@@ -708,11 +710,9 @@ void main_loop()
         fpoOld = tcdFPO;
     }
 
-    // Discard input from IR after 30 seconds of inactivity
+    // Discard (incomplete) input from IR after 30 seconds of inactivity
     if(now - lastKeyPressed >= 30*1000) {
-        inputBuffer[0] = '\0';
-        inputIndex = 0;
-        inputRecord = false;
+        clearInpBuf();
     }
 
     // IR feedback
@@ -721,6 +721,7 @@ void main_loop()
         irErrFBState++;
         if(irErrFBState > 3) {
             irErrFeedBack = false;
+            endIRfeedback();
         } else {
             (irErrFBState & 0x01) ? endIRfeedback() : startIRfeedback();
             irErrFeedBack = true;
@@ -1997,7 +1998,7 @@ static void handleIRKey(int key)
 {
     uint16_t temp;
     int16_t tempi;
-    bool doBadInp = false;
+    int doInpReaction = 0;
     unsigned long now = millis();
 
     if(ssActive) {
@@ -2150,23 +2151,26 @@ static void handleIRKey(int key)
         }
         break;
     case 16:                          // ENTER: Execute code command
-        doBadInp = execute(true);
+        doInpReaction = execute(true);
+        clearInpBuf();
         break;
     default:
         if(!irLocked) {
-            doBadInp = true;
+            doInpReaction = -1;
         }
     }
 
-    if(/*!TTrunning &&*/ doBadInp) {
-        // bad input signal
+    if(doInpReaction < 0) {
         startIRErrFeedback();
+    } else if(doInpReaction) {
+        irFeedBackDur = 1000;
     }
 }
 
 static void handleRemoteCommand()
 {
     uint32_t command = commandQueue[oCmdIdx];
+    int      doInpReaction = 0;
 
     if(!command)
         return;
@@ -2179,7 +2183,6 @@ static void handleRemoteCommand()
         ssEnd();
     }
     ssRestartTimer();
-    lastKeyPressed = millis();
 
     // Some translation
     if(command < 10) {
@@ -2219,32 +2222,51 @@ static void handleRemoteCommand()
         }
         */
 
-        return;
-        
-    } else if(command < 100) {
-      
-        sprintf(inputBuffer, "%02d", command);
-        
-    } else if(command < 1000) {
-      
-        sprintf(inputBuffer, "%03d", command);
-        
-    } else if(command < 100000) {
-
-        sprintf(inputBuffer, "%05d", command);
+        doInpReaction = -1;
         
     } else {
-      
-        sprintf(inputBuffer, "%06d", command);
+
+        // Backup current IR input buffer
+        memcpy(inputBackup, inputBuffer, sizeof(inputBuffer));
+    
+        if(command < 100) {
+          
+            sprintf(inputBuffer, "%02d", command);
+            
+        } else if(command < 1000) {
+          
+            sprintf(inputBuffer, "%03d", command);
+            
+        } else if(command < 100000) {
+    
+            sprintf(inputBuffer, "%05d", command);
+            
+        } else {
+          
+            sprintf(inputBuffer, "%06d", command);
+    
+        }
+    
+        doInpReaction = execute(false);
+
+        // Restore current IR input buffer
+        memcpy(inputBuffer, inputBackup, sizeof(inputBuffer));
 
     }
 
-    execute(false);
+    if(doInpReaction < 0) {
+        startIRErrFeedback();
+    } else if(doInpReaction > 0) {
+        startIRfeedback();
+        irFeedBack = true;
+        irFeedBackNow = millis();
+        irFeedBackDur = 1000;
+    }
 }
 
-static bool execute(bool isIR)
+static int execute(bool isIR)
 {
-    bool doBadInp = false;
+    int  inputReaction = 0;
     bool isIRLocked = isIR ? irLocked : false;
     uint16_t temp;
     unsigned long now = millis();
@@ -2252,18 +2274,7 @@ static bool execute(bool isIR)
     switch(strlen(inputBuffer)) {
     case 1:
         if(!isIRLocked) {
-            switch(inputBuffer[0] - '0') {
-            case 0:                               // *0 - *5 idle pattern (deprecated)
-            case 1:
-            case 2:
-            case 3:
-            case 4:
-            case 5:
-                setIdleMode(inputBuffer[0] - '0');
-                break;
-            default:
-                doBadInp = true;
-            }
+            inputReaction = -1;
         }
         break;
     case 2:
@@ -2272,8 +2283,9 @@ static bool execute(bool isIR)
             if(!isIRLocked) {
                 if(temp <= (10 + SID_MAX_IDLE_MODE)) {
                     setIdleMode(temp - 10);
+                    inputReaction = 1;
                 } else {
-                    doBadInp = true;
+                    inputReaction = -1;
                 }
             }
         } else {
@@ -2284,7 +2296,8 @@ static bool execute(bool isIR)
                         span_stop();
                         siddly_stop();
                         snake_stop();
-                    } else doBadInp = true;
+                        inputReaction = 1;
+                    } else inputReaction = -1;
                 }
                 break;
             case 21:                              // *21 sa mode
@@ -2293,7 +2306,8 @@ static bool execute(bool isIR)
                         siddly_stop();
                         snake_stop();
                         span_start();
-                    } else doBadInp = true;
+                        inputReaction = 1;
+                    } else inputReaction = -1;
                 }
                 break;
             case 22:                              // *22 siddly
@@ -2302,7 +2316,8 @@ static bool execute(bool isIR)
                         span_stop();
                         snake_stop();
                         siddly_start();
-                    } else doBadInp = true;
+                        inputReaction = 1;
+                    } else inputReaction = -1;
                 }
                 break;
             case 23:                              // *23 snake
@@ -2311,38 +2326,46 @@ static bool execute(bool isIR)
                         siddly_stop();
                         span_stop();
                         snake_start();
-                    } else doBadInp = true;
+                        inputReaction = 1;
+                    } else inputReaction = -1;
                 }
                 break;
             case 60:                              // *60  enable/disable strict mode
                 if(!isIRLocked) {
                     if(!TTrunning) {
                         toggleStrictMode();
-                    } else doBadInp = true;
+                        inputReaction = 1;
+                    } else inputReaction = -1;
                 }
                 break;
             case 61:                              // *61  enable/disable "peaks" in Spectrum Analyzer
                 if(!isIRLocked) {
                     if(!TTrunning) {
                         doPeaks = !doPeaks;
-                    } else doBadInp = true;
+                        inputReaction = 1;
+                    } else inputReaction = -1;
                 }
                 break;
-            // 70 taken by FC IR lock sequence
+            case 70:                              // *70 taken by FC IR lock sequence
+              // Stay silent
+              break;
             case 71:                              // *71 lock/unlock ir
                 if(remMode) {
                     // Need to quit remote mode before locking ir
+                    // (Use case: Enter 6071 on TCD keypad during remMode)
                     remMode = remHoldKey = false;                    
                     bttfn_send_command(BTTFN_REMCMD_KP_BYE, 0, 0);
                 }
                 irLocked = !irLocked;
                 irlchanged = true;
-                irlchgnow = millis();
-                if(/*!TTrunning &&*/ !irLocked) {
+                irlchgnow = now;
+                if(!irLocked) {
+                    // Start IR feedback here, since wasn't done above
                     startIRfeedback();
                     irFeedBack = true;
                     irFeedBackNow = now;
                 }
+                inputReaction = 1;
                 break;
             case 90:                              // *90  display IP address
                 if(!isIRLocked) {
@@ -2357,7 +2380,7 @@ static bool execute(bool isIR)
                         flushDelayedSave();
                         showWordSequence(ipbuf, 5);
                         ir_remote.loop(); // Flush IR afterwards
-                    } else doBadInp = true;
+                    } else inputReaction = -1;
                 }
                 break;
             case 96:                              // *96  enter TCD keypad remote control mode
@@ -2365,21 +2388,16 @@ static bool execute(bool isIR)
                     if(!TTrunning) {
                         if(BTTFNConnected() && TCDSupportsRemKP && remoteAllowed) {
                             remMode = true;
-                            if(!isIR) {
-                                startIRfeedback();
-                                irFeedBack = true;
-                                irFeedBackNow = now;
-                            }
-                            irFeedBackDur = 1000;
+                            inputReaction = 1;
                         } else {
-                            doBadInp = true;
+                            inputReaction = -1;
                         }
-                    } else doBadInp = true;
+                    } else inputReaction = -1;
                 }
                 break;
             default:
                 if(!isIRLocked) {
-                    doBadInp = true;
+                    inputReaction = -1;
                 }
             }
         }
@@ -2392,9 +2410,10 @@ static bool execute(bool isIR)
                     sid.setBrightness(temp - 400);
                     brichanged = true;
                     brichgnow = now;
-                } else doBadInp = true;
+                    inputReaction = 1;
+                } else inputReaction = -1;
             } else {
-                doBadInp = true;
+                inputReaction = -1;
             }
         }
         break;
@@ -2408,7 +2427,7 @@ static bool execute(bool isIR)
                 delay(50);
                 esp_restart();
             }
-            doBadInp = true;
+            inputReaction = -1;
         }
         break;
     case 6:
@@ -2421,26 +2440,26 @@ static bool execute(bool isIR)
                         settings.appw[0] = 0;             // and clears AP mode WiFi password
                         write_settings();
                     }
+                    inputReaction = 1;
                 } else if(!strcmp(inputBuffer, "654321")) {
                     deleteIRKeys();                   // *654321OK deletes learned IR remote
                     for(int i = 0; i < NUM_IR_KEYS; i++) {
                         remote_codes[i][1] = 0;
                     }
+                    inputReaction = 1;
                 } else {
-                    doBadInp = true;
+                    inputReaction = -1;
                 }
-            } else doBadInp = true;
+            } else inputReaction = -1;
         }
         break;
     default:
         if(!isIRLocked) {
-            doBadInp = true;
+            inputReaction = -1;
         }
     }
     
-    clearInpBuf();
-
-    return doBadInp;
+    return inputReaction;
 }
 
 /*
@@ -3167,7 +3186,7 @@ static void BTTFNSendPacket()
     BTTFUDPID = (uint32_t)millis();
     SET32(BTTFUDPBuf, 6, BTTFUDPID);
 
-    // Request date/time, speed and status
+    // Request flags
     BTTFUDPBuf[5] = bttfnReqStatus;                
 
     #ifdef BTTFN_MC
