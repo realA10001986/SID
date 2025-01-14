@@ -226,7 +226,7 @@ In order to only disable the supplied IR remote control, check the option **_Dis
      <td align="left">*90&#9166;</td><td>6090</td>
     </tr>
   <tr>
-     <td align="left">Enter TCD keypad remote control mode</td>
+     <td align="left">Enter <a href="#remote-controlling-the-tcds-keypad"TCD keypad remote control mode</a></td>
      <td align="left">*96&#9166;</td><td>6096</td>
     </tr>
    <tr>
