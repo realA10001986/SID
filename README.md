@@ -12,7 +12,7 @@ Features include
 - [IR remote controlled](#ir-remote-control); can learn keys from third-party remote
 - Spectrum Analyzer mode via built-in microphone
 - Advanced network-accessible [Config Portal](#the-config-portal) for setup (http://sid.local, hostname configurable)
-- [Wireless communication](#bttf-network-bttfn) with [Time Circuits Display](https://tcd.out-a-ti.me); used for synchronized time travels, GPS-speed adapted patterns, alarm, night mode, fake power, remote control of SID through TCD keypad, or &#127381; remote controlling the TCD keypad.
+- [Wireless communication](#bttf-network-bttfn) with [Time Circuits Display](https://tcd.out-a-ti.me); used for synchronized time travels, GPS-speed adapted patterns, alarm, night mode, fake power, remote control of SID through TCD keypad, or &#127381; [remote controlling](#remote-controlling-the-tcds-keypad) the TCD keypad.
 - [Home Assistant](#home-assistant--mqtt) (MQTT 3.1.1) support
 - [*Siddly*](#siddly) and [*Snake*](#snake) games
 - [SD card](#sd-card) support
