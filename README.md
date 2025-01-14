@@ -314,11 +314,13 @@ The SID can, through its IR remote control, remote control the TCD keypad. The T
 
 In order to start TCD keypad remote control, type *96OK on the SID's IR remote control.
 
-Keys 0-9 as well as OK (=ENTER) will now be registrered by the TCD as key presses. 
+Keys 0-9 as well as OK (=ENTER) will now be registrered by the TCD as key presses.
 
 In order to remotely "hold" a key, press * followed by the key, for instance *1 (in order to toggle the TCD alarm). Note: Only keys 0-9 can be held.
 
 Pressing # quits TCD keypad remote control mode.
+
+>Since the TCD itself can remote control every other compatible prop (3xxx = Flux Capacitor, 6xxx = SID, 7xxx = Futaba Remote Control, 8xxx = VSR, 9xxx = Dash Gauges), and the IR remote can emulate the TCD keypad, it can essentially remote control every other prop.
 
 ### Connecting a TCD by wire
 
