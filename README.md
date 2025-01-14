@@ -12,7 +12,7 @@ Features include
 - [IR remote controlled](#ir-remote-control); can learn keys from third-party remote
 - Spectrum Analyzer mode via built-in microphone
 - Advanced network-accessible [Config Portal](#the-config-portal) for setup (http://sid.local, hostname configurable)
-- [Wireless communication](#bttf-network-bttfn) with [Time Circuits Display](https://tcd.out-a-ti.me); used for synchronized time travels, GPS-speed adapted patterns, alarm, night mode, fake power and remote control through TCD keypad
+- [Wireless communication](#bttf-network-bttfn) with [Time Circuits Display](https://tcd.out-a-ti.me); used for synchronized time travels, GPS-speed adapted patterns, alarm, night mode, fake power, remote control of SID through TCD keypad, or remote controlling the TCD keypad.
 - [Home Assistant](#home-assistant--mqtt) (MQTT 3.1.1) support
 - [*Siddly*](#siddly) and [*Snake*](#snake) games
 - [SD card](#sd-card) support
@@ -225,6 +225,10 @@ In order to only disable the supplied IR remote control, check the option **_Dis
      <td align="left">Display current IP address</td>
      <td align="left">*90&#9166;</td><td>6090</td>
     </tr>
+  <tr>
+     <td align="left">Enter TCD keypad remote control mode</td>
+     <td align="left">*96&#9166;</td><td>6096</td>
+    </tr>
    <tr>
      <td align="left">Set brightness level (00-15)</td>
      <td align="left">*400&#9166; - *415&#9166;</td><td>6400-6415</td>
@@ -297,11 +301,24 @@ Afterwards, the SID and the TCD can communicate wirelessly and
 - play time travel sequences in sync,
 - both play an alarm-sequence when the TCD's alarm occurs,
 - the SID can be remote controlled through the TCD's keypad (command codes 6xxx),
+- the SID can remote control the TCD's keypad (see below)
 - the SID queries the TCD for GPS speed if desired to adapt its idle pattern to GPS speed,
 - the SID queries the TCD for fake power and night mode, in order to react accordingly if so configured,
 - pressing "0" on the IR remote control or the SID's Time Travel button can trigger a synchronized Time Travel on all BTTFN-connected devices, just like if that Time Travel was triggered through the TCD.
 
 You can use BTTF-Network and MQTT at the same time, see [below](#home-assistant--mqtt).
+
+#### Remote controlling the TCD's keypad
+
+The SID can, through its IR remote control, remote control the TCD keypad. The TCD will react to pressing a key on the IR remote as if that key was pressed on the TCD keypad.
+
+In order to start TCD keypad remote control, type *96OK on the SID's IR remote control.
+
+Keys 0-9 as well as OK (=ENTER) will now be registrered by the TCD as key presses. 
+
+In order to remotely "hold" a key, press * followed by the key, for instance *1 (in order to toggle the TCD alarm). Note: Only keys 0-9 can be held.
+
+Pressing # quits TCD keypad remote control mode.
 
 ### Connecting a TCD by wire
 
