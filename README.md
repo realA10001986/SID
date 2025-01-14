@@ -301,7 +301,7 @@ Afterwards, the SID and the TCD can communicate wirelessly and
 - play time travel sequences in sync,
 - both play an alarm-sequence when the TCD's alarm occurs,
 - the SID can be remote controlled through the TCD's keypad (command codes 6xxx),
-- the SID can remote control the TCD's keypad (see below)
+- the SID can remote control the TCD's keypad (see [below](#remote-controlling-the-tcds-keypad))
 - the SID queries the TCD for GPS speed if desired to adapt its idle pattern to GPS speed,
 - the SID queries the TCD for fake power and night mode, in order to react accordingly if so configured,
 - pressing "0" on the IR remote control or the SID's Time Travel button can trigger a synchronized Time Travel on all BTTFN-connected devices, just like if that Time Travel was triggered through the TCD.
