@@ -316,7 +316,7 @@ In order to start TCD keypad remote control, type *96OK on the SID's IR remote c
 
 Keys 0-9 as well as OK (=ENTER) will now be registrered by the TCD as key presses.
 
-In order to remotely "hold" a key, press * followed by the key, for instance *1 (in order to toggle the TCD alarm). Note: Only keys 0-9 can be held.
+"Holding" a key on the TCD keypad is emulated by pressing * followed by the key, for instance *1 (in order to toggle the TCD alarm). Only keys 0-9 can be "held".
 
 Pressing # quits TCD keypad remote control mode.
 
