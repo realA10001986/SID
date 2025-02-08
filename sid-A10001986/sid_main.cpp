@@ -143,6 +143,8 @@ static const uint8_t idle5[ID5_STEPS][10] = {
     { 10, 10, 10, 11, 11, 11, 11, 11, 12, 12 }  // 14
 };
 
+static bool bootSA      = false;
+
 static bool useGPSS     = false;
 static bool usingGPSS   = false;
 static int16_t gpsSpeed = -1;
@@ -533,6 +535,7 @@ void main_setup()
     loadIRLock();
 
     // Other options
+    bootSA = (atoi(settings.bootSA) > 0);
     ssDelay = ssOrigDelay = atoi(settings.ssTimer) * 60 * 1000;
     useGPSS = (atoi(settings.useGPSS) > 0);
     useNM = (atoi(settings.useNM) > 0);
@@ -619,6 +622,11 @@ void main_setup()
         play_startup();
         
         ssRestartTimer();
+
+        if(bootSA) {
+            bootSA = false;
+            span_start();
+        }
         
     }
 
@@ -702,8 +710,9 @@ void main_loop()
             // FIXME - anything else?
 
             // Restore sa mode if active before FPO
-            if(FPOSAMode > 0) {
+            if(bootSA || (FPOSAMode > 0)) {
                 span_start();
+                bootSA = false;
             }
  
         }

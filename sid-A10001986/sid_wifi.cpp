@@ -84,7 +84,12 @@ PubSubClient mqttClient(mqttWClient);
 
 static const char *aco = "autocomplete='off'";
 
-WiFiManagerParameter custom_ssDelay("ssDel", "Screen Saver timer (minutes; 0=off)", settings.ssTimer, 3, "type='number' min='0' max='999' autocomplete='off'", WFM_LABEL_BEFORE);
+#ifdef TC_NOCHECKBOXES  // --- Standard text boxes: -------
+WiFiManagerParameter custom_bootSA("bSA", "Boot into Spectrum Analyzer (0=no, 1=yes)", settings.bootSA, 1, "autocomplete='off'");
+#else // -------------------- Checkbox hack: --------------
+WiFiManagerParameter custom_bootSA("bSA", "Boot into Spectrum Analyzer", settings.bootSA, 1, "type='checkbox' style='margin-top:5px;'", WFM_LABEL_AFTER);
+#endif // -------------------------------------------------
+WiFiManagerParameter custom_ssDelay("ssDel", "<br>Screen Saver timer (minutes; 0=off)", settings.ssTimer, 3, "type='number' min='0' max='999' autocomplete='off'", WFM_LABEL_BEFORE);
 
 #ifdef TC_NOCHECKBOXES  // --- Standard text boxes: -------
 WiFiManagerParameter custom_disDIR("dDIR", "Disable supplied IR control (0=off, 1=on)", settings.disDIR, 1, "autocomplete='off' title='Set to 1 to disable the supplied IR remote control'");
@@ -151,9 +156,9 @@ WiFiManagerParameter custom_ssClockO("ssClkO", "Clock off in Night Mode", settin
 #endif // -------------------------------------------------
 
 #ifdef TC_NOCHECKBOXES  // --- Standard text boxes: -------
-WiFiManagerParameter custom_sStrict("sStrict", "Adhere strictly to movie patterns (0=no, 1=yes)<br><span style='font-size:80%'>Check to strictly show movie patterns in idle modes 0-3 and with GPS speed; uncheck if variations are allowed.</span>", settings.strictMode, 1, "autocomplete='off'");
+WiFiManagerParameter custom_sStrict("sStrict", "Adhere strictly to movie patterns (0=no, 1=yes)<br><span style='font-size:80%'>Check to strictly show movie patterns in idle modes 0-3 and with GPS speed; uncheck to allow variations.</span>", settings.strictMode, 1, "autocomplete='off'");
 #else // -------------------- Checkbox hack: --------------
-WiFiManagerParameter custom_sStrict("sStrict", "Adhere strictly to movie patterns<br><span style='font-size:80%'>Check to strictly show movie patterns in idle modes 0-3 and with GPS speed; uncheck if variations are allowed.</span>", settings.strictMode, 1, "autocomplete='off' type='checkbox' style='margin-top:5px;'", WFM_LABEL_AFTER);
+WiFiManagerParameter custom_sStrict("sStrict", "Adhere strictly to movie patterns<br><span style='font-size:80%'>Check to strictly show movie patterns in idle modes 0-3 and with GPS speed; uncheck to allow variations.</span>", settings.strictMode, 1, "autocomplete='off' type='checkbox' style='margin-top:5px;'", WFM_LABEL_AFTER);
 #endif // -------------------------------------------------
 #ifdef TC_NOCHECKBOXES  // --- Standard text boxes: -------
 WiFiManagerParameter custom_sTTANI("sTTANI", "Skip time tunnel animation (0=no, 1=yes)", settings.skipTTAnim, 1, "autocomplete='off' title='Enable to skip the time tunnel animation'");
@@ -326,7 +331,8 @@ void wifi_setup()
 
     wm.setMenu(wifiMenu, TC_MENUSIZE);
 
-    wm.addParameter(&custom_sectstart_head);// 2
+    wm.addParameter(&custom_sectstart_head);// 3
+    wm.addParameter(&custom_bootSA);
     wm.addParameter(&custom_ssDelay);
 
     wm.addParameter(&custom_sectstart);     // 2
@@ -618,6 +624,8 @@ void wifi_loop()
             
             #ifdef TC_NOCHECKBOXES // --------- Plain text boxes:
 
+            mystrcpy(settings.bootSA, &custom_bootSA);
+
             mystrcpy(settings.disDIR, &custom_disDIR);
 
             mystrcpy(settings.TCDpresent, &custom_TCDpresent);
@@ -642,6 +650,8 @@ void wifi_loop()
             //mystrcpy(settings.sdFreq, &custom_sdFrq);
 
             #else // -------------------------- Checkboxes:
+
+            strcpyCB(settings.bootSA, &custom_bootSA);
 
             strcpyCB(settings.disDIR, &custom_disDIR);
 
@@ -1050,6 +1060,8 @@ void updateConfigPortalValues()
 
     #ifdef TC_NOCHECKBOXES  // Standard text boxes: -------
 
+    custom_bootSA.setValue(settings.bootSA, 1);
+
     custom_disDIR.setValue(settings.disDIR, 1);
 
     custom_TCDpresent.setValue(settings.TCDpresent, 1);
@@ -1073,6 +1085,8 @@ void updateConfigPortalValues()
     //custom_sdFrq.setValue(settings.sdFreq, 1);
     
     #else   // For checkbox hack --------------------------
+
+    setCBVal(&custom_bootSA, settings.bootSA);
 
     setCBVal(&custom_disDIR, settings.disDIR);
 

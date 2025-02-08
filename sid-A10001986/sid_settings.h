@@ -62,6 +62,7 @@ extern uint8_t musFolderNum;
 
 // Default settings - change settings in the web interface 192.168.4.1
 
+#define DEF_BOOTSA          0     // 0: Boot into IDLE, 1: Boot into Spectrum Analyzer
 #define DEF_SS_TIMER        0     // "Screen saver" timeout in minutes; 0 = ss off
 
 #define DEF_DISDIR          0     // 0: Do not disable default IR remote control; 1: do
@@ -89,6 +90,7 @@ extern uint8_t musFolderNum;
 #define DEF_SD_FREQ         0     // SD/SPI frequency: Default 16MHz
 
 struct Settings {
+    char bootSA[4]          = MS(DEF_BOOTSA);
     char ssTimer[6]         = MS(DEF_SS_TIMER);
     
     char disDIR[4]          = MS(DEF_DISDIR);

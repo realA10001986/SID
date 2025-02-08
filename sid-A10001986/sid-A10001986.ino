@@ -104,6 +104,8 @@
 
 /*  Changelog
  *  
+ *  2025/02/08 (A10001986) [1.52]
+ *    - Add option to boot into Spectrum Analyzer.
  *  2025/01/14 (A10001986) [1.51]
  *    - Use IR feedback LED for negative and positive feedback on IR/remote command
  *      execution. 1 sec on = success, two blinks = fail

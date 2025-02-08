@@ -343,6 +343,7 @@ static bool read_settings(File configFile)
 
     if(!error) {
 
+        wd |= CopyCheckValidNumParm(json["bootSA"], settings.bootSA, sizeof(settings.bootSA), 0, 1, DEF_BOOTSA);
         wd |= CopyCheckValidNumParm(json["ssTimer"], settings.ssTimer, sizeof(settings.ssTimer), 0, 999, DEF_SS_TIMER);
         
         wd |= CopyCheckValidNumParm(json["disDIR"], settings.disDIR, sizeof(settings.disDIR), 0, 1, DEF_DISDIR);
@@ -427,6 +428,7 @@ void write_settings()
     Serial.printf("%s: Writing config file\n", funcName);
     #endif
 
+    json["bootSA"] = (const char *)settings.bootSA;
     json["ssTimer"] = (const char *)settings.ssTimer;
 
     json["disDIR"] = (const char *)settings.disDIR;

@@ -15,8 +15,8 @@
  ***                          Version Strings                          ***
  *************************************************************************/
 
-#define SID_VERSION       "V1.51"
-#define SID_VERSION_EXTRA "JAN142025"
+#define SID_VERSION       "V1.52"
+#define SID_VERSION_EXTRA "FEB082025"
 
 //#define SID_DBG              // debug output on Serial
 
