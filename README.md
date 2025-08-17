@@ -6,6 +6,10 @@ The hardware is available [here](https://circuitsetup.us/product/delorean-time-m
 
 ![mysid](img/mysid.jpg)
 
+| [![Watch the video](https://img.youtube.com/vi/1HX0PiZ1YL0/0.jpg)](https://youtu.be/1HX0PiZ1YL0) |
+|:--:|
+| Click to watch the video |
+
 Features include
 - various idle patterns
 - [Time Travel](#time-travel) function, triggered by button, [Time Circuits Display](https://tcd.out-a-ti.me) or via [MQTT](#home-assistant--mqtt)
