@@ -104,6 +104,10 @@
 
 /*  Changelog
  *  
+ *  2025/08/20 (A10001986) [1.53]
+ *    - Add "987654" IR command; triggers IR learning (and spares the user from
+ *      installing a time travel button as required for IR learning before)
+ *    - Minor fixes
  *  2025/02/08 (A10001986) [1.52]
  *    - Add option to boot into Spectrum Analyzer.
  *  2025/01/14 (A10001986) [1.51]

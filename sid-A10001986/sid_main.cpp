@@ -366,6 +366,8 @@ static unsigned long IRLearnNow;
 static unsigned long IRFBLearnNow;
 static bool          IRLearnBlink = false;
 static const char    IRLearnKeys[] = "0123456789*#^$<>~";
+static bool          triggerIRLN = false;
+static unsigned long triggerIRLNNow;
 
 uint32_t             myRemID = 0x12345678;
 static bool          remoteAllowed = false;
@@ -659,14 +661,15 @@ void main_loop()
             }
             TTrunning = false;
 
-            if(irFeedBack) {
+            if(irFeedBack || irErrFeedBack) {
                 endIRfeedback();
-                irFeedBack = false;
+                irFeedBack = irErrFeedBack = false;
             }
             
             if(IRLearning) {
                 endIRLearn(true); // Turns LEDs on
             }
+            triggerIRLN = false;
             
             // Display OFF
             sid.off();
@@ -733,7 +736,7 @@ void main_loop()
             endIRfeedback();
         } else {
             (irErrFBState & 0x01) ? endIRfeedback() : startIRfeedback();
-            irErrFeedBack = true;
+            irErrFeedBack = true;  // startIR clears it, so set it again
         }
     }
     if(irFeedBack && (now - irFeedBackNow > irFeedBackDur)) {
@@ -772,6 +775,14 @@ void main_loop()
         //Serial.printf("%d\n", now2);
         si_loop();
         sn_loop();
+    }
+    
+    // IR learning triggered by IR?
+    if(triggerIRLN && (now - triggerIRLNNow > 1000)) {
+        triggerIRLN = false;
+        if(!TTrunning) {
+            isTTKeyHeld = true;
+        }
     }
 
     // TT button evaluation
@@ -2446,7 +2457,7 @@ static int execute(bool isIR)
                     flushDelayedSave();
                     deleteIpSettings();               // *123456OK deletes IP settings
                     if(settings.appw[0]) {
-                        settings.appw[0] = 0;             // and clears AP mode WiFi password
+                        settings.appw[0] = 0;         //           and clears AP mode WiFi password
                         write_settings();
                     }
                     inputReaction = 1;
@@ -2455,6 +2466,10 @@ static int execute(bool isIR)
                     for(int i = 0; i < NUM_IR_KEYS; i++) {
                         remote_codes[i][1] = 0;
                     }
+                    inputReaction = 1;
+                } else if(!strcmp(inputBuffer, "987654")) {
+                    triggerIRLN = true;               // *987654OK initates IR learning
+                    triggerIRLNNow = millis();
                     inputReaction = 1;
                 } else {
                     inputReaction = -1;
