@@ -248,7 +248,7 @@ In order to only disable the supplied IR remote control, check the option **_Dis
      <td align="left">*123456&#9166;</td><td>6123456</td>
     </tr>
     <tr>
-     <td align="left">Start IR remote learning process</td>
+     <td align="left">Start IR remote <a href="#ir-learning">learning process</a></td>
      <td align="left">*987654&#9166;</td><td>6987654</td>
     </tr>
     <tr>
