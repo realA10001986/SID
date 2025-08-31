@@ -257,7 +257,7 @@ In order to only disable the supplied IR remote control, check the option **_Dis
     </tr>
 </table>
 
-[Here](https://github.com/realA10001986/SID/blob/main/CheatSheet.pdf) is a cheat sheet for printing or screen-use. (Note that MacOS' preview application has a bug that scrambles the links in the document. Acrobat Reader does it correctly.)
+[Here](CheatSheet.pdf) is a cheat sheet for printing or screen-use. (Note that MacOS' preview application has a bug that scrambles the links in the document. Acrobat Reader does it correctly.)
 
 ## Time travel
 
