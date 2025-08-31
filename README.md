@@ -20,6 +20,7 @@ Features include
 - [Home Assistant](#home-assistant--mqtt) (MQTT 3.1.1) support
 - [*Siddly*](#siddly) and [*Snake*](#snake) games
 - [SD card](#sd-card) support
+- built-in OTA installer for firmware updates
 
 ## Installation
 
