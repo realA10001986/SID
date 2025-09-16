@@ -2440,11 +2440,8 @@ static int execute(bool isIR)
     case 5:
         if(!isIRLocked) {
             if(!strcmp(inputBuffer, "64738")) {
-                allOff();
-                endIRfeedback();
-                flushDelayedSave();
-                unmount_fs();
-                delay(50);
+                prepareReboot();
+                delay(500);
                 esp_restart();
             }
             inputReaction = -1;
@@ -2599,6 +2596,16 @@ static void fadeOut()
         a--;
         mydelay(10, false);
     }
+}
+
+void prepareReboot()
+{
+    allOff();
+    endIRfeedback();
+    flushDelayedSave();
+    delay(500);
+    unmount_fs();
+    delay(100);
 }
 
 void showWordSequence(const char *text, int speed)

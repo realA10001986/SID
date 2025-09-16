@@ -104,6 +104,14 @@
 
 /*  Changelog
  *  
+ *  2025/09/15 (A10001986) [1.54]
+ *    - WiFi manager: Remove lots of <br> tags; makes Safari display the
+ *      pages better.
+ *  2025/09/14 (A10001986) 
+ *    - WiFi manager: Remove (ie skip compilation of) unused code
+ *    - WiFi manager: Add callback to Erase WiFi settings, before reboot
+ *    - WiFi manager: Build param page with fixed size string to avoid memory 
+ *      fragmentation; add functions to calculate String size beforehand.
  *  2025/08/20 (A10001986) [1.53]
  *    - Add "987654" IR command; triggers IR learning (and spares the user from
  *      installing a time travel button as required for IR learning before)

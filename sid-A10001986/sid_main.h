@@ -91,7 +91,9 @@ void flushDelayedSave();
 
 void showWaitSequence(bool force = false);
 void endWaitSequence();
+
 void allOff();
+void prepareReboot();
 
 void populateIRarray(uint32_t *irkeys, int index);
 void copyIRarray(uint32_t *irkeys, int index);
