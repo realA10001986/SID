@@ -52,13 +52,11 @@ It is ok to leave it in AP-mode, predominantly if used stand-alone.
 
 ##### &#9654; Home setup with a pre-existing local WiFi network
 
-In this case, you can connect your SID to your home WiFi network: Click on "Connect to WiFi" and either select a network from the top of the page or enter a WiFi network name (SSID), and enter your WiFi password.
+In this case, you can connect your SID to your home WiFi network: Click on "Connect to WiFi" and either select a network from the top of the page or enter a WiFi network name (SSID), and enter your WiFi password. After saving the WiFi network settings, your SID reboots and tries to connect to your selected WiFi network. If that fails, it will again start in access point mode.
 
 >If you have a [Time Circuits Display](https://tcd.out-a-ti.me) note that in order to have both SID and TCD communicate with each other, your SID must be connected to the same ip network your TCD is connected to. In order to use MQTT, your SID must be connected to the same ip network your broker is connected to.
 
 >Your SID requests an IP address via DHCP, unless you entered valid data in the fields for static IP addresses (IP, gateway, netmask, DNS). If the device is inaccessible as a result of incorrect static IPs, wait until it has completed its startup sequence, then type \*123456OK on the IR remote; static IP data will be deleted and the device will return to DHCP after a reboot.
-
-After saving the WiFi network settings, your SID reboots and tries to connect to your selected WiFi network. If that fails, it will again start in access point mode.
 
 ##### &#9654; Places without a WiFi network
 
