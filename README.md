@@ -36,23 +36,41 @@ If you are using a fresh ESP32 board, please see [sid-A10001986.ino](https://git
 
 The first step is to establish access to the SID's configuration web site ("Config Portal") in order to configure your SID:
 
-- Power up the SID and wait until the startup sequence has completed.
+- Power up your SID and wait until the startup sequence has completed.
 - Connect your computer or handheld device to the WiFi network "SID-AP".
 - Navigate your browser to http://sid.local or http://192.168.4.1 to enter the Config Portal.
 
 #### Connecting to a WiFi network
 
-As long as the device is unconfigured, it creates a WiFi network of its own named "SID-AP". This is called "Access point mode", or "AP-mode". 
+Your SID knows two ways of WiFi operation: Either it creates its own WiFi network, or it connects to a pre-existing WiFi network.
 
-It is ok to leave the SID in this mode, especially if it run stand-alone. In a typical home setup and/or if you also have a [Time Circuits Display](https://tcd.out-a-ti.me), however, you might want to connect the SID to a WiFi network (in case of using it together with a TCD: to the same WiFi network the TCD is connected to). If you have your SID, along with a Time Circuits Display, mounted in a car, you might want to connect the SID to the TCD's very own WiFi network "TCD-AP"; see [here](#car-setup).
+As long as your SID is unconfigured, it creates its own WiFi network named "SID-AP". This mode of operation is called "Access point mode", or "AP-mode". 
 
-In order to connect your SID to a WiFi network, click on "Configure WiFi". The bare minimum is to select an SSID (WiFi network name) and a WiFi password.
+It is ok to leave it in AP-mode, predominantly if used stand-alone.
 
->Note that the SID requests an IP address via DHCP, unless you entered valid data in the fields for static IP addresses (IP, gateway, netmask, DNS). If the device is inaccessible as a result of incorrect static IPs, wait until the SID has completed its startup sequence, then type \*123456OK on the IR remote; static IP data will be deleted and the device will return to DHCP after a reboot.
+>For experts: In the following, the term "WiFi network" is used for both "WiFi network" and "ip network" for simplicity reasons. However, for BTTFN/MQTT communication, the devices must (only) be on the same ip network, regardless of how they take part in it: They can be can be connected to different WiFi networks, if those WiFi networks are part of the same ip network, or, in case of the MQTT broker, by wire. If the TCD operates as access point for other props, connecting a prop to the TCD's WiFi network also takes care of suitable ip network configuration through DHCP.
 
-After saving the WiFi network settings, the SID reboots and tries to connect to your configured WiFi network. If that fails, it will again start in access point mode.
+##### &#9654; Home setup with a pre-existing local WiFi network
 
-After completing this step, your SID is basically ready for use; you can also continue configuring it to your personal preferences through the Config Portal.
+In this case, you can connect your SID to your home WiFi network: Click on "Connect to WiFi" and either select a network from the top of the page or enter a WiFi network name (SSID), and enter your WiFi password.
+
+>If you have a [Time Circuits Display](https://tcd.out-a-ti.me) note that in order to have both SID and TCD communicate with each other, your SID must be connected to the same ip network your TCD is connected to. In order to use MQTT, your SID must be connected to the same ip network your broker is connected to.
+
+>Your SID requests an IP address via DHCP, unless you entered valid data in the fields for static IP addresses (IP, gateway, netmask, DNS). If the device is inaccessible as a result of incorrect static IPs, wait until it has completed its startup sequence, then type \*123456OK on the IR remote; static IP data will be deleted and the device will return to DHCP after a reboot.
+
+After saving the WiFi network settings, your SID reboots and tries to connect to your selected WiFi network. If that fails, it will again start in access point mode.
+
+##### &#9654; Places without a WiFi network
+
+If no TCD is present, keep your SID operating in AP-mode.
+
+If you have a [Time Circuits Display](https://tcd.out-a-ti.me), you can connect your SID to the TCD's own WiFi network. 
+
+Click on "Connect to WiFi" and either select "TCD-AP" from the top of the page or enter "TCD-AP" under *WiFi network name (SSID)*. If you password-proteced your TCD-AP, enter this password below.
+
+See [here](#car-setup) for more details.
+
+After completing WiFi setup, your SID is ready for use; you can also continue configuring it to your personal preferences through the Config Portal.
 
 ## The Config Portal
 
@@ -71,7 +89,7 @@ It can be accessed as follows:
 
 #### If SID is connected to WiFi network
 
-- Connect your hand-held/computer to the same WiFi network to which the SID is connected, and
+- Connect your hand-held/computer to the same (WiFi) network to which the SID is connected, and
 - navigate your browser to http://sid.local
 
   Accessing the Config Portal through this address requires the operating system of your hand-held/computer to support Bonjour/mDNS: Windows 10 version TH2     (1511) [other sources say 1703] and later, Android 13 and later; MacOS and iOS since the dawn of time.
