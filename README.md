@@ -64,11 +64,7 @@ After saving the WiFi network settings, your SID reboots and tries to connect to
 
 If no TCD is present, keep your SID operating in AP-mode.
 
-If you have a [Time Circuits Display](https://tcd.out-a-ti.me), you can connect your SID to the TCD's own WiFi network. 
-
-Click on "Connect to WiFi" and either select "TCD-AP" from the top of the page or enter "TCD-AP" under *WiFi network name (SSID)*. If you password-proteced your TCD-AP, enter this password below.
-
-See [here](#car-setup) for more details.
+If you have a [Time Circuits Display](https://tcd.out-a-ti.me), you can connect your SID to the TCD's own WiFi network: Click on "Connect to WiFi" and either select "TCD-AP" from the top of the page or enter "TCD-AP" under *WiFi network name (SSID)*. If you password-proteced your TCD-AP, enter this password below. See [here](#car-setup) for more details.
 
 After completing WiFi setup, your SID is ready for use; you can also continue configuring it to your personal preferences through the Config Portal.
 
