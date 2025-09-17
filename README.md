@@ -402,19 +402,19 @@ If your SID, along with a [Time Circuits Display](https://tcd.out-a-ti.me), is m
 
 #### SID
 
-Enter the Config Portal on the SID (as described above), click on *Setup* and
+Enter the Config Portal on the SID, click on *Setup* and
   - enter *192.168.4.1* into the field **_IP address or hostname of TCD_**
   - check the option **_Follow TCD fake power_** if you have a fake power switch for the TCD (like eg a TFC switch)
   - click on *Save*.
 
 After the SID has restarted, re-enter the SID's Config Portal (while the TCD is powered and in *car mode*) and
-  - click on *Configure WiFi*,
-  - select the TCD's access point name in the list at the top or enter *TCD-AP* into the *SSID* field; if you password-protected your TCD's AP, enter this password in the *password* field. Leave all other fields empty,
+  - click on *Connect to WiFi*,
+  - select the TCD's access point name in the list at the top ("TCD-AP") or enter *TCD-AP* into the *WiFi network name (SSID)* field; if you password-protected your TCD's AP, enter this password in the *password* field. Leave all other fields empty,
   - click on *Save*.
 
-Using this setup enables the SID to receive notifications about time travel and alarm wirelessly, and to query the TCD for data. Also, the TCD keypad can be used to remote-control the SID.
-
 In order to access the SID's Config Portal in your car, connect your hand held or computer to the TCD's WiFi access point ("TCD-AP"), and direct your browser to http://sid.local ; if that does not work, go to the TCD's keypad menu, press ENTER until "BTTFN CLIENTS" is shown, hold ENTER, and look for the SID's IP address there; then direct your browser to that IP by using the URL http://a.b.c.d (a-d being the IP address displayed on the TCD display).
+
+This "car setup" can also be used in a home setup with no local WiFi network present.
 
 ## Flash Wear
 
