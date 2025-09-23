@@ -464,6 +464,24 @@ Clicking this (and saying "yes" in the confirmation dialog) erases the WiFi conn
 
 #### Basic settings
 
+##### &#9654; Adhere strictly to movie patterns
+
+If this option is checked, in idle modes 0-3 as well as when using GPS speed, only patterns which were extracted from the movies (plus some interpolations) are shown. If this option is unchecked, random variations will be shown, which is less accurate, but also less monotonous. Purists will want this option to be set, which is also the default. This option can also be changed by typing *50 followed by OK on the IR remote control.
+
+Note that this option setting, along with the current idle pattern, is only saved if there is an SD card present. Without an SD card, this setting is always reset to "checked" upon power-up.
+
+##### &#9654; Skip time tunnel animation
+
+When set, the time travel sequence will not be animated (no flicker, no "moving bar"). Purists will want this option to be set; the default is unset.
+
+##### &#9654; Boot into Spectrum Analyzer
+
+If this is checked, when the SID boots, it automatically enables the Spectrum Analyzer. If unchecked, it boots into idle mode.
+
+##### &#9654; Show peaks in Spectrum Analyzer
+
+This selects the boot-up setting for showing or not showing the peaks in the Spectrum Analyzer. Can be changed anytime by typing *51 followed by OK on the IR remote control.
+
 ##### &#9654; Screen saver timer
 
 Enter the number of minutes until the Screen Saver should become active when the SID is idle.
@@ -473,31 +491,13 @@ The Screen Saver, when active, disables all LEDs, until
 - the time travel button is briefly pressed (the first press when the screen saver is active will not trigger a time travel),
 - on a connected TCD, a destination date is entered (only if TCD is wirelessly connected) or a time travel event is triggered (also when wired).
 
-#### Hardware configuration settings
-
-##### &#9654; Disable supplied IR remote control
-
-Check this to disable the supplied remote control; the SID will only accept commands from a learned IR remote (if applicable). 
-
-Note that this only disables the supplied remote, unlike [IR locking](#locking-ir-control), where IR commands from any known remote are ignored.
-
 #### Network settings
 
 ##### &#9654; Hostname
 
 The device's hostname in the WiFi network. Defaults to 'sid'. This also is the domain name at which the Config Portal is accessible from a browser in the same local network. The URL of the Config Portal then is http://<i>hostname</i>.local (the default is http://sid.local)
 
-If you have more than one SID in your local network, please give them unique hostnames.
-
-##### &#9654; AP Mode: Network name appendix
-
-By default, if the SID creates a WiFi network of its own ("AP-mode"), this network is named "SID-AP". In case you have multiple SIDs in your vicinity, you can have a string appended to create a unique network name. If you, for instance, enter "-ABC" here, the WiFi network name will be "SID-AP-ABC". Characters A-Z, a-z, 0-9 and - are allowed.
-
-##### &#9654; AP Mode: WiFi password
-
-By default, and if this field is empty, the SID's own WiFi network ("AP-mode") will be unprotected. If you want to protect your SID access point, enter your password here. It needs to be 8 characters in length and only characters A-Z, a-z, 0-9 and - are allowed.
-
-If you forget this password and are thereby locked out of your SID, enter *123456 followed by OK on the IR remote control; this deletes the WiFi password. Then power-down and power-up your SID and the access point will start unprotected.
+This setting applies to both AP-mode and when your SID is connected to a WiFi network. If you have more than one SID in your local network, please give them unique hostnames.
 
 ##### &#9654; WiFi connection attempts
 
@@ -507,23 +507,19 @@ Number of times the firmware tries to reconnect to a WiFi network, before fallin
 
 Number of seconds before a timeout occurs when connecting to a WiFi network. When a timeout happens, another attempt is made (see immediately above), and if all attempts fail, the device falls back to AP-mode. See [here](#short-summary-of-first-steps)
 
-#### Settings for prop communication/synchronization
+#### Network settings for AP-mode
 
-##### &#9654; TCD connected by wire
+##### &#9654; Network name (SSID) appendix
 
-Check this if you have a Time Circuits Display connected by wire. Note that a wired connection only allows for synchronized time travel sequences, no other communication takes place.
+By default, if the SID creates a WiFi network of its own ("AP-mode"), this network is named "SID-AP". In case you have multiple SIDs in your vicinity, you can have a string appended to create a unique network name. If you, for instance, enter "-ABC" here, the WiFi network name will be "SID-AP-ABC". Characters A-Z, a-z, 0-9 and - are allowed.
 
-While you can connect both a button and the TCD to the "time travel" connector on the SID, the button should not be pressed when this option is set, as it might yield unwanted effects.
+##### &#9654; Password
 
-Also note that the process of [learning keys from an IR remote control](#ir-remote-control) requires this option to be unchecked. After learning keys is done, you can, of course, check this option again.
+By default, and if this field is empty, the SID's own WiFi network ("AP-mode") will be unprotected. If you want to protect your SID access point, enter your password here. It needs to be 8 characters in length and only characters A-Z, a-z, 0-9 and - are allowed.
 
-Do NOT check this option if your TCD is connected wirelessly (BTTFN, MQTT).
+If you forget this password and are thereby locked out of your SID, enter *123456 followed by OK on the IR remote control; this deletes the WiFi password. Then power-down and power-up your SID and the access point will start unprotected.
 
-##### &#9654; TCD signals Time Travel without 5s lead
-
-Usually, the TCD signals a time travel with a 5 seconds lead, in order to give a prop a chance to play an acceleration sequence before the actual time travel takes place. Since this 5 second lead is unique to CircuitSetup props, and people sometimes want to connect third party props to the TCD, the TCD has the option of skipping this 5 seconds lead. If that is the case, and your SID is connected by wire, you need to set this option.
-
-If your SID is connected wirelessly, this option has no effect.
+#### Settings for BTTFN communication
 
 ##### &#9654; IP address or hostname of TCD
 
@@ -551,22 +547,6 @@ If the SID is connected to a TCD through BTTFN, this option allows to trigger a 
 
 If this option is checked, the SID will show current local time - as queried from the TCD - when the Screen Saver is active.
 
-#### Visual options
-
-##### &#9654; Adhere strictly to movie patterns
-
-If this option is checked, in idle modes 0-3 as well as when using GPS speed, only patterns which were extracted from the movies (plus some interpolations) are shown. If this option is unchecked, random variations will be shown, which is less accurate, but also less monotonous. Purists will want this option to be set, which is also the default. This option can also be changed by typing *50 followed by OK on the IR remote control.
-
-Note that this option setting, along with the current idle pattern, is only saved if there is an SD card present. Without an SD card, this setting is always reset to "checked" upon power-up.
-
-##### &#9654; Skip time tunnel animation
-
-When set, the time travel sequence will not be animated (no flicker, no "moving bar"). Purists will want this option to be set; the default is unset.
-
-##### &#9654; Show peaks in Spectrum Analyzer
-
-This selects the boot-up setting for showing or not showing the peaks in the Spectrum Analyzer. Can be changed anytime by typing *51 followed by OK on the IR remote control.
-
 #### Home Assistant / MQTT settings
 
 ##### &#9654; Use Home Assistant (MQTT 3.1.1)
@@ -581,7 +561,25 @@ The broker server address. Can be a domain (eg. "myhome.me") or an IP address (e
 
 The username (and optionally the password) to be used when connecting to the broker. Can be left empty if the broker accepts anonymous logins.
 
-#### Other settings
+#### Settings for wired connections
+
+##### &#9654; TCD connected by wire
+
+Check this if you have a Time Circuits Display connected by wire. Note that a wired connection only allows for synchronized time travel sequences, no other communication takes place.
+
+While you can connect both a button and the TCD to the "time travel" connector on the SID, the button should not be pressed when this option is set, as it might yield unwanted effects.
+
+Also note that the process of [learning keys from an IR remote control](#ir-remote-control) requires this option to be unchecked. After learning keys is done, you can, of course, check this option again.
+
+Do NOT check this option if your TCD is connected wirelessly (BTTFN, MQTT).
+
+##### &#9654; TCD signals Time Travel without 5s lead
+
+Usually, the TCD signals a time travel with a 5 seconds lead, in order to give a prop a chance to play an acceleration sequence before the actual time travel takes place. Since this 5 second lead is unique to CircuitSetup props, and people sometimes want to connect third party props to the TCD, the TCD has the option of skipping this 5 seconds lead. If that is the case, and your SID is connected by wire, you need to set this option.
+
+If your SID is connected wirelessly, this option has no effect.
+
+#### <ins>Other settings</ins>
 
 ##### &#9654; Save secondary settings on SD
 
@@ -597,6 +595,15 @@ If you want copy settings from one SD card to another, do as follows:
 - Power-up the SID, enter the Config Portal, re-enable _Save secondary settings on SD_, and click "SAVE".
 
 This procedure ensures that all your settings are copied from the old to the new SD card.
+
+#### Hardware configuration settings
+
+##### &#9654; Disable supplied IR remote control
+
+Check this to disable the supplied remote control; the SID will only accept commands from a learned IR remote (if applicable). 
+
+Note that this only disables the supplied remote, unlike [IR locking](#locking-ir-control), where IR commands from any known remote are ignored.
+
 
 _Text & images: (C) Thomas Winischhofer ("A10001986"). See LICENSE._ Source: https://sid.out-a-ti.me  
 _Other props: [Time Circuits Display](https://tcd.out-a-ti.me) ... [Flux Capacitor](https://fc.out-a-ti.me) ... [Dash Gauges](https://dg.out-a-ti.me) ... [VSR](https://vsr.out-a-ti.me) ... [Remote Control](https://remote.out-a-ti.me) ... [TFC](https://tfc.out-a-ti.me)_
