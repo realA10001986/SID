@@ -456,7 +456,7 @@ This leads to the firmware update page. You can select a locally stored firmware
 
 ##### &#9654; Erase WiFi Config
 
-Clicking this (and saying "yes" in the confirmation dialog) erases the WiFi connection configuration (as set up through the *Connect to WiFi* page) and reboots the device; it will restart in "access point" (AP) mode. See [here](#initial-configuration).
+Clicking this (and saying "yes" in the confirmation dialog) erases the WiFi connection configuration (as set up through the *Connect to WiFi* page) and reboots the device; it will restart in "access point" (AP) mode. See [here](#connecting-to-a-wifi-network).
 
 ---
 
@@ -501,11 +501,11 @@ This setting applies to both AP-mode and when your SID is connected to a WiFi ne
 
 ##### &#9654; WiFi connection attempts
 
-Number of times the firmware tries to reconnect to a WiFi network, before falling back to AP-mode. See [here](#initial-configuration)
+Number of times the firmware tries to reconnect to a WiFi network, before falling back to AP-mode. See [here](#connecting-to-a-wifi-network)
 
 ##### &#9654; WiFi connection timeout
 
-Number of seconds before a timeout occurs when connecting to a WiFi network. When a timeout happens, another attempt is made (see immediately above), and if all attempts fail, the device falls back to AP-mode. See [here](#initial-configuration)
+Number of seconds before a timeout occurs when connecting to a WiFi network. When a timeout happens, another attempt is made (see immediately above), and if all attempts fail, the device falls back to AP-mode. See [here](#connecting-to-a-wifi-network)
 
 #### <ins>Network settings for AP-mode</ins>
 
