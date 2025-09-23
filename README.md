@@ -511,7 +511,7 @@ Number of seconds before a timeout occurs when connecting to a WiFi network. Whe
 
 ##### &#9654; Network name (SSID) appendix
 
-By default, if the SID creates a WiFi network of its own ("AP-mode"), this network is named "SID-AP". In case you have multiple SIDs in your vicinity, you can have a string appended to create a unique network name. If you, for instance, enter "-ABC" here, the WiFi network name will be "SID-AP-ABC". Characters A-Z, a-z, 0-9 and - are allowed.
+By default, when your SID creates a WiFi network of its own ("AP-mode"), this network is named "SID-AP". In case you have multiple SIDs in your vicinity, you can have a string appended to create a unique network name. If you, for instance, enter "-ABC" here, the WiFi network name will be "SID-AP-ABC". Characters A-Z, a-z, 0-9 and - are allowed.
 
 ##### &#9654; Password
 
