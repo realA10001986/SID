@@ -462,7 +462,7 @@ Clicking this (and saying "yes" in the confirmation dialog) erases the WiFi conn
 
 ### Setup page
 
-#### Basic settings
+#### <ins>Basic settings</ins>
 
 ##### &#9654; Adhere strictly to movie patterns
 
@@ -491,7 +491,7 @@ The Screen Saver, when active, disables all LEDs, until
 - the time travel button is briefly pressed (the first press when the screen saver is active will not trigger a time travel),
 - on a connected TCD, a destination date is entered (only if TCD is wirelessly connected) or a time travel event is triggered (also when wired).
 
-#### Network settings
+#### <ins>Network settings</ins>
 
 ##### &#9654; Hostname
 
@@ -507,7 +507,7 @@ Number of times the firmware tries to reconnect to a WiFi network, before fallin
 
 Number of seconds before a timeout occurs when connecting to a WiFi network. When a timeout happens, another attempt is made (see immediately above), and if all attempts fail, the device falls back to AP-mode. See [here](#short-summary-of-first-steps)
 
-#### Network settings for AP-mode
+#### <ins>Network settings for AP-mode</ins>
 
 ##### &#9654; Network name (SSID) appendix
 
@@ -519,7 +519,7 @@ By default, and if this field is empty, the SID's own WiFi network ("AP-mode") w
 
 If you forget this password and are thereby locked out of your SID, enter *123456 followed by OK on the IR remote control; this deletes the WiFi password. Then power-down and power-up your SID and the access point will start unprotected.
 
-#### Settings for BTTFN communication
+#### <ins>Settings for BTTFN communication</ins>
 
 ##### &#9654; IP address or hostname of TCD
 
@@ -547,7 +547,7 @@ If the SID is connected to a TCD through BTTFN, this option allows to trigger a 
 
 If this option is checked, the SID will show current local time - as queried from the TCD - when the Screen Saver is active.
 
-#### Home Assistant / MQTT settings
+#### <ins>Home Assistant / MQTT settings</ins>
 
 ##### &#9654; Use Home Assistant (MQTT 3.1.1)
 
@@ -561,7 +561,7 @@ The broker server address. Can be a domain (eg. "myhome.me") or an IP address (e
 
 The username (and optionally the password) to be used when connecting to the broker. Can be left empty if the broker accepts anonymous logins.
 
-#### Settings for wired connections
+#### <ins>Settings for wired connections</ins>
 
 ##### &#9654; TCD connected by wire
 
@@ -596,7 +596,7 @@ If you want copy settings from one SD card to another, do as follows:
 
 This procedure ensures that all your settings are copied from the old to the new SD card.
 
-#### Hardware configuration settings
+#### <ins>Hardware configuration settings</ins>
 
 ##### &#9654; Disable supplied IR remote control
 
