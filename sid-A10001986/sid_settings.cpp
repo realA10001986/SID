@@ -343,48 +343,41 @@ static bool read_settings(File configFile)
 
     if(!error) {
 
+        // strictMode is overruled by loadIdlePat later (if present)
+        wd |= CopyCheckValidNumParm(json["strictMode"], settings.strictMode, sizeof(settings.strictMode), 0, 1, DEF_STRICT);
+        strictMode = (settings.strictMode[0] == '1');
+        wd |= CopyCheckValidNumParm(json["skipTTAnim"], settings.skipTTAnim, sizeof(settings.skipTTAnim), 0, 1, DEF_SKIP_TTANIM);
         wd |= CopyCheckValidNumParm(json["bootSA"], settings.bootSA, sizeof(settings.bootSA), 0, 1, DEF_BOOTSA);
+        wd |= CopyCheckValidNumParm(json["SApeaks"], settings.SApeaks, sizeof(settings.SApeaks), 0, 1, DEF_SA_PEAKS);
         wd |= CopyCheckValidNumParm(json["ssTimer"], settings.ssTimer, sizeof(settings.ssTimer), 0, 999, DEF_SS_TIMER);
-        
-        wd |= CopyCheckValidNumParm(json["disDIR"], settings.disDIR, sizeof(settings.disDIR), 0, 1, DEF_DISDIR);
 
         if(json["hostName"]) {
             memset(settings.hostName, 0, sizeof(settings.hostName));
             strncpy(settings.hostName, json["hostName"], sizeof(settings.hostName) - 1);
         } else wd = true;
+
+        wd |= CopyCheckValidNumParm(json["wifiConRetries"], settings.wifiConRetries, sizeof(settings.wifiConRetries), 1, 10, DEF_WIFI_RETRY);
+        wd |= CopyCheckValidNumParm(json["wifiConTimeout"], settings.wifiConTimeout, sizeof(settings.wifiConTimeout), 7, 25, DEF_WIFI_TIMEOUT);
+        
         if(json["systemID"]) {
             memset(settings.systemID, 0, sizeof(settings.systemID));
             strncpy(settings.systemID, json["systemID"], sizeof(settings.systemID) - 1);
         } else wd = true;
-
         if(json["appw"]) {
             memset(settings.appw, 0, sizeof(settings.appw));
             strncpy(settings.appw, json["appw"], sizeof(settings.appw) - 1);
         } else wd = true;
         
-        wd |= CopyCheckValidNumParm(json["wifiConRetries"], settings.wifiConRetries, sizeof(settings.wifiConRetries), 1, 10, DEF_WIFI_RETRY);
-        wd |= CopyCheckValidNumParm(json["wifiConTimeout"], settings.wifiConTimeout, sizeof(settings.wifiConTimeout), 7, 25, DEF_WIFI_TIMEOUT);
-
-        wd |= CopyCheckValidNumParm(json["TCDpresent"], settings.TCDpresent, sizeof(settings.TCDpresent), 0, 1, DEF_TCD_PRES);
-        wd |= CopyCheckValidNumParm(json["noETTOLead"], settings.noETTOLead, sizeof(settings.noETTOLead), 0, 1, DEF_NO_ETTO_LEAD);
-
         if(json["tcdIP"]) {
             memset(settings.tcdIP, 0, sizeof(settings.tcdIP));
             strncpy(settings.tcdIP, json["tcdIP"], sizeof(settings.tcdIP) - 1);
         } else wd = true;
-
         wd |= CopyCheckValidNumParm(json["useGPSS"], settings.useGPSS, sizeof(settings.useGPSS), 0, 1, DEF_USE_GPSS);
         wd |= CopyCheckValidNumParm(json["useNM"], settings.useNM, sizeof(settings.useNM), 0, 1, DEF_USE_NM);
         wd |= CopyCheckValidNumParm(json["useFPO"], settings.useFPO, sizeof(settings.useFPO), 0, 1, DEF_USE_FPO);
         wd |= CopyCheckValidNumParm(json["bttfnTT"], settings.bttfnTT, sizeof(settings.bttfnTT), 0, 1, DEF_BTTFN_TT);
         wd |= CopyCheckValidNumParm(json["ssClock"], settings.ssClock, sizeof(settings.ssClock), 0, 1, DEF_SS_CLK);
         wd |= CopyCheckValidNumParm(json["ssClkOffNM"], settings.ssClockOffNM, sizeof(settings.ssClockOffNM), 0, 1, DEF_SS_CLK_NMOFF);
-
-        // strictMode is overruled by loadIdlePat later (if present)
-        wd |= CopyCheckValidNumParm(json["strictMode"], settings.strictMode, sizeof(settings.strictMode), 0, 1, DEF_STRICT);
-        strictMode = (settings.strictMode[0] == '1');
-        wd |= CopyCheckValidNumParm(json["skipTTAnim"], settings.skipTTAnim, sizeof(settings.skipTTAnim), 0, 1, DEF_SKIP_TTANIM);
-        wd |= CopyCheckValidNumParm(json["SApeaks"], settings.SApeaks, sizeof(settings.SApeaks), 0, 1, DEF_SA_PEAKS);
 
         #ifdef SID_HAVEMQTT
         wd |= CopyCheckValidNumParm(json["useMQTT"], settings.useMQTT, sizeof(settings.useMQTT), 0, 1, 0);
@@ -398,8 +391,13 @@ static bool read_settings(File configFile)
         } else wd = true;
         #endif
 
+        wd |= CopyCheckValidNumParm(json["TCDpresent"], settings.TCDpresent, sizeof(settings.TCDpresent), 0, 1, DEF_TCD_PRES);
+        wd |= CopyCheckValidNumParm(json["noETTOLead"], settings.noETTOLead, sizeof(settings.noETTOLead), 0, 1, DEF_NO_ETTO_LEAD);
+
         wd |= CopyCheckValidNumParm(json["CfgOnSD"], settings.CfgOnSD, sizeof(settings.CfgOnSD), 0, 1, DEF_CFG_ON_SD);
         //wd |= CopyCheckValidNumParm(json["sdFreq"], settings.sdFreq, sizeof(settings.sdFreq), 0, 1, DEF_SD_FREQ);
+
+        wd |= CopyCheckValidNumParm(json["disDIR"], settings.disDIR, sizeof(settings.disDIR), 0, 1, DEF_DISDIR);
 
     } else {
 
@@ -428,19 +426,19 @@ void write_settings()
     Serial.printf("%s: Writing config file\n", funcName);
     #endif
 
+    sprintf(settings.strictMode, "%d", strictMode ? 1 : 0);
+    json["strictMode"] = (const char *)settings.strictMode;
+    json["skipTTAnim"] = (const char *)settings.skipTTAnim;
     json["bootSA"] = (const char *)settings.bootSA;
+    json["SApeaks"] = (const char *)settings.SApeaks;
     json["ssTimer"] = (const char *)settings.ssTimer;
-
-    json["disDIR"] = (const char *)settings.disDIR;
-
-    json["TCDpresent"] = (const char *)settings.TCDpresent;
-    json["noETTOLead"] = (const char *)settings.noETTOLead;
     
     json["hostName"] = (const char *)settings.hostName;
-    json["systemID"] = (const char *)settings.systemID;
-    json["appw"] = (const char *)settings.appw;
     json["wifiConRetries"] = (const char *)settings.wifiConRetries;
     json["wifiConTimeout"] = (const char *)settings.wifiConTimeout;
+
+    json["systemID"] = (const char *)settings.systemID;
+    json["appw"] = (const char *)settings.appw;
 
     json["tcdIP"] = (const char *)settings.tcdIP;
     json["useGPSS"] = (const char *)settings.useGPSS;
@@ -450,19 +448,19 @@ void write_settings()
     json["ssClock"] = (const char *)settings.ssClock;
     json["ssClkOffNM"] = (const char *)settings.ssClockOffNM;
 
-    sprintf(settings.strictMode, "%d", strictMode ? 1 : 0);
-    json["strictMode"] = (const char *)settings.strictMode;
-    json["skipTTAnim"] = (const char *)settings.skipTTAnim;
-    json["SApeaks"] = (const char *)settings.SApeaks;
-
     #ifdef SID_HAVEMQTT
     json["useMQTT"] = (const char *)settings.useMQTT;
     json["mqttServer"] = (const char *)settings.mqttServer;
     json["mqttUser"] = (const char *)settings.mqttUser;
     #endif
+
+    json["TCDpresent"] = (const char *)settings.TCDpresent;
+    json["noETTOLead"] = (const char *)settings.noETTOLead;
  
     json["CfgOnSD"] = (const char *)settings.CfgOnSD;
     //json["sdFreq"] = (const char *)settings.sdFreq;
+
+    json["disDIR"] = (const char *)settings.disDIR;
 
     writeJSONCfgFile(json, cfgName, FlashROMode, funcName);
 }

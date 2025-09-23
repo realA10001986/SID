@@ -62,17 +62,15 @@ extern uint8_t musFolderNum;
 
 // Default settings - change settings in the web interface 192.168.4.1
 
+#define DEF_STRICT          1     // 0: Allow random diviations from movie patterns; 1: no not
+#define DEF_SKIP_TTANIM     1     // 0: Don't skip tt anim; 1: do
 #define DEF_BOOTSA          0     // 0: Boot into IDLE, 1: Boot into Spectrum Analyzer
+#define DEF_SA_PEAKS        0     // 1: Show peaks in SA, 0: don't
 #define DEF_SS_TIMER        0     // "Screen saver" timeout in minutes; 0 = ss off
-
-#define DEF_DISDIR          0     // 0: Do not disable default IR remote control; 1: do
 
 #define DEF_HOSTNAME        "sid"
 #define DEF_WIFI_RETRY      3     // 1-10; Default: 3 retries
 #define DEF_WIFI_TIMEOUT    7     // 7-25; Default: 7 seconds
-
-#define DEF_TCD_PRES        0     // 0: No TCD connected, 1: connected via GPIO
-#define DEF_NO_ETTO_LEAD    0     // Default: 0: TCD signals TT with ETTO_LEAD lead time; 1 without
 
 #define DEF_TCD_IP          ""    // TCD ip address or hostname for BTTFN
 #define DEF_USE_GPSS        0     // 0: Ignore GPS speed; 1: Use it for chase speed
@@ -82,29 +80,29 @@ extern uint8_t musFolderNum;
 #define DEF_SS_CLK          0     // "Screen saver" is clock (0=off, 1=on)
 #define DEF_SS_CLK_NMOFF    0     // 0: Clock dimmed in NM 1: Clock off in NM
 
-#define DEF_STRICT          1     // 0: Allow random diviations from movie patterns; 1: no not
-#define DEF_SKIP_TTANIM     1     // 0: Don't skip tt anim; 1: do
-#define DEF_SA_PEAKS        0     // 1: Show peaks in SA, 0: don't
+#define DEF_TCD_PRES        0     // 0: No TCD connected, 1: connected via GPIO
+#define DEF_NO_ETTO_LEAD    0     // Default: 0: TCD signals TT with ETTO_LEAD lead time; 1 without
 
 #define DEF_CFG_ON_SD       1     // Default: Save secondary settings on SD card
 #define DEF_SD_FREQ         0     // SD/SPI frequency: Default 16MHz
 
+#define DEF_DISDIR          0     // 0: Do not disable default IR remote control; 1: do
+
 struct Settings {
+    char strictMode[4]      = MS(DEF_STRICT);       // saved, but overruled by idlePat config file
+    char skipTTAnim[4]      = MS(DEF_SKIP_TTANIM);
     char bootSA[4]          = MS(DEF_BOOTSA);
+    char SApeaks[4]         = MS(DEF_SA_PEAKS);
     char ssTimer[6]         = MS(DEF_SS_TIMER);
-    
-    char disDIR[4]          = MS(DEF_DISDIR);
-    
+
     char hostName[32]       = DEF_HOSTNAME;
-    char systemID[8]        = "";
-    char appw[10]           = "";
     char wifiConRetries[4]  = MS(DEF_WIFI_RETRY);
     char wifiConTimeout[4]  = MS(DEF_WIFI_TIMEOUT);
-
-    char TCDpresent[4]      = MS(DEF_TCD_PRES);
-    char noETTOLead[4]      = MS(DEF_NO_ETTO_LEAD);
-
-    char tcdIP[64]          = DEF_TCD_IP;
+    
+    char systemID[8]        = "";
+    char appw[10]           = "";
+    
+    char tcdIP[32]          = DEF_TCD_IP;
     char useGPSS[4]         = MS(DEF_USE_GPSS);
     char useNM[4]           = MS(DEF_USE_NM);
     char useFPO[4]          = MS(DEF_USE_FPO);
@@ -112,18 +110,19 @@ struct Settings {
     char ssClock[4]         = MS(DEF_SS_CLK);
     char ssClockOffNM[4]    = MS(DEF_SS_CLK_NMOFF);
 
-    char strictMode[4]      = MS(DEF_STRICT);       // saved, but overruled by idlePat config file
-    char skipTTAnim[4]      = MS(DEF_SKIP_TTANIM);
-    char SApeaks[4]         = MS(DEF_SA_PEAKS);
-
 #ifdef SID_HAVEMQTT  
     char useMQTT[4]         = "0";
     char mqttServer[80]     = "";  // ip or domain [:port]  
     char mqttUser[128]      = "";  // user[:pass] (UTF8)
 #endif     
 
+    char TCDpresent[4]      = MS(DEF_TCD_PRES);
+    char noETTOLead[4]      = MS(DEF_NO_ETTO_LEAD);
+
     char CfgOnSD[4]         = MS(DEF_CFG_ON_SD);
     char sdFreq[4]          = MS(DEF_SD_FREQ);
+
+    char disDIR[4]          = MS(DEF_DISDIR);
 };
 
 struct IPSettings {

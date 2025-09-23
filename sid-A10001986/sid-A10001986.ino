@@ -104,6 +104,12 @@
 
 /*  Changelog
  *  
+ *  2025/09/22 (A10001986) [1.55]
+ *    - Config Portqal: Re-order settings; remove non-checkbox-code.
+ *    - Fix TCD hostname length field
+ *  2025/09/17 (A10001986)
+ *    - WiFi Manager: Reduce page size by removing "quality icon" styles where
+ *      not needed.
  *  2025/09/15 (A10001986) [1.54]
  *    - WiFi manager: Remove lots of <br> tags; makes Safari display the
  *      pages better.
