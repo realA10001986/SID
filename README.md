@@ -501,7 +501,7 @@ If you forget this password and are thereby locked out of your SID, enter *12345
 
 ##### &#9654; WiFi channel
 
-Here you can select one out of 13 channels, or have the TCD choose a random channel for you. The default channel is 1.
+Here you can select one out of 13 channels, or have the SID choose a random channel for you. The default channel is 1.
 
 ---
 
