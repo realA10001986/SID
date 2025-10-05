@@ -82,6 +82,7 @@ It can be accessed as follows:
 
 - Connect your computer or handheld device to the WiFi network "SID-AP".
 - Navigate your browser to http://sid.local or http://192.168.4.1 to enter the Config Portal.
+- (For proper operation, please disconnect your computer or handheld from SID-AP when you are done with configuring your SID. These devices can cause high network traffic, resulting in severe performance penalties.)
 
 #### If SID is connected to WiFi network
 
