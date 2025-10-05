@@ -46,7 +46,7 @@ Your SID knows two ways of WiFi operation: Either it creates its own WiFi networ
 
 As long as your SID is unconfigured, it creates its own WiFi network named "SID-AP". This mode of operation is called "Access point mode", or "AP-mode". 
 
-It is ok to leave it in AP-mode, predominantly if used stand-alone. (To operate your SID in AP-mode, do not configure a WiFi network as described below, or click on "Erase WiFi config" on the Config Portal's main page.)
+It is ok to leave it in AP-mode, predominantly if used stand-alone. (To operate your SID in AP-mode, do not configure a WiFi network as described below, or click on "Forget saved WiFi network" on the Config Portal's "WiFi Configuration" page.)
 
 >Please do not leave computers/hand helds permanently connected to the SID's AP. These devices might think they are connected to the internet and therefore hammer your SID with DNS and HTTP requests which might lead to packet loss and disruptions.
 
@@ -64,7 +64,7 @@ In this case, you can connect your SID to your home WiFi network: Click on "WiFi
 
 If no TCD is present, keep your SID operating in AP-mode.
 
-If you have a [Time Circuits Display](https://tcd.out-a-ti.me), you can connect your SID to the TCD's own WiFi network: Click on "WiFi Configuration" and either select "TCD-AP" from the top of the page or enter "TCD-AP" under *WiFi network name (SSID)*. If you password-proteced your TCD-AP, enter this password below. See [here](#car-setup) for more details.
+If you have a [Time Circuits Display](https://tcd.out-a-ti.me), you can connect your SID to the TCD's own WiFi network: Click on "WiFi Configuration" and either select "TCD-AP" from the top of the page or enter "TCD-AP" under *Network name (SSID)*. If you password-proteced your TCD-AP, enter this password below. See [here](#car-setup) for more details.
 
 After completing WiFi setup, your SID is ready for use; you can also continue configuring it to your personal preferences through the Config Portal.
 
@@ -419,14 +419,14 @@ If your SID, along with a [Time Circuits Display](https://tcd.out-a-ti.me), is m
 
 #### SID
 
-Enter the Config Portal on the SID, click on *Setup* and
+Enter the Config Portal on the SID, click on *Settings* and
   - enter *192.168.4.1* into the field **_IP address or hostname of TCD_**
   - check the option **_Follow TCD fake power_** if you have a fake power switch for the TCD (like eg a TFC switch)
   - click on *Save*.
 
 After the SID has restarted, re-enter the SID's Config Portal (while the TCD is powered and in *car mode*) and
   - click on *WiFi Configuration*,
-  - select the TCD's access point name in the list at the top ("TCD-AP") or enter *TCD-AP* into the *WiFi network name (SSID)* field; if you password-protected your TCD's AP, enter this password in the *password* field. Leave all other fields empty,
+  - select the TCD's access point name in the list at the top ("TCD-AP") or enter *TCD-AP* into the *Network name (SSID)* field; if you password-protected your TCD's AP, enter this password in the *password* field. Leave all other fields empty,
   - click on *Save*.
 
 In order to access the SID's Config Portal in your car, connect your hand held or computer to the TCD's WiFi access point ("TCD-AP"), and direct your browser to http://sid.local ; if that does not work, go to the TCD's keypad menu, press ENTER until "BTTFN CLIENTS" is shown, hold ENTER, and look for the SID's IP address there; then direct your browser to that IP by using the URL http://a.b.c.d (a-d being the IP address displayed on the TCD display).
