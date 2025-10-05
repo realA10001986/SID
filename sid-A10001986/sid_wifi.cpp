@@ -78,13 +78,33 @@ WiFiClient mqttWClient;
 PubSubClient mqttClient(mqttWClient);
 #endif
 
+static const char *apChannelCustHTMLSrc[16] = {
+    "<div class='cmp0'><label for='apchnl'>WiFi channel</label><select class='sel0' value='",
+    "apchnl",
+    ">Random%s1'",
+    ">1%s2'",
+    ">2%s3'",
+    ">3%s4'",
+    ">4%s5'",
+    ">5%s6'",
+    ">6%s7'",
+    ">7%s8'",
+    ">8%s9'",
+    ">9%s10'",
+    ">10%s11'",
+    ">11%s12'",
+    ">12%s13'",
+    ">13%s"
+};
+
+static const char *wmBuildApChnl(const char *dest);
+
+static const char *osde = "</option></select></div>";
+static const char *ooe  = "</option><option value='";
+static const char custHTMLSel[] = " selected";
 static const char *aco = "autocomplete='off'";
 
-WiFiManagerParameter custom_sStrict("sStrict", "Adhere strictly to movie patterns<br><span style='font-size:80%'>Check to strictly show movie patterns in idle modes 0-3 and with GPS speed; uncheck to allow variations.</span>", settings.strictMode, 1, "autocomplete='off' type='checkbox' class='mt5' style='margin-bottom:0px'", WFM_LABEL_AFTER);
-WiFiManagerParameter custom_sTTANI("sTTANI", "Skip time tunnel animation", settings.skipTTAnim, 1, "autocomplete='off' title='Check to skip the time tunnel animation' type='checkbox'", WFM_LABEL_AFTER);
-WiFiManagerParameter custom_bootSA("bSA", "Boot into Spectrum Analyzer", settings.bootSA, 1, "type='checkbox'", WFM_LABEL_AFTER);
-WiFiManagerParameter custom_SApeaks("sap", "Show peaks in Spectrum Analyzer", settings.SApeaks, 1, "type='checkbox' class='mb10'", WFM_LABEL_AFTER);
-WiFiManagerParameter custom_ssDelay("ssDel", "Screen Saver timer (minutes; 0=off)", settings.ssTimer, 3, "type='number' min='0' max='999' autocomplete='off'", WFM_LABEL_BEFORE);
+// WiFi Configuration
 
 #if defined(SID_MDNS) || defined(SID_WM_HAS_MDNS)
 #define HNTEXT "Hostname<br><span style='font-size:80%'>The Config Portal is accessible at http://<i>hostname</i>.local<br>(Valid characters: a-z/0-9/-)</span>"
@@ -92,11 +112,20 @@ WiFiManagerParameter custom_ssDelay("ssDel", "Screen Saver timer (minutes; 0=off
 #define HNTEXT "Hostname<br><span style='font-size:80%'>(Valid characters: a-z/0-9/-)</span>"
 #endif
 WiFiManagerParameter custom_hostName("hostname", HNTEXT, settings.hostName, 31, "pattern='[A-Za-z0-9\\-]+' placeholder='Example: sid'");
-WiFiManagerParameter custom_wifiConRetries("wifiret", "WiFi connection attempts (1-10)", settings.wifiConRetries, 2, "type='number' min='1' max='10' autocomplete='off'", WFM_LABEL_BEFORE);
-WiFiManagerParameter custom_wifiConTimeout("wificon", "WiFi connection timeout (7-25[seconds])", settings.wifiConTimeout, 2, "type='number' min='7' max='25'");
+WiFiManagerParameter custom_wifiConRetries("wifiret", "Connection attempts (1-10)", settings.wifiConRetries, 2, "type='number' min='1' max='10' autocomplete='off'", WFM_LABEL_BEFORE);
+WiFiManagerParameter custom_wifiConTimeout("wificon", "Connection timeout (7-25[seconds])", settings.wifiConTimeout, 2, "type='number' min='7' max='25'");
 
 WiFiManagerParameter custom_sysID("sysID", "Network name (SSID) appendix<br><span style='font-size:80%'>Will be appended to \"SID-AP\" to create a unique SSID if multiple SIDs are in range. [a-z/0-9/-]</span>", settings.systemID, 7, "pattern='[A-Za-z0-9\\-]+'");
 WiFiManagerParameter custom_appw("appw", "Password<br><span style='font-size:80%'>Password to protect SID-AP. Empty or 8 characters [a-z/0-9/-]<br><b>Write this down, you might lock yourself out!</b></span>", settings.appw, 8, "minlength='8' pattern='[A-Za-z0-9\\-]+'");
+WiFiManagerParameter custom_apch(wmBuildApChnl);
+
+// Settings
+
+WiFiManagerParameter custom_sStrict("sStrict", "Adhere strictly to movie patterns<br><span style='font-size:80%'>Check to strictly show movie patterns in idle modes 0-3 and with GPS speed; uncheck to allow variations.</span>", settings.strictMode, 1, "autocomplete='off' type='checkbox' class='mt5' style='margin-bottom:0px'", WFM_LABEL_AFTER);
+WiFiManagerParameter custom_sTTANI("sTTANI", "Skip time tunnel animation", settings.skipTTAnim, 1, "autocomplete='off' title='Check to skip the time tunnel animation' type='checkbox'", WFM_LABEL_AFTER);
+WiFiManagerParameter custom_bootSA("bSA", "Boot into Spectrum Analyzer", settings.bootSA, 1, "type='checkbox'", WFM_LABEL_AFTER);
+WiFiManagerParameter custom_SApeaks("sap", "Show peaks in Spectrum Analyzer", settings.SApeaks, 1, "type='checkbox' class='mb10'", WFM_LABEL_AFTER);
+WiFiManagerParameter custom_ssDelay("ssDel", "Screen Saver timer (minutes; 0=off)", settings.ssTimer, 3, "type='number' min='0' max='999' autocomplete='off'", WFM_LABEL_BEFORE);
 
 #ifdef BTTFN_MC
 WiFiManagerParameter custom_tcdIP("tcdIP", "IP address or hostname of TCD", settings.tcdIP, 31, "pattern='(^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$)|([A-Za-z0-9\\-]+)' placeholder='Example: 192.168.4.1'");
@@ -128,16 +157,31 @@ WiFiManagerParameter custom_sectstart_head("<div class='sects'>");
 WiFiManagerParameter custom_sectstart("</div><div class='sects'>");
 WiFiManagerParameter custom_sectend("</div>");
 
-WiFiManagerParameter custom_sectstart_ap("</div><div class='sects'><div class='headl'>Access point (AP) mode</div>");
+WiFiManagerParameter custom_sectstart_wifi("</div><div class='sects'><div class='headl'>WiFi connection: Other settings</div>");
+
+WiFiManagerParameter custom_sectstart_ap("</div><div class='sects'><div class='headl'>Access point (AP) mode settings</div>");
 WiFiManagerParameter custom_sectstart_nw("</div><div class='sects'><div class='headl'>Wireless communication (BTTF-Network)</div>");
 
 WiFiManagerParameter custom_sectend_foot("</div><p></p>");
 
 #define TC_MENUSIZE 6
-static const char* wifiMenu[TC_MENUSIZE] = {"wifi", "param", "sep", "update", "sep", "custom" };
+static const int8_t wifiMenu[TC_MENUSIZE] = { 
+    WM_MENU_WIFI,
+    WM_MENU_PARAM,
+    WM_MENU_SEP,
+    WM_MENU_UPDATE,
+    WM_MENU_SEP,
+    WM_MENU_CUSTOM
+};
 
-static const char* myHead = "<link rel='shortcut icon' type='image/png' href=' data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAA9QTFRFjpCRzMvHQ7Yk9tgx8iU9dfM6hQAAADJJREFUeNpiYEQDDIwMKAAhwMKCJsDMTIQASAwkAJEjIABHYAEmJgSimgC659AAQIABAHNsAOmY7Q19AAAAAElFTkSuQmCC'><script>function wlp(){return window.location.pathname;}function getn(x){return document.getElementsByTagName(x)}function ge(x){return document.getElementById(x)}function c(l){ge('s').value=l.getAttribute('data-ssid')||l.innerText||l.textContent;p=l.nextElementSibling.classList.contains('l');ge('p').disabled=!p;if(p){ge('p').placeholder='';ge('p').focus();}}window.onload=function(){xx=false;document.title='SID';if(ge('s')&&ge('dns')){xx=true;xxx=document.title;yyy='Connect to WiFi';aa=ge('s').parentElement;bb=aa.innerHTML;dd=bb.search('<hr>');ee=bb.search('<button');cc='<div class=\"sects\">'+bb.substring(0,dd)+'</div><div class=\"sects\">'+bb.substring(dd+4,ee)+'</div>'+bb.substring(ee);aa.innerHTML=cc;document.querySelectorAll('a[href=\"#p\"]').forEach((userItem)=>{userItem.onclick=function(){c(this);return false;}});if(aa=ge('s')){aa.oninput=function(){if(this.placeholder.length>0&&this.value.length==0){ge('p').placeholder='********';}}}}if(ge('uploadbin')||wlp()=='/u'||wlp()=='/wifisave'||wlp()=='/paramsave'){xx=true;xxx=document.title;yyy=(wlp()=='/wifisave')?'Connect to WiFi':(wlp()=='/paramsave'?'Setup':'Firmware upload');aa=document.getElementsByClassName('wrap');if(aa.length>0){if((bb=ge('uploadbin'))){aa[0].style.textAlign='center';bb.parentElement.onsubmit=function(){aa=document.getElementById('uploadbin');if(aa){aa.disabled=true;aa.innerHTML='Please wait'}}}aa=getn('H3');if(aa.length>0){aa[0].remove()}aa=getn('H1');if(aa.length>0){aa[0].remove()}}}if(ge('ttrp')||wlp()=='/param'){xx=true;xxx=document.title;yyy='Setup';}if(ge('ebnew')){xx=true;bb=getn('H3');aa=getn('H1');xxx=aa[0].innerHTML;yyy=bb[0].innerHTML;ff=aa[0].parentNode;ff.style.position='relative';}if(xx){zz=(Math.random()>0.8);dd=document.createElement('div');dd.classList.add('tpm0');dd.innerHTML='<div class=\"tpm\" onClick=\"window.location=\\'/\\'\"><div class=\"tpm2\"><img src=\"data:image/png;base64,'+(zz?'iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAMAAACdt4HsAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAAZQTFRFSp1tAAAA635cugAAAAJ0Uk5T/wDltzBKAAAAbUlEQVR42tzXwRGAQAwDMdF/09QQQ24MLkDj77oeTiPA1wFGQiHATOgDGAp1AFOhDWAslAHMhS6AQKgCSIQmgEgoAsiEHoBQqAFIhRaAWCgByIVXAMuAdcA6YBlwALAKePzgd71QAByP71uAAQC+xwvdcFg7UwAAAABJRU5ErkJggg==':'iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAMAAACdt4HsAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAAZQTFRFSp1tAAAA635cugAAAAJ0Uk5T/wDltzBKAAAAgElEQVR42tzXQQqDABAEwcr/P50P2BBUdMhee6j7+lw8i4BCD8MiQAjHYRAghAh7ADWMMAcQww5jADHMsAYQwwxrADHMsAYQwwxrADHMsAYQwwxrgLgOPwKeAjgrrACcFkYAzgu3AN4C3AV4D3AP4E3AHcDF+8d/YQB4/Pn+CjAAMaIIJuYVQ04AAAAASUVORK5CYII=')+'\" class=\"tpm3\"></div><H1 class=\"tpmh1\"'+(zz?' style=\"margin-left:1.2em\"':'')+'>'+xxx+'</H1>'+'<H3 class=\"tpmh3\"'+(zz?' style=\"padding-left:4.5em\"':'')+'>'+yyy+'</div></div>';}if(ge('ebnew')){bb[0].remove();aa[0].replaceWith(dd);}if((ge('s')&&ge('dns'))||ge('uploadbin')||wlp()=='/u'||wlp()=='/wifisave'||wlp()=='/paramsave'||ge('ttrp')||wlp()=='/param'){aa=document.getElementsByClassName('wrap');if(aa.length>0){aa[0].insertBefore(dd,aa[0].firstChild);aa[0].style.position='relative';}}}</script><style type='text/css'>body{font-family:-apple-system,BlinkMacSystemFont,system-ui,'Segoe UI',Roboto,'Helvetica Neue',Verdana,Helvetica}H1,H2{margin-top:0px;margin-bottom:0px;text-align:center;}H3{margin-top:0px;margin-bottom:5px;text-align:center;}div.msg{border:1px solid #ccc;border-left-width:15px;border-radius:20px;background:linear-gradient(320deg,rgb(255,255,255) 0%,rgb(235,234,233) 100%);}button{transition-delay:250ms;margin-top:10px;margin-bottom:10px;color:#fff;background-color:#225a98;font-variant-caps:all-small-caps;}button.DD{color:#000;border:4px ridge #999;border-radius:2px;background:#e0c942;background-image:url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAADBQTFRF////AAAAMyks8+AAuJYi3NHJo5aQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAbP19EwAAAAh0Uk5T/////////wDeg71ZAAAA4ElEQVR42qSTyxLDIAhF7yChS/7/bwtoFLRNF2UmRr0H8IF4/TBsY6JnQFvTJ8D0ncChb0QGlDvA+hkw/yC4xED2Z2L35xwDRSdqLZpFIOU3gM2ox6mA3tnDPa8UZf02v3q6gKRH/Eyg6JZBqRUCRW++yFYIvCjNFIt9OSC4hol/ItH1FkKRQgAbi0ty9f/F7LM6FimQacPbAdG5zZVlWdfvg+oEpl0Y+jzqIJZ++6fLqlmmnq7biZ4o67lgjBhA0kvJyTww/VK0hJr/LHvBru8PR7Dpx9MT0f8e72lvAQYALlAX+Kfw0REAAAAASUVORK5CYII=');background-repeat:no-repeat;background-origin:content-box;background-size:contain;}br{display:block;font-size:1px;content:''}input[type='checkbox']{display:inline-block;margin-top:10px}input{border:thin inset}small{display:none}em > small{display:inline}form{margin-block-end:0;}.tpm{cursor:pointer;border:1px solid black;border-radius:5px;padding:0 0 0 0px;min-width:18em;}.tpm2{position:absolute;top:-0.7em;z-index:130;left:0.7em;}.tpm3{width:4em;height:4em;}.tpmh1{font-variant-caps:all-small-caps;font-weight:normal;margin-left:2em;overflow:clip;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI Semibold',Roboto,'Helvetica Neue',Verdana,Helvetica}.tpmh3{background:#000;font-size:0.6em;color:#ffa;padding-left:7em;margin-left:0.5em;margin-right:0.5em;border-radius:5px}.sects{background-color:#eee;border-radius:7px;margin-bottom:20px;padding-bottom:7px;padding-top:7px}.tpm0{position:relative;width:20em;margin:0 auto 0 auto;}.headl{margin:0 0 7px 0;padding:0}.cmp0{margin:0;padding:0;}.sel0{font-size:90%;width:auto;margin-left:10px;vertical-align:baseline;}.mt5{margin-top:5px!important}.mb10{margin-bottom:10px!important}.mb0{margin-bottom:0px!important}</style>";
-static const char* myCustMenu = "<form action='/erase' method='get' onsubmit='return confirm(\"Delete WiFi connection settings? Device will reboot in access point mode.\");'><button id='ebnew' class='DD'>Erase WiFi Config</button></form><br/><img style='display:block;margin:10px auto 10px auto;' src='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAR8AAAAyCAYAAABlEt8RAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAADQ9JREFUeNrsXTFzG7sRhjTuReYPiGF+gJhhetEzTG2moFsrjVw+vYrufOqoKnyl1Zhq7SJ0Lc342EsT6gdIof+AefwFCuksnlerBbAA7ygeH3bmRvTxgF3sLnY/LMDzjlKqsbgGiqcJXEPD97a22eJKoW2mVqMB8HJRK7D/1DKG5fhH8NdHrim0Gzl4VxbXyeLqLK4DuDcGvXF6P4KLG3OF8JtA36a2J/AMvc/xTh3f22Q00QnSa0r03hGOO/Wws5Y7RD6brbWPpJ66SNHl41sTaDMSzMkTxndriysBHe/BvVs0XyeCuaEsfqblODHwGMD8+GHEB8c1AcfmJrurbSYMHK7g8CC4QknS9zBQrtSgO22gzJNnQp5pWOyROtqa7k8cOkoc+kyEOm1ZbNAQyv7gcSUryJcG+kiyZt9qWcagIBhkjn5PPPWbMgHX1eZoVzg5DzwzDKY9aFtT5aY3gknH0aEF/QxRVpDyTBnkxH3WvGmw0zR32Pu57XVUUh8ZrNm3hh7PVwQ+p1F7KNWEOpjuenR6wEArnwCUqPJT6IQ4ZDLQEVpm2eg9CQQZY2wuuJicD0NlG3WeWdedkvrILxak61rihbR75bGyOBIEHt+lLDcOEY8XzM0xYt4i2fPEEdV+RUu0I1BMEc70skDnuUVBtgWTX9M+GHrikEuvqffJ+FOiS6r3AYLqB6TtwBA0ahbko8eQMs9OBY46KNhetgDo0rWp76/o8wVBBlOH30rloz5CJ1zHgkg0rw4EKpygTe0wP11Lob41EdiBzsEvyMZ6HFNlrtFeGOTLLAnwC/hzBfGYmNaICWMAaY2h5WgbCuXTnGo7kppPyhT+pHUAGhRM/dYcNRbX95mhXpB61FUSQV2illPNJ7TulgT0KZEzcfitywdTZlJL5W5Z2g2E/BoW32p5+GuN8bvOCrU+zo4VhscPmSTLrgGTSaU0smTpslAoBLUhixZT+6Ftb8mS15SRJciH031IpoxLLxmCqwXOj0YgvxCaMz46Ve7dWd9VRMbwSKXBZxKooEhmkgSC1BKwpoaAc+DB0wStv+VQ48qLNqHwHZJoKiWQea+guTyX2i8k+Pg4Q8UDDWwqdQrIOjWBXjKhsx8wur5gkkVFiOj2Eep6rsn/pWTop1aAjxRBGYO48w5AEymPF2ucuPMcg08ivBfqSAnK/LiwN1byA5Mt4VLJFHxsQX/CBPmGAxn5OFmKglpL+W3nSu01tPjDlKCvQcF+emRYCk8DbS1tV8lhXvmUBpbPvSKJ6z+L6xR0nAnGmTBjHRIeeJPqEPFIQoLPNzIJXUasgIL2LevbVeh9gcFn39D/rSALJyhQvHGs732zVM3yXYM48hTZjAs6YwfvpTP9ghx9WIC9UsskzUDfB2tCX2885cMJqqWenqdKcw4itZx8a6D4Ix7v4f6Jo69DZqxj4h8DJmljHr/vzEmDzxR1VvE0okY9iSovzUFxWcAk08uINEd5uL4o8tE222Oys2scExS8Xj1TDWPp0P/a0KXXvsXWpw7k00D2OBEu12z8LjyXeXry7zE8hiDXKstG/dOY1MAjBR2IDxlWPByXQ02tktZ7NOlT2kcBbS9UMYXbOYHD9ADhxBCYpDWJ0TPXXUYEUZeBTgVJdhlQv0Iw2SPzxBcd/xagmyn4wxeDnw9z0MMEeIwNPEY+yOdgBUFSlX8BrshDhmOydEwQgvjogOOmDJ7lIFfGGPjQEGAy8nyFPDsVyo2XXmMGcq9ir4lgkuClV5FFXO6QYQi/VSZuyK8HQksZU7BpC2TeJ3O9Y+ibO2SYWXi00LJ9j/Bo7BZgxJck4r0pALanzJU3ZernL6CVMAsvx/4Pj+eVZSnbckyGzIB8bpnnG4xjSLKX3nZfdenF2SvznMxFHvGYeMp3C7b+1VHDkSLYfzoCye0KvuWyS0M9PlNm0/WU0ZMrSC/HVWN4tHYDJkYmMOIwB6NsCqVCw+hnR0TRXPD16dOmaw6dZobgFJLVRzmh3zx0f7BBPqFfFzMgy19JMLiA5dkpBJOaADFlBt/q5DSWZA36ojuWFUnwCXHc0RYFHwlKccHvjiOA15g+XHWaqUGmlJm4Pgkkr2VEXojk24b7Aw3QDYFOE7hGAUvyEamf5DG3pmvQ0xMekuATcqYgI0svCtv1j8z0Vct5oDXSf2XFvlZdi7t02GECHA763xR/TN2FCnRWxrWacckm/0htNo1yXgoVmdgrhrmQp8xiHruOThL1ePt87lFfsRllmR2+oitvgx2R/kPrBR0GLkrGPyXwmAbfCYHrr9TPX/5qGL7n4DkRLFUmWzD5hyUIPvM1onyaEDqe82IKfyvoXidHJITfjqksPFIu+Cy3AJe/Rp2pp2cLRis4bZ4BRvLmuVA6RP39Wz0+EepjGNfSa8jofanz/zI8BwZ0GQKnU099pAXaKwmYbEXQ1xXkozraV8X//jF06dVSP3dtZzDGj+rpgUDTPH+v3G8RbUF/H9F3H0kynZuCj7JAeJ/tQJr9y/IjQZcORoGTljpIouxvE9T0xYJgxg6+08CgZcvscen1/EuvYSA/SXL+Ta12NERyHGMgrfnoSdcKEMqV/ctGRx46oBmbLr0ygdPcOp7JDDUeW/CZlHDyl2HptU4/d/kWRw3lfsPgrVpt50sS3PTLxZzBZynMhZK9UW4TjFIEjUEHfw6YhK7xL7//q3p62nQOPF0B33Uwbipcim168Nn0Xa+M2HDdSy/J3Frq8CX41Zzxt9NAgEFRt4nHN+CxTTvfW0WNLViaRioH1VQxO81iHjsPDw/RDJEiRVo77UYVRIoUKQafSJEixeATKVKkSDH4RIoUKQafSJEiRYrBJ1KkSDH4RIoUKVIMPpEiRYrBJ1KkSJFi8IkUKVIMPpEiRYrBJ1KkSJFi8IkUKdIfg15s02B2dnaWf+qLq7u4qur/r4r8vLjuDU168PfM0fUx9Ef7ou17TNurxXUTMJwq4jtDY5kxz2hafncOn9uLqwm8r9C/OaLynxM+PdS3lomjG9BPFz2v7SF9ntO7MsjlIuoL96BDZRmHloPTF7YB1v2ZxV/qxA5UNqyLK6FsmE8d6eSHf5bmTRVLQbflAkNw75ftGgIPff+siS7huTZVH2lver/tB0+zLMfxnennGj3TNDxzR8bXY8Zrev/uA2mD718SXXBXD3SEn297Pq+D6jXz/HdLAKXUNfDsO8Zx6dAXluEO7tUJb32/ythBBw2bn7hkUwb9/OBZlvm6VcgHMpvOIFdg5C78/Uycu4cyWN70jvA5hux4L2yPM+c5fG6TrP8J7t+gsXUFKOuKZGCO+hbE+Bm178Mz5yh722xzziAfE/8mjPcMBdumB4rsIVvcIKRB25+Tcc4s+uqCDEv7vAVd9OA+lrMObWaGxPIB6fIGySuVrYt0cQb320hnEfk8A/JRTDDR2UqRiXuNslLeyEfSNoRfFTm4Rjl0vE0H8unZ3AGhqU8G5KMc903I59LAk/tey9A0jE3k2gbbVoV24fRFZe0yunLpvce00XLVV5Dt97FF5PN8NCNZhmbYNjjN3zwDgq/zr0I3INsnyGy6bjRDYzDVQFzIoE7GfU+yq67DHMNzVzmNqUr4zgyytuFZrlZ246nDJiSZc+jvntFXk2knRQ+fiT1wf1eWYKsYFDjzkO0eIcQqQmezUs3ULUQ+FOE8oMJgFdBCn2QQKRLxqZn0AF7TWo10ot4x6/2qB4qR1nx6DPLRNafrHJGPqX7hi5Sk1GZqYn2BTdtEX5fInndMDfETQWnfUd2Ns4MECbtkw3xxra8Zkc9mkF6Ln6MsI93dMhFdg/ctNQucHd8GoLe/QNBswjjaEMxer6gXWvO5YQLfPeiorx7vpq2KSG8CUUzoOKkOe6SOxNn0nglibTSG16R+eIPsU0W1ujzIJttrJFsXEsYyaP0pIp/nRT7HaF1dJZn6Dox0iTKZK8v61nzaJHOuSnXC61i5d9FCaz4PBH3drbnmU1ePd+3yomPF79q56iof4Jk7w/N1gpAoMqJ6/0DQuI+/2ZCy3v1ql2W+buMhw2Mw8Dlkh5mh5tFGNaF2zjJcQXbVtZtj4ow99XR7FlPXINOM1BOOSd/tnJHKmUPOIkjXoOokuNYdgZMLHnVHTVAqz1Lf71Dw4OTFCOnKUYvS6LhJ5JXWFKku8K5t3O16RuTjqstw2U1a8/Hd7WozWfxBkNWuCUr7ztQs+urx2ZPvSnbOByM/fTUN8uOxr3O3q8vUM/RnSTCsqsdno3ANpUvGdc3ow4QULw2opa/4szimfq4NY/sglK2P7I4R/HWs+USi9RW9DJPWms5RraKO6lS4/TvIcj2U9e4FPOrMBLaddTorABm66DOg1j6SVyMxaWZ/h3SIkRytx/jsYGpd6HNQM6Z+Jdkd/Duqp9VRO6lsV+rnuSWMtt6WaXJs1X8aCD+v2DaqK/nhxEh/PB0+GVtZ5vT/BBgARwZUDnOS4TkAAAAASUVORK5CYII='><div style='font-size:11px;margin-left:auto;margin-right:auto;text-align:center;'>Version " SID_VERSION " (" SID_VERSION_EXTRA ")<br>Powered by <a href='https://sid.out-a-ti.me'>A10001986 [Documentation]</a></div>";
+#define AA_TITLE "SID"
+#define AA_ICON "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAA9QTFRFjpCRzMvHQ7Yk9tgx8iU9dfM6hQAAADJJREFUeNpiYEQDDIwMKAAhwMKCJsDMTIQASAwkAJEjIABHYAEmJgSimgC659AAQIABAHNsAOmY7Q19AAAAAElFTkSuQmCC"
+#define UNI_VERSION SID_VERSION 
+#define UNI_VERSION_EXTRA SID_VERSION_EXTRA
+#define WEBHOME "sid"
+
+static const char myHead[]  = "<link rel='shortcut icon' type='image/png' href='data:image/png;base64," AA_ICON "'><script>window.onload=function(){xx=false;document.title=xxx='" AA_TITLE "';id=-1;ar=['/u','/uac','/wifisave','/paramsave','/erase'];ti=['Firmware upload','','WiFi Configuration','Settings','Erase WiFi Config'];if(ge('s')&&ge('dns')){xx=true;yyy=ti[2]}if(ge('uploadbin')||(id=ar.indexOf(wlp()))>=0){xx=true;if(id>=2){yyy=ti[id]}else{yyy=ti[0]};aa=gecl('wrap');if(aa.length>0){if(ge('uploadbin')){aa[0].style.textAlign='center';}aa=getn('H3');if(aa.length>0){aa[0].remove()}aa=getn('H1');if(aa.length>0){aa[0].remove()}}}if(ge('ttrp')||wlp()=='/param'){xx=true;yyy=ti[3];}if(ge('ebnew')){xx=true;bb=getn('H3');aa=getn('H1');yyy=bb[0].innerHTML;ff=aa[0].parentNode;ff.style.position='relative';}if(xx){zz=(Math.random()>0.8);dd=document.createElement('div');dd.classList.add('tpm0');dd.innerHTML='<div class=\"tpm\" onClick=\"window.location=\\'/\\'\"><div class=\"tpm2\"><img src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAMAAACdt4HsAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAAZQTFRFSp1tAAAA635cugAAAAJ0Uk5T/wDltzBKAAAA'+(zz?'bUlEQVR42tzXwRGAQAwDMdF/09QQQ24MLkDj77oeTiPA1wFGQiHATOgDGAp1AFOhDWAslAHMhS6AQKgCSIQmgEgoAsiEHoBQqAFIhRaAWCgByIVXAMuAdcA6YBlwALAKePzgd71QAByP71uAAQC+xwvdcFg7UwAAAABJRU5ErkJggg==':'gElEQVR42tzXQQqDABAEwcr/P50P2BBUdMhee6j7+lw8i4BCD8MiQAjHYRAghAh7ADWMMAcQww5jADHMsAYQwwxrADHMsAYQwwxrADHMsAYQwwxrgLgOPwKeAjgrrACcFkYAzgu3AN4C3AV4D3AP4E3AHcDF+8d/YQB4/Pn+CjAAMaIIJuYVQ04AAAAASUVORK5CYII=')+'\" class=\"tpm3\"></div><H1 class=\"tpmh1\"'+(zz?' style=\"margin-left:1.4em\"':'')+'>'+xxx+'</H1>'+'<H3 class=\"tpmh3\"'+(zz?' style=\"padding-left:5em\"':'')+'>'+yyy+'</div></div>';}if(ge('ebnew')){bb[0].remove();aa[0].replaceWith(dd);}else if(xx){aa=gecl('wrap');if(aa.length>0){aa[0].insertBefore(dd,aa[0].firstChild);aa[0].style.position='relative';}}}</script><style type='text/css'>H1,H2{margin-top:0px;margin-bottom:0px;text-align:center;}H3{margin-top:0px;margin-bottom:5px;text-align:center;}button{transition-delay:250ms;margin-top:10px;margin-bottom:10px;font-variant-caps:all-small-caps;border-bottom:0.2em solid #225a98}br{display:block;font-size:1px;content:''}input[type='checkbox']{display:inline-block;margin-top:10px}input{border:thin inset}small{display:none}em > small{display:inline}form{margin-block-end:0;}.tpm{cursor:pointer;border:1px solid black;border-radius:5px;padding:0 0 0 0px;min-width:18em;}.tpm2{position:absolute;top:-0.7em;z-index:130;left:0.7em;}.tpm3{width:4em;height:4em;}.tpmh1{font-variant-caps:all-small-caps;font-weight:normal;margin-left:2.2em;overflow:clip;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI Semibold',Roboto,'Helvetica Neue',Verdana,Helvetica}.tpmh3{background:#000;font-size:0.6em;color:#ffa;padding-left:7.2em;margin-left:0.5em;margin-right:0.5em;border-radius:5px}.tpm0{position:relative;width:20em;padding:5px 0px 5px 0px;margin:0 auto 0 auto;}.cmp0{margin:0;padding:0;}.sel0{font-size:90%;width:auto;margin-left:10px;vertical-align:baseline;}.mt5{margin-top:5px!important}.mb10{margin-bottom:10px!important}.mb0{margin-bottom:0px!important}.mb15{margin-bottom:15px!important}</style>";
+static const char* myCustMenu = "<img id='ebnew' style='display:block;margin:10px auto 10px auto;' src='data:image/png;base64,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'><div style='font-size:11px;margin-left:auto;margin-right:auto;text-align:center;'>Version " UNI_VERSION " (" UNI_VERSION_EXTRA ")<br>Powered by A10001986 <a href='https://" WEBHOME ".out-a-ti.me' target=_blank>[Home]</a></div>";
 
 // font-size:1.7em;margin:0.1em 0em 0.1em 2.3em;
 
@@ -160,10 +204,11 @@ unsigned long origWiFiOffDelay = 0;
 #ifdef SID_HAVEMQTT
 #define       MQTT_SHORT_INT  (30*1000)
 #define       MQTT_LONG_INT   (5*60*1000)
+static const char emptyStr[1] = { 0 };
 bool          useMQTT = false;
-char          mqttUser[64] = { 0 };
-char          mqttPass[64] = { 0 };
-char          mqttServer[80] = { 0 };
+char          *mqttUser = (char *)emptyStr;
+char          *mqttPass = (char *)emptyStr;
+char          *mqttServer = (char *)emptyStr;
 uint16_t      mqttPort = 1883;
 bool          pubMQTT = false;
 static unsigned long mqttReconnectNow = 0;
@@ -181,17 +226,18 @@ static uint16_t      mqttPingsExpired = 0;
 
 static void wifiConnect(bool deferConfigPortal = false);
 static void saveParamsCallback();
-static void saveConfigCallback();
+static void saveWiFiCallback(const char *ssid, const char *pass);
 static void preUpdateCallback();
-static void postEraseCallback();
-static void preSaveConfigCallback();
-static void waitConnectCallback();
+static void postUpdateCallback(bool);
+static void eraseCallback(bool);
+static void preSaveWiFiCallback();
+static bool preWiFiScanCallback();
 
 static void setupStaticIP();
 static void ipToString(char *str, IPAddress ip);
 static IPAddress stringToIp(char *str);
 
-static void getParam(String name, char *destBuf, size_t length);
+static void getParam(String name, char *destBuf, size_t length, int defaultVal);
 static bool myisspace(char mychar);
 static char* strcpytrim(char* destination, const char* source, bool doFilter = false);
 static void mystrcpy(char *sv, WiFiManagerParameter *el);
@@ -213,28 +259,101 @@ static void mqttSubscribe();
  */
 void wifi_setup()
 {
-    int temp, wifiretry;
+    int temp;
 
-    // Explicitly set mode, esp allegedly defaults to STA_AP
-    WiFi.mode(WIFI_MODE_STA);
+    WiFiManagerParameter *wifiParmArray[] = {
+
+      &custom_sectstart_head, 
+      &custom_hostName,
+
+      &custom_sectstart_wifi,
+      &custom_wifiConRetries, 
+      &custom_wifiConTimeout, 
+
+      &custom_sectstart_ap,
+      &custom_sysID,
+      &custom_appw,
+      &custom_apch,
+
+      &custom_sectend_foot,
+
+      NULL
+      
+    };
+
+    WiFiManagerParameter *parmArray[] = {
+
+      &custom_sectstart_head,// 6
+      &custom_sStrict,
+      &custom_sTTANI,
+      &custom_bootSA,
+      &custom_SApeaks,
+      &custom_ssDelay,
+      
+      &custom_sectstart_nw,  // 8
+      &custom_tcdIP,
+      &custom_uGPS,
+      &custom_uNM,
+      &custom_uFPO,
+      &custom_bttfnTT,
+      &custom_ssClock,
+      &custom_ssClockO,
+  
+    #ifdef SID_HAVEMQTT
+      &custom_sectstart,     // 4
+      &custom_useMQTT,
+      &custom_mqttServer,
+      &custom_mqttUser,
+    #endif
+  
+      &custom_sectstart,     // 3
+      &custom_TCDpresent,
+      &custom_noETTOL,
+      
+      &custom_sectstart,     // 2 (3)
+      &custom_CfgOnSD,
+      //&custom_sdFrq,
+  
+      &custom_sectstart,     // 2
+      &custom_disDIR,
+      
+      &custom_sectend_foot,  // 1
+  
+      NULL
+    };
 
     #ifndef SID_DBG
     wm.setDebugOutput(false);
     #endif
 
-    wm.setBreakAfterConfig(true);
-    wm.setConfigPortalBlocking(false);
-    wm.setPreSaveConfigCallback(preSaveConfigCallback);
-    wm.setSaveConfigCallback(saveConfigCallback);
+    // Transition from NVS-saved data to own management:
+    if(!settings.ssid[0] && settings.ssid[1] == 'X') {
+        
+        // Read NVS-stored WiFi data
+        wm.getStoredCredentials(settings.ssid, sizeof(settings.ssid) - 1, settings.pass, sizeof(settings.pass) - 1);
+
+        #ifdef SID_DBG
+        Serial.printf("WiFi Transition: ssid '%s' pass '%s'\n", settings.ssid, settings.pass);
+        #endif
+
+        write_settings();
+    }
+
+    wm.setHostname(settings.hostName);
+
+    wm.showUploadContainer(false, NULL);
+    
+    wm.setPreSaveWiFiCallback(preSaveWiFiCallback);
+    wm.setSaveWiFiCallback(saveWiFiCallback);
     wm.setSaveParamsCallback(saveParamsCallback);
     wm.setPreOtaUpdateCallback(preUpdateCallback);
-    wm.setPostEraseCallback(postEraseCallback);
-    wm.setHostname(settings.hostName);
-    wm.setCaptivePortalEnable(false);
-    
+    wm.setPostOtaUpdateCallback(postUpdateCallback);
+    wm.setEraseCallback(eraseCallback);
+    wm.setPreWiFiScanCallback(preWiFiScanCallback);
+
     // Our style-overrides, the page title
     wm.setCustomHeadElement(myHead);
-    wm.setTitle(F("SID"));
+    wm.setTitle("SID");
 
     // Hack version number into WiFiManager main page
     wm.setCustomMenuHTML(myCustMenu);
@@ -244,78 +363,66 @@ void wifi_setup()
     wm.setShowStaticFields(true);
     wm.setShowDnsFields(true);
 
+    temp = atoi(settings.apChnl);
+    if(temp < 0) temp = 0;
+    if(temp > 13) temp = 13;
+    if(!temp) temp = random(1, 13);
+    wm.setWiFiAPChannel(temp);
+
     temp = atoi(settings.wifiConTimeout);
     if(temp < 7) temp = 7;
     if(temp > 25) temp = 25;
     wm.setConnectTimeout(temp);
 
-    wifiretry = atoi(settings.wifiConRetries);
-    if(wifiretry < 1) wifiretry = 1;
-    if(wifiretry > 10) wifiretry = 10;
-    wm.setConnectRetries(wifiretry);
+    temp = atoi(settings.wifiConRetries);
+    if(temp < 1) temp = 1;
+    if(temp > 10) temp = 10;
+    wm.setConnectRetries(temp);
 
     wm.setCleanConnect(true);
     //wm.setRemoveDuplicateAPs(false);
 
-    #ifdef WIFIMANAGER_2_0_17
-    wm._preloadwifiscan = false;
-    wm._asyncScan = true;
-    #endif
-
     wm.setMenu(wifiMenu, TC_MENUSIZE);
 
-    wm.addParameter(&custom_sectstart_head);// 6
-    wm.addParameter(&custom_sStrict);
-    wm.addParameter(&custom_sTTANI);
-    wm.addParameter(&custom_bootSA);
-    wm.addParameter(&custom_SApeaks);
-    wm.addParameter(&custom_ssDelay);
-    
-    wm.addParameter(&custom_sectstart);     // 4
-    wm.addParameter(&custom_hostName);
-    wm.addParameter(&custom_wifiConRetries);
-    wm.addParameter(&custom_wifiConTimeout); 
+    wm.allocParms((sizeof(parmArray) / sizeof(WiFiManagerParameter *)) - 1);
 
-    wm.addParameter(&custom_sectstart_ap);  // 3
-    wm.addParameter(&custom_sysID);
-    wm.addParameter(&custom_appw);
-    
-    wm.addParameter(&custom_sectstart_nw);  // 8
-    wm.addParameter(&custom_tcdIP);
-    wm.addParameter(&custom_uGPS);
-    wm.addParameter(&custom_uNM);
-    wm.addParameter(&custom_uFPO);
-    wm.addParameter(&custom_bttfnTT);
-    wm.addParameter(&custom_ssClock);
-    wm.addParameter(&custom_ssClockO);
+    temp = 0;
+    while(parmArray[temp]) {
+        wm.addParameter(parmArray[temp]);
+        temp++;
+    }
 
-    #ifdef SID_HAVEMQTT
-    wm.addParameter(&custom_sectstart);     // 4
-    wm.addParameter(&custom_useMQTT);
-    wm.addParameter(&custom_mqttServer);
-    wm.addParameter(&custom_mqttUser);
-    #endif
+    wm.allocWiFiParms((sizeof(wifiParmArray) / sizeof(WiFiManagerParameter *)) - 1);
 
-    wm.addParameter(&custom_sectstart);     // 3
-    wm.addParameter(&custom_TCDpresent);
-    wm.addParameter(&custom_noETTOL);
-    
-    wm.addParameter(&custom_sectstart);     // 2 (3)
-    wm.addParameter(&custom_CfgOnSD);
-    //wm.addParameter(&custom_sdFrq);
-
-    wm.addParameter(&custom_sectstart);     // 2
-    wm.addParameter(&custom_disDIR);
-    
-    wm.addParameter(&custom_sectend_foot);  // 1
+    temp = 0;
+    while(wifiParmArray[temp]) {
+        wm.addWiFiParameter(wifiParmArray[temp]);
+        temp++;
+    }
 
     updateConfigPortalValues();
 
-    #ifdef SID_MDNS
-    if(MDNS.begin(settings.hostName)) {
-        MDNS.addService("http", "tcp", 80);
-    }
+    #ifdef SID_HAVEMQTT
+    useMQTT = (atoi(settings.useMQTT) > 0);
     #endif
+
+    // See if we have a configured WiFi network to connect to.
+    // If we detect "TCD-AP" as the SSID, we make sure that we retry
+    // at least 2 times so we have a chance to catch the TCD's AP if 
+    // both are powered up at the same time.
+    if(settings.ssid[0] != 0) {
+        if(!strncmp("TCD-AP", settings.ssid, 6)) {
+            if(wm.getConnectRetries() < 2) {
+                wm.setConnectRetries(2);
+            }
+            #ifdef SID_HAVEMQTT
+            useMQTT = false;
+            #endif
+        }      
+    } else {
+        // No point in retry when we have no WiFi config'd
+        wm.setConnectRetries(1);
+    }
 
     // No WiFi powersave features here
     wifiOffDelay = 0;
@@ -326,25 +433,6 @@ void wifi_setup()
         setupStaticIP();
     }
 
-    // Find out if we have a configured WiFi network to connect to.
-    // If we detect "TCD-AP" as the SSID, we make sure that we retry
-    // at least 2 times so we have a chance to catch the TCD's AP if 
-    // both are powered up at the same time.
-    {
-        wifi_config_t conf;
-        esp_wifi_get_config(WIFI_IF_STA, &conf);
-        if((conf.sta.ssid[0] != 0)) {
-            if(!strncmp("TCD-AP", (const char *)conf.sta.ssid, 6)) {
-                if(wifiretry < 2) {
-                    wm.setConnectRetries(2);
-                }
-            }
-        } else {
-            // No point in retry when we have no WiFi config'd
-            wm.setConnectRetries(1);
-        }
-    }
-
     wifi_setup2();
 }
 
@@ -353,9 +441,13 @@ void wifi_setup2()
     // Connect, but defer starting the CP
     wifiConnect(true);
 
+    #ifdef SID_MDNS
+    if(MDNS.begin(settings.hostName)) {
+        MDNS.addService("http", "tcp", 80);
+    }
+    #endif
+
 #ifdef SID_HAVEMQTT
-    useMQTT = (atoi(settings.useMQTT) > 0);
-    
     if((!settings.mqttServer[0]) || // No server -> no MQTT
        (wifiInAPMode))              // WiFi in AP mode -> no MQTT
         useMQTT = false;  
@@ -370,14 +462,16 @@ void wifi_setup2()
         origWiFiOffDelay = wifiOffDelay = 0;
 
         if((t = strchr(settings.mqttServer, ':'))) {
+            size_t ts = (t - settings.mqttServer) + 1;
+            mqttServer = (char *)malloc(ts);
+            memset(mqttServer, 0, ts);
             strncpy(mqttServer, settings.mqttServer, t - settings.mqttServer);
-            mqttServer[t - settings.mqttServer + 1] = 0;
-            tt = atoi(t+1);
+            tt = atoi(t + 1);
             if(tt > 0 && tt <= 65535) {
                 mqttPort = tt;
             }
         } else {
-            strcpy(mqttServer, settings.mqttServer);
+            mqttServer = settings.mqttServer;
         }
 
         if(isIp(mqttServer)) {
@@ -399,11 +493,13 @@ void wifi_setup2()
 
         if(settings.mqttUser[0] != 0) {
             if((t = strchr(settings.mqttUser, ':'))) {
-                strncpy(mqttUser, settings.mqttUser, t - settings.mqttUser);
-                mqttUser[t - settings.mqttUser + 1] = 0;
-                strcpy(mqttPass, t + 1);
-            } else {
+                size_t ts = strlen(settings.mqttUser) + 1;
+                mqttUser = (char *)malloc(ts);
                 strcpy(mqttUser, settings.mqttUser);
+                mqttUser[t - settings.mqttUser] = 0;
+                mqttPass = mqttUser + (t - settings.mqttUser + 1);
+            } else {
+                mqttUser = settings.mqttUser;
             }
         }
 
@@ -423,8 +519,7 @@ void wifi_setup2()
     }
 #endif
 
-    // Start the Config Portal. A WiFiScan does not
-    // disturb anything at this point hopefully.
+    // Start the Config Portal
     if(WiFi.status() == WL_CONNECTED) {
         wifiStartCP();
     }
@@ -475,12 +570,10 @@ void wifi_loop()
     }
 #endif    
     
-    wm.process();
-    
     if(shouldSaveIPConfig) {
 
         #ifdef SID_DBG
-        Serial.println(F("WiFi: Saving IP config"));
+        Serial.println("WiFi: Saving IP config");
         #endif
 
         writeIpSettings();
@@ -490,7 +583,7 @@ void wifi_loop()
     } else if(shouldDeleteIPConfig) {
 
         #ifdef SID_DBG
-        Serial.println(F("WiFi: Deleting IP config"));
+        Serial.println("WiFi: Deleting IP config");
         #endif
 
         deleteIpSettings();
@@ -501,16 +594,45 @@ void wifi_loop()
 
     if(shouldSaveConfig) {
 
+        int temp;
+
         // Save settings and restart esp32
 
         #ifdef SID_DBG
-        Serial.println(F("Config Portal: Saving config"));
+        Serial.println("Config Portal: Saving config");
         #endif
 
-        // Only read parms if the user actually clicked SAVE on the params page
-        if(shouldSaveConfig > 1) {
+        // Only read parms if the user actually clicked SAVE on the wifi config or params pages
+        if(shouldSaveConfig == 1) {
 
-            int temp;
+            // Parameters on WiFi Config page
+
+            // Note: Parameters that need to grabbed from the server directly
+            // through getParam() must be handled in preSaveWiFiCallback().
+
+            // ssid, pass copied to settings in saveWiFiCallback()
+
+            strcpytrim(settings.hostName, custom_hostName.getValue(), true);
+            if(strlen(settings.hostName) == 0) {
+                strcpy(settings.hostName, DEF_HOSTNAME);
+            } else {
+                char *s = settings.hostName;
+                for ( ; *s; ++s) *s = tolower(*s);
+            }
+            mystrcpy(settings.wifiConRetries, &custom_wifiConRetries);
+            mystrcpy(settings.wifiConTimeout, &custom_wifiConTimeout);
+            
+            strcpytrim(settings.systemID, custom_sysID.getValue(), true);
+            strcpytrim(settings.appw, custom_appw.getValue(), true);
+            if((temp = strlen(settings.appw)) > 0) {
+                if(temp < 8) {
+                    settings.appw[0] = 0;
+                }
+            }
+
+        } else { 
+
+            // Parameters on Settings page
 
             // Save "strict" setting
             strcpyCB(settings.strictMode, &custom_sStrict);
@@ -525,24 +647,6 @@ void wifi_loop()
             strcpyCB(settings.bootSA, &custom_bootSA);
             strcpyCB(settings.SApeaks, &custom_SApeaks);
             mystrcpy(settings.ssTimer, &custom_ssDelay);
-
-            strcpytrim(settings.hostName, custom_hostName.getValue(), true);
-            if(strlen(settings.hostName) == 0) {
-                strcpy(settings.hostName, DEF_HOSTNAME);
-            } else {
-                char *s = settings.hostName;
-                for( ; *s; ++s) *s = tolower(*s);
-            }
-            mystrcpy(settings.wifiConRetries, &custom_wifiConRetries);
-            mystrcpy(settings.wifiConTimeout, &custom_wifiConTimeout);
-            
-            strcpytrim(settings.systemID, custom_sysID.getValue(), true);
-            strcpytrim(settings.appw, custom_appw.getValue(), true);
-            if((temp = strlen(settings.appw)) > 0) {
-                if(temp < 8) {
-                    settings.appw[0] = 0;
-                }
-            }
             
             strcpytrim(settings.tcdIP, custom_tcdIP.getValue());
             if(strlen(settings.tcdIP) > 0) {
@@ -580,7 +684,7 @@ void wifi_loop()
         }
 
         // Write settings if requested, or no settings file exists
-        if(shouldSaveConfig > 1 || !checkConfigExists()) {
+        if(shouldSaveConfig >= 1 || !checkConfigExists()) {
             write_settings();
         }
 
@@ -588,18 +692,17 @@ void wifi_loop()
 
         // Reset esp32 to load new settings
 
-        prepareReboot();
-
         #ifdef SID_DBG
-        Serial.println(F("Config Portal: Restarting ESP...."));
+        Serial.println("Config Portal: Restarting ESP....");
         #endif
-
         Serial.flush();
 
+        prepareReboot();
         delay(1000);
-
         esp_restart();
     }
+
+    wm.process(true);
 
     // WiFi power management
     // If a delay > 0 is configured, WiFi is powered-down after timer has
@@ -617,7 +720,7 @@ void wifi_loop()
                 wifiAPIsOff = true;
                 wifiIsOff = false;
                 #ifdef SID_DBG
-                Serial.println(F("WiFi (AP-mode) is off. Hold '7' to re-enable."));
+                Serial.println("WiFi (AP-mode) is off.");
                 #endif
             }
         }
@@ -629,7 +732,7 @@ void wifi_loop()
                 wifiIsOff = true;
                 wifiAPIsOff = false;
                 #ifdef SID_DBG
-                Serial.println(F("WiFi (STA-mode) is off. Hold '7' to re-enable."));
+                Serial.println("WiFi (STA-mode) is off.");
                 #endif
             }
         }
@@ -649,9 +752,9 @@ static void wifiConnect(bool deferConfigPortal)
     
     // Automatically connect using saved credentials if they exist
     // If connection fails it starts an access point with the specified name
-    if(wm.autoConnect(realAPName, settings.appw)) {
+    if(wm.autoConnect(settings.ssid, settings.pass, realAPName, settings.appw)) {
         #ifdef SID_DBG
-        Serial.println(F("WiFi connected"));
+        Serial.println("WiFi connected");
         #endif
 
         // Since WM 2.0.13beta, starting the CP invokes an async
@@ -666,11 +769,8 @@ static void wifiConnect(bool deferConfigPortal)
         // WIFI_PS_MIN_MODEM is the default, and activated when calling this
         // with "true". When this is enabled, received WiFi data can be
         // delayed for as long as the DTIM period.
-        // Since it is the default setting, so no need to call it here.
-        //WiFi.setSleep(true);
-
         // Disable modem sleep, don't want delays accessing the CP or
-        // with MQTT.
+        // with BTTFN/MQTT.
         WiFi.setSleep(false);
 
         // Set transmit power to max; we might be connecting as STA after
@@ -689,8 +789,9 @@ static void wifiConnect(bool deferConfigPortal)
         wifiAPIsOff = false;  // Sic! Allows checks like if(wifiAPIsOff || wifiIsOff)
 
     } else {
+
         #ifdef SID_DBG
-        Serial.println(F("Config portal running in AP-mode"));
+        Serial.println("Config portal running in AP-mode");
         #endif
 
         {
@@ -777,8 +878,6 @@ void wifiOn(unsigned long newDelay, bool alsoInAPMode, bool deferCP)
         }
     }
 
-    WiFi.mode(WIFI_MODE_STA);
-
     wifiConnect(deferCP);
 }
 
@@ -805,26 +904,38 @@ void wifiStartCP()
     wm.startWebPortal();
 }
 
-// This is called when the WiFi config changes, so it has
-// nothing to do with our settings here. Despite that,
-// we write out our config file so that when the user initially
-// configures WiFi, a default settings file exists upon reboot.
-// Also, this triggers a reboot, so if the user entered static
-// IP data, it becomes active after this reboot.
-static void saveConfigCallback()
+// This is called when the WiFi config is to be saved. We set
+// a flag for the loop to read out and save the new WiFi config.
+// SSID and password are copied to settings here.
+static void saveWiFiCallback(const char *ssid, const char *pass)
 {
+    // ssid is the (new?) ssid to connect to, pass the password.
+    // (We don't need to compare to the old ones since the
+    // settings are saved in any case)
+    memset(settings.ssid, 0, sizeof(settings.ssid));
+    strncpy(settings.ssid, ssid, sizeof(settings.ssid) - 1);
+    #ifdef SID_DBG
+    Serial.printf("saveWiFiCallback: New ssid '%s'\n", settings.ssid);
+    #endif
+    
+    memset(settings.pass, 0, sizeof(settings.pass));
+    strncpy(settings.pass, pass, sizeof(settings.pass) - 1);
+    #ifdef SID_DBG
+    Serial.printf("saveWiFiCallback: New pass '%s'\n", settings.pass);
+    #endif
+    
     shouldSaveConfig = 1;
 }
 
-// This is the callback from the actual Params page. In this
-// case, we really read out the server parms and save them.
+
+// This is the callback from the actual Params page. We read out
+// thew WM "Settings" parameters and save them.
 static void saveParamsCallback()
 {
     shouldSaveConfig = 2;
 }
 
 // This is called before a firmware updated is initiated.
-// Disable WiFi-off-timers.
 static void preUpdateCallback()
 {
     wifiAPOffDelay = 0;
@@ -835,18 +946,56 @@ static void preUpdateCallback()
     showWaitSequence(true);
 }
 
-// This is called before right rebooting after erasing WiFi config.
-static void postEraseCallback()
+// This is called after a firmware updated has finished.
+// parm = true of ok, false if error. WM reboots only 
+// if the update worked, ie when res is true.
+static void postUpdateCallback(bool res)
 {
     Serial.flush();
     prepareReboot();
-    delay(500);
+
+    // WM does not reboot on OTA update errors.
+    // However, don't bother for that really
+    // rare case to put code here to restore
+    // under all possible circumstances, like
+    // fake-off, time-travel going on, ss, ....
+    if(!res) {
+        delay(1000);
+        esp_restart();
+    }
 }
 
-// Grab static IP parameters from WiFiManager's server.
-// Since there is no public method for this, we steal
-// the html form parameters in this callback.
-static void preSaveConfigCallback()
+// This is called before right rebooting after erasing WiFi config.
+static void eraseCallback(bool isPre)
+{
+    if(isPre) {
+    
+        // Pre-Erase
+    
+    } else {
+      
+        // Actual Erase: Delete ssid and pass, as well
+        // as static IP config, save, and reboot
+        
+        if(settings.ssid[0] || settings.pass[0]) {
+            memset(settings.ssid, 0, sizeof(settings.ssid));
+            memset(settings.pass, 0, sizeof(settings.pass));
+            write_settings();
+        }
+
+        deleteIpSettings();
+        
+        Serial.flush();
+        prepareReboot();
+        delay(1000);
+        esp_restart();
+    }
+}
+
+// Grab static IP and other parameters from WiFiManager's server.
+// Since there is no public method for this, we steal the HTML
+// form parameters in this callback.
+static void preSaveWiFiCallback()
 {
     char ipBuf[20] = "";
     char gwBuf[20] = "";
@@ -864,17 +1013,19 @@ static void preSaveConfigCallback()
     memset(snBuf, 0, 20);
     memset(dnsBuf, 0, 20);
 
-    if(wm.server->arg(FPSTR(S_ip)) != "") {
-        strncpy(ipBuf, wm.server->arg(FPSTR(S_ip)).c_str(), 19);
+    String temp;
+    temp.reserve(16);
+    if((temp = wm.server->arg(FPSTR(WMS_ip))) != "") {
+        strncpy(ipBuf, temp.c_str(), 19);
     } else invalConf |= true;
-    if(wm.server->arg(FPSTR(S_gw)) != "") {
-        strncpy(gwBuf, wm.server->arg(FPSTR(S_gw)).c_str(), 19);
+    if((temp = wm.server->arg(FPSTR(WMS_sn))) != "") {
+        strncpy(snBuf, temp.c_str(), 19);
     } else invalConf |= true;
-    if(wm.server->arg(FPSTR(S_sn)) != "") {
-        strncpy(snBuf, wm.server->arg(FPSTR(S_sn)).c_str(), 19);
+    if((temp = wm.server->arg(FPSTR(WMS_gw))) != "") {
+        strncpy(gwBuf, temp.c_str(), 19);
     } else invalConf |= true;
-    if(wm.server->arg(FPSTR(S_dns)) != "") {
-        strncpy(dnsBuf, wm.server->arg(FPSTR(S_dns)).c_str(), 19);
+    if((temp = wm.server->arg(FPSTR(WMS_dns))) != "") {
+        strncpy(dnsBuf, temp.c_str(), 19);
     } else invalConf |= true;
 
     #ifdef SID_DBG
@@ -891,12 +1042,17 @@ static void preSaveConfigCallback()
         Serial.println("All IPs valid");
         #endif
 
-        strcpy(ipsettings.ip, ipBuf);
-        strcpy(ipsettings.gateway, gwBuf);
-        strcpy(ipsettings.netmask, snBuf);
-        strcpy(ipsettings.dns, dnsBuf);
-
-        shouldSaveIPConfig = true;
+        shouldSaveIPConfig = (strcmp(ipsettings.ip, ipBuf)      ||
+                              strcmp(ipsettings.gateway, gwBuf) ||
+                              strcmp(ipsettings.netmask, snBuf) ||
+                              strcmp(ipsettings.dns, dnsBuf));
+          
+        if(shouldSaveIPConfig) {
+            strcpy(ipsettings.ip, ipBuf);
+            strcpy(ipsettings.gateway, gwBuf);
+            strcpy(ipsettings.netmask, snBuf);
+            strcpy(ipsettings.dns, dnsBuf);
+        }
 
     } else {
 
@@ -909,6 +1065,11 @@ static void preSaveConfigCallback()
         shouldDeleteIPConfig = true;
 
     }
+
+    // Other parameters on WiFi Config page that
+    // need grabbing directly from the server
+
+    getParam("apchnl", settings.apChnl, 2, DEF_AP_CHANNEL);
 }
 
 static void setupStaticIP()
@@ -933,23 +1094,34 @@ static void setupStaticIP()
     }
 }
 
+static bool preWiFiScanCallback()
+{
+    // Do not allow a WiFi scan under some circumstances (as
+    // it may disrupt sequences)
+    
+    if(TTrunning || IRLearning || networkAlarm)
+        return false;
+
+    return true;
+}
+
 void updateConfigPortalValues()
 {
     const char custHTMLSel[] = " selected";
 
     // Make sure the settings form has the correct values
-
-    setCBVal(&custom_sTTANI, settings.skipTTAnim);
-    setCBVal(&custom_bootSA, settings.bootSA);
-    setCBVal(&custom_SApeaks, settings.SApeaks);
-    custom_ssDelay.setValue(settings.ssTimer, 3);
-
     custom_hostName.setValue(settings.hostName, 31);
     custom_wifiConTimeout.setValue(settings.wifiConTimeout, 2);
     custom_wifiConRetries.setValue(settings.wifiConRetries, 2);
     
     custom_sysID.setValue(settings.systemID, 7);
+    // ap channel done on-the-fly
     custom_appw.setValue(settings.appw, 8);
+
+    setCBVal(&custom_sTTANI, settings.skipTTAnim);
+    setCBVal(&custom_bootSA, settings.bootSA);
+    setCBVal(&custom_SApeaks, settings.SApeaks);
+    custom_ssDelay.setValue(settings.ssTimer, 3);
     
     custom_tcdIP.setValue(settings.tcdIP, 31);
     setCBVal(&custom_uGPS, settings.useGPSS);
@@ -974,20 +1146,41 @@ void updateConfigPortalValues()
     setCBVal(&custom_disDIR, settings.disDIR);
 
     updateConfigPortalStrictValue();
-
-    #ifdef _A10001986_STR_RESERVE
-    // Make WiFiManager calculate new params page length
-    wm.calcParmPageSize();
-    #endif
 }
 
 void updateConfigPortalStrictValue()
 {
     strcpy(settings.strictMode, strictMode ? "1" : "0");
     setCBVal(&custom_sStrict, settings.strictMode);
+}
 
-    // Does not change length of settings, no need to call
-    // wm.calcParmPageSize();
+static void buildSelectMenu(char *target, const char **theHTML, int cnt, char *setting)
+{
+    int sr = atoi(setting);
+    
+    strcat(target, theHTML[0]);
+    strcat(target, setting);
+    sprintf(target + strlen(target), "' name='%s' id='%s' autocomplete='off'><option value='0'", theHTML[1], theHTML[1]);
+    for(int i = 0; i < cnt - 2; i++) {
+        if(sr == i) strcat(target, custHTMLSel);
+        sprintf(target + strlen(target), 
+            theHTML[i+2], (i == cnt - 3) ? osde : ooe);
+    }
+}
+
+static const char *wmBuildApChnl(const char *dest)
+{
+    if(dest) {
+      free((void *)dest);
+      return NULL;
+    }
+    
+    char *str = (char *)malloc(600);    // actual length 564
+
+    str[0] = 0;
+    buildSelectMenu(str, apChannelCustHTMLSrc, 16, settings.apChnl);
+    
+    return str;
 }
 
 bool wifi_getIP(uint8_t& a, uint8_t& b, uint8_t& c, uint8_t& d)
@@ -1071,11 +1264,14 @@ static IPAddress stringToIp(char *str)
 /*
  * Read parameter from server, for customhmtl input
  */
-static void getParam(String name, char *destBuf, size_t length)
+static void getParam(String name, char *destBuf, size_t length, int defaultVal)
 {
     memset(destBuf, 0, length+1);
     if(wm.server->hasArg(name)) {
         strncpy(destBuf, wm.server->arg(name).c_str(), length);
+    }
+    if(strlen(destBuf) == 0) {
+        sprintf(destBuf, "%d", defaultVal);
     }
 }
 

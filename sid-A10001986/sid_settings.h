@@ -60,17 +60,18 @@ extern uint8_t musFolderNum;
 #define MS(s) XMS(s)
 #define XMS(s) #s
 
-// Default settings - change settings in the web interface 192.168.4.1
+// Default settings
+
+#define DEF_HOSTNAME        "sid"
+#define DEF_WIFI_RETRY      3     // 1-10; Default: 3 retries
+#define DEF_WIFI_TIMEOUT    7     // 7-25; Default: 7 seconds
+#define DEF_AP_CHANNEL      1     // 1-13; 0 = random(1-13)
 
 #define DEF_STRICT          1     // 0: Allow random diviations from movie patterns; 1: no not
 #define DEF_SKIP_TTANIM     1     // 0: Don't skip tt anim; 1: do
 #define DEF_BOOTSA          0     // 0: Boot into IDLE, 1: Boot into Spectrum Analyzer
 #define DEF_SA_PEAKS        0     // 1: Show peaks in SA, 0: don't
 #define DEF_SS_TIMER        0     // "Screen saver" timeout in minutes; 0 = ss off
-
-#define DEF_HOSTNAME        "sid"
-#define DEF_WIFI_RETRY      3     // 1-10; Default: 3 retries
-#define DEF_WIFI_TIMEOUT    7     // 7-25; Default: 7 seconds
 
 #define DEF_TCD_IP          ""    // TCD ip address or hostname for BTTFN
 #define DEF_USE_GPSS        0     // 0: Ignore GPS speed; 1: Use it for chase speed
@@ -89,18 +90,21 @@ extern uint8_t musFolderNum;
 #define DEF_DISDIR          0     // 0: Do not disable default IR remote control; 1: do
 
 struct Settings {
+    char ssid[34]           = "";
+    char pass[66]           = "";
+
+    char hostName[32]       = DEF_HOSTNAME;
+    char wifiConRetries[4]  = MS(DEF_WIFI_RETRY);
+    char wifiConTimeout[4]  = MS(DEF_WIFI_TIMEOUT);
+    char systemID[8]        = "";
+    char appw[10]           = "";
+    char apChnl[4]          = MS(DEF_AP_CHANNEL);
+    
     char strictMode[4]      = MS(DEF_STRICT);       // saved, but overruled by idlePat config file
     char skipTTAnim[4]      = MS(DEF_SKIP_TTANIM);
     char bootSA[4]          = MS(DEF_BOOTSA);
     char SApeaks[4]         = MS(DEF_SA_PEAKS);
     char ssTimer[6]         = MS(DEF_SS_TIMER);
-
-    char hostName[32]       = DEF_HOSTNAME;
-    char wifiConRetries[4]  = MS(DEF_WIFI_RETRY);
-    char wifiConTimeout[4]  = MS(DEF_WIFI_TIMEOUT);
-    
-    char systemID[8]        = "";
-    char appw[10]           = "";
     
     char tcdIP[32]          = DEF_TCD_IP;
     char useGPSS[4]         = MS(DEF_USE_GPSS);

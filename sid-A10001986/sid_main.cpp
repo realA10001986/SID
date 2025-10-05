@@ -528,7 +528,7 @@ void main_setup()
 {
     char *s = LM;
     
-    Serial.println(F("Status Indicator Display version " SID_VERSION " " SID_VERSION_EXTRA));
+    Serial.println("Status Indicator Display version " SID_VERSION " " SID_VERSION_EXTRA);
 
     // Load settings
     loadBrightness();
@@ -583,7 +583,7 @@ void main_setup()
     }
 
     #ifdef SID_DBG
-    Serial.println(F("Booting IR Receiver"));
+    Serial.println("Booting IR Receiver");
     #endif
     ir_remote.begin();
 
@@ -633,7 +633,7 @@ void main_setup()
     }
 
     #ifdef SID_DBG
-    Serial.println(F("main_setup() done"));
+    Serial.println("main_setup() done");
     #endif
 
     // Delete previous IR input, start fresh
@@ -1124,8 +1124,6 @@ void main_loop()
     } else if(!siActive && !snActive && !saActive) {    // No TT currently
 
         if(networkAlarm && !IRLearning) {
-
-            networkAlarm = false;
             
             ssEnd();
             
@@ -1139,6 +1137,8 @@ void main_loop()
             if(!FPBUnitIsOn) {
                 sid.off();
             }
+
+            networkAlarm = false;
         
         } else if(!IRLearning) {
 
@@ -1209,7 +1209,6 @@ void main_loop()
     }
 
     if(!TTrunning) {
-        
         if(brichanged && (now - brichgnow > 10000)) {
             // Save brightness 10 seconds after last change
             brichanged = false;
