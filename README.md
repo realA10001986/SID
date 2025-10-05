@@ -54,7 +54,7 @@ It is ok to leave it in AP-mode, predominantly if used stand-alone. (To operate 
 
 ##### &#9654; Home setup with a pre-existing local WiFi network
 
-In this case, you can connect your SID to your home WiFi network: Click on "Connect to WiFi" and either select a network from the top of the page or enter a WiFi network name (SSID), and enter your WiFi password. After saving the WiFi network settings, your SID reboots and tries to connect to your selected WiFi network. If that fails, it will again start in access point mode.
+In this case, you can connect your SID to your home WiFi network: Click on "WiFi Configuration" and either select a network from the top of the page or enter a WiFi network name (SSID), and enter your WiFi password. After saving the WiFi network settings, your SID reboots and tries to connect to your selected WiFi network. If that fails, it will again start in access point mode.
 
 >If you have a [Time Circuits Display](https://tcd.out-a-ti.me) note that in order to have both SID and TCD communicate with each other, your SID must be connected to the same ip network your TCD is connected to. In order to use MQTT, your SID must be connected to the same ip network your broker is connected to.
 
@@ -64,7 +64,7 @@ In this case, you can connect your SID to your home WiFi network: Click on "Conn
 
 If no TCD is present, keep your SID operating in AP-mode.
 
-If you have a [Time Circuits Display](https://tcd.out-a-ti.me), you can connect your SID to the TCD's own WiFi network: Click on "Connect to WiFi" and either select "TCD-AP" from the top of the page or enter "TCD-AP" under *WiFi network name (SSID)*. If you password-proteced your TCD-AP, enter this password below. See [here](#car-setup) for more details.
+If you have a [Time Circuits Display](https://tcd.out-a-ti.me), you can connect your SID to the TCD's own WiFi network: Click on "WiFi Configuration" and either select "TCD-AP" from the top of the page or enter "TCD-AP" under *WiFi network name (SSID)*. If you password-proteced your TCD-AP, enter this password below. See [here](#car-setup) for more details.
 
 After completing WiFi setup, your SID is ready for use; you can also continue configuring it to your personal preferences through the Config Portal.
 
@@ -425,7 +425,7 @@ Enter the Config Portal on the SID, click on *Setup* and
   - click on *Save*.
 
 After the SID has restarted, re-enter the SID's Config Portal (while the TCD is powered and in *car mode*) and
-  - click on *Connect to WiFi*,
+  - click on *WiFi Configuration*,
   - select the TCD's access point name in the list at the top ("TCD-AP") or enter *TCD-AP* into the *WiFi network name (SSID)* field; if you password-protected your TCD's AP, enter this password in the *password* field. Leave all other fields empty,
   - click on *Save*.
 
@@ -443,29 +443,69 @@ In order to reduce the number of write operations and thereby prolong the life o
 
 ### Main page
 
-##### &#9654; Connect to WiFi
+##### &#9654; WiFi Configuration
 
-Click this to connect your SID to your local WiFi network (which can also be provided by your [Time Circuits Display](https://tcd.out-a-ti.me) operating in AP mode/car mode). All you need to do is either to click on one of the networks listed at the top or to enter a WiFi network name (SSID), and optionally a passwort (WPAx).
+This leads to the [WiFi configuration page](#wifi-configuration)
 
->By default, the SID requests an IP address via DHCP. However, you can also configure a static IP for the SID by entering the IP, netmask, gateway and DNS server. All four fields must be filled for a valid static IP configuration. If you want to stick to DHCP, leave those four fields empty. If you connect your SID to your Time Circuits Display acting as access point ("TCD-AP"), leave these all empty.
+##### &#9654; Settings
 
-Note that this page is strictly for connecting your SID to an existing WiFi network. If your SID is supposed to operate stand-alone, it runs in "access point mode" (AP-Mode). Settings for AP mode are on the *Setup* page.
-
-##### &#9654; Setup
-
-This leads to the [Setup page](#setup-page).
+This leads to the [Settings page](#settings).
 
 ##### &#9654; Update
 
 This leads to the firmware update page. You can select a locally stored firmware image file to upload (such as the ones published here in the install/ folder).
 
-##### &#9654; Erase WiFi Config
+---
 
-Clicking this (and saying "yes" in the confirmation dialog) erases the WiFi connection configuration (as set up through the *Connect to WiFi* page) and reboots the device; it will restart in "access point" (AP) mode. See [here](#connecting-to-a-wifi-network).
+### WiFi Configuration
+
+Through this page you can either connect your SID to your local WiFi network, or configure AP mode. 
+
+#### <ins>Connecting to an existing WiFi network</ins>
+
+In order to connect your SID to your WiFi network, all you need to do is either to click on one of the networks listed at the top or to enter a __WiFi network name (SSID)__, and optionally a __passwort__ (WPAx).
+
+>By default, the SID requests an IP address via DHCP. However, you can also configure a static IP for the SID by entering the IP, netmask, gateway and DNS server. All four fields must be filled for a valid static IP configuration. If you want to stick to DHCP, leave those four fields empty. If you connect your FC to your Time Circuits Display acting as access point ("TCD-AP"), leave these all empty.
+
+##### &#9654; Forget Saved WiFi Network
+
+Clicking this button (and selecting "yes" in the confirmation dialog) deletes the currently saved WiFi network (SSID and password) and reboots the device; it will restart in "access point" (AP) mode. See [here](#connecting-to-a-wifi-network).
+
+##### &#9654; Hostname
+
+The device's hostname in the WiFi network. Defaults to 'sid'. This also is the domain name at which the Config Portal is accessible from a browser in the same local network. The URL of the Config Portal then is http://<i>hostname</i>.local (the default is http://sid.local)
+
+If you have more than one SID in your local network, please give them unique hostnames.
+
+_This setting applies to both AP-mode and when your SID is connected to a WiFi network._ 
+
+##### &#9654; WiFi connection attempts
+
+Number of times the firmware tries to reconnect to a WiFi network, before falling back to AP-mode. See [here](#connecting-to-a-wifi-network)
+
+##### &#9654; WiFi connection timeout
+
+Number of seconds before a timeout occurs when connecting to a WiFi network. When a timeout happens, another attempt is made (see immediately above), and if all attempts fail, the device falls back to AP-mode. See [here](#connecting-to-a-wifi-network)
+
+#### <ins>Settings for AP-mode</ins>
+
+##### &#9654; Network name(SSID) appendix
+
+By default, when your SID creates a WiFi network of its own ("AP-mode"), this network is named "SID-AP". In case you have multiple SIDs in your vicinity, you can have a string appended to create a unique network name. If you, for instance, enter "-ABC" here, the WiFi network name will be "SID-AP-ABC". Characters A-Z, a-z, 0-9 and - are allowed.
+
+##### &#9654; Password
+
+By default, and if this field is empty, the FC's own WiFi network ("SID-AP") will be unprotected. If you want to protect your SID access point, enter your password here. It needs to be 8 characters in length and only characters A-Z, a-z, 0-9 and - are allowed.
+
+If you forget this password and are thereby locked out of your SID, enter *123456 followed by OK on the IR remote control; this deletes the WiFi password. Then power-down and power-up your SID and the access point will start unprotected.
+
+##### &#9654; WiFi channel
+
+Here you can select one out of 13 channels, or have the TCD choose a random channel for you. The default channel is 1.
 
 ---
 
-### Setup page
+### Settings
 
 #### <ins>Basic settings</ins>
 
@@ -495,34 +535,6 @@ The Screen Saver, when active, disables all LEDs, until
 - a key on the IR remote control is pressed; if IR is [locked](#locking-ir-control), only the # key deactivates the Screen Saver;
 - the time travel button is briefly pressed (the first press when the screen saver is active will not trigger a time travel),
 - on a connected TCD, a destination date is entered (only if TCD is wirelessly connected) or a time travel event is triggered (also when wired).
-
-#### <ins>Network settings</ins>
-
-##### &#9654; Hostname
-
-The device's hostname in the WiFi network. Defaults to 'sid'. This also is the domain name at which the Config Portal is accessible from a browser in the same local network. The URL of the Config Portal then is http://<i>hostname</i>.local (the default is http://sid.local)
-
-This setting applies to both AP-mode and when your SID is connected to a WiFi network. If you have more than one SID in your local network, please give them unique hostnames.
-
-##### &#9654; WiFi connection attempts
-
-Number of times the firmware tries to reconnect to a WiFi network, before falling back to AP-mode. See [here](#connecting-to-a-wifi-network)
-
-##### &#9654; WiFi connection timeout
-
-Number of seconds before a timeout occurs when connecting to a WiFi network. When a timeout happens, another attempt is made (see immediately above), and if all attempts fail, the device falls back to AP-mode. See [here](#connecting-to-a-wifi-network)
-
-#### <ins>Network settings for AP-mode</ins>
-
-##### &#9654; Network name (SSID) appendix
-
-By default, when your SID creates a WiFi network of its own ("AP-mode"), this network is named "SID-AP". In case you have multiple SIDs in your vicinity, you can have a string appended to create a unique network name. If you, for instance, enter "-ABC" here, the WiFi network name will be "SID-AP-ABC". Characters A-Z, a-z, 0-9 and - are allowed.
-
-##### &#9654; Password
-
-By default, and if this field is empty, the SID's own WiFi network ("AP-mode") will be unprotected. If you want to protect your SID access point, enter your password here. It needs to be 8 characters in length and only characters A-Z, a-z, 0-9 and - are allowed.
-
-If you forget this password and are thereby locked out of your SID, enter *123456 followed by OK on the IR remote control; this deletes the WiFi password. Then power-down and power-up your SID and the access point will start unprotected.
 
 #### <ins>Settings for BTTFN communication</ins>
 
