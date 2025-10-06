@@ -44,9 +44,9 @@ The first step is to establish access to the SID's configuration web site ("Conf
 
 Your SID knows two ways of WiFi operation: Either it creates its own WiFi network, or it connects to a pre-existing WiFi network.
 
-As long as your SID is unconfigured, it creates its own WiFi network named "SID-AP". This mode of operation is called "Access point mode", or "AP-mode". 
+As long as your SID is unconfigured, it creates its own WiFi network named "SID-AP". This mode of operation is called "**Access point mode**", or "AP-mode". 
 
-It is ok to leave it in AP-mode, predominantly if used stand-alone. (To operate your SID in AP-mode, do not configure a WiFi network as described below, or click on "Forget saved WiFi network" on the Config Portal's "WiFi Configuration" page.)
+It is ok to leave it in AP-mode, predominantly if used stand-alone. (To keep operating your SID in AP-mode, do not configure a WiFi network as described below, or click on "Forget saved WiFi network" on the Config Portal's "WiFi Configuration" page.)
 
 >Please do not leave computers/hand helds permanently connected to the SID's AP. These devices might think they are connected to the internet and therefore hammer your SID with DNS and HTTP requests which might lead to packet loss and disruptions.
 
