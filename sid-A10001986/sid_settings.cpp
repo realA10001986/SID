@@ -69,6 +69,8 @@
 #include <LittleFS.h>
 #endif
 
+#include <Update.h>
+
 #include "sid_settings.h"
 #include "sid_main.h"
 
@@ -91,6 +93,9 @@ static const char *irlCfgName = "/sidirlcfg.json";  // IR lock (flash/SD)
 static const char *irCfgName  = "/sidirkeys.json";  // IR keys (system-created) (flash/SD)
 static const char *irUCfgName = "/sidirkeys.txt";   // IR keys (user-created) (SD only)
 static const char *ipaCfgName = "/sidipat.json";    // Idle pattern (SD only)
+
+static const char fwfn[]      = "/sidfw.bin";
+static const char fwfnold[]   = "/sidfw.old";
 
 static const char *jsonNames[NUM_IR_KEYS] = {
     "key0", "key1", "key2", "key3", "key4", 
@@ -144,6 +149,8 @@ static DeserializationError readJSONCfgFile(JsonDocument& json, File& configFile
 static bool writeJSONCfgFile(const JsonDocument& json, const char *fn, bool useSD, const char *funcName);
 static bool writeFileToSD(const char *fn, uint8_t *buf, int len);
 static bool writeFileToFS(const char *fn, uint8_t *buf, int len);
+
+static void firmware_update();
 
 /*
  * settings_setup()
@@ -1186,3 +1193,66 @@ static bool writeFileToFS(const char *fn, uint8_t *buf, int len)
     } else
         return false;
 }
+
+// Emergency firmware update from SD card
+static void fw_error_blink(int n)
+{
+    bool leds = false;
+
+    for(int i = 0; i < n; i++) {
+        leds = !leds;
+        digitalWrite(IR_FB_PIN, leds ? HIGH : LOW);
+        delay(500);
+    }
+    digitalWrite(IR_FB_PIN, LOW);
+}
+
+static void firmware_update()
+{
+    const char *upderr = "Firmware update error %d\n";
+    uint8_t  buf[1024];
+    unsigned int lastMillis = millis();
+    bool     leds = false;
+    size_t   s;
+
+    if(!SD.exists(fwfn))
+        return;
+    
+    File myFile = SD.open(fwfn, FILE_READ);
+    
+    if(!myFile)
+        return;
+
+    pinMode(IR_FB_PIN, OUTPUT);
+    
+    if(!Update.begin(UPDATE_SIZE_UNKNOWN)) {
+        Serial.printf(upderr, Update.getError());
+        fw_error_blink(5);
+        return;
+    }
+
+    while((s = myFile.read(buf, 1024))) {
+        if(Update.write(buf, s) != s) {
+            break;
+        }
+        if(millis() - lastMillis > 1000) {
+            leds = !leds;
+            digitalWrite(IR_FB_PIN, leds ? HIGH : LOW);
+            lastMillis = millis();
+        }
+    }
+    
+    if(Update.hasError() || !Update.end(true)) {
+        Serial.printf(upderr, Update.getError());
+        fw_error_blink(5);
+    } 
+    myFile.close();
+    // Rename/remove in any case, we don't
+    // want an update loop hammer our flash
+    SD.remove(fwfnold);
+    SD.rename(fwfn, fwfnold);
+    unmount_fs();
+    delay(1000);
+    fw_error_blink(0);
+    esp_restart();
+}    

@@ -104,6 +104,12 @@
 
 /*  Changelog
  *  
+ *  2025/10/07 (A10001986) [1.56]
+ *    - Add emergency firmware update via SD (for dev purposes)
+ *    - WM fixes (Upload, etc)
+ *  2025/10/06 (A10001986)
+ *    - WM: Skip setting static IP params in Save
+ *    - Add "No SD present" banner in Config Portal if no SD present
  *  2025/10/03-05 (A10001986) [1.56]
  *    - More WiFiManager changes. We no longer use NVS-stored WiFi configs, 
  *      all is managed by our own settings. (No details are known, but it
@@ -111,17 +117,14 @@
  *      is totally not needed for our purposes, nor in the interest of 
  *      flash longevity.)
  *    - Save static IP only if changed
- *    - Disable MQTT when connected to "TCD-AP"; the TCD runs a captive DNS,
- *      resolves the MQTT server domain with the TCD's IP, and as a result
- *      the device tries to connect to the TCD for MQTT, which naturally
- *      will fail.
+ *    - Disable MQTT when connected to "TCD-AP"
  *    - Let DNS server in AP mode only resolve our domain (hostname)
  *  2025/09/22-10/02 (A10001986)
  *    - WiFi Manager overhaul; many changes to Config Portal.
  *      WiFi-related settings moved to WiFi Configuration page.
  *    - Various code optimizations to minimize code size and used RAM
  *  2025/09/22 (A10001986) [1.55]
- *    - Config Portqal: Re-order settings; remove non-checkbox-code.
+ *    - Config Portal: Re-order settings; remove non-checkbox-code.
  *    - Fix TCD hostname length field
  *  2025/09/17 (A10001986)
  *    - WiFi Manager: Reduce page size by removing "quality icon" styles where
@@ -328,17 +331,17 @@
  *  2023/08/25 (A10001986)
  *    - Remove "Wait for TCD WiFi" option - this is not required; if the TCD is acting
  *      access point, it is supposed to be in car mode, and a delay is not required.
- *      (Do not let the TCD search for a configured WiFi network and have the FC rely on 
- *      the TCD falling back to AP mode; this will take long and the FC might time-out 
- *      unless the FC has a couple of connection retrys and long timeouts configured! 
+ *      (Do not let the TCD search for a configured WiFi network and have the SID rely on 
+ *      the TCD falling back to AP mode; this will take long and the SID might time-out 
+ *      unless the SID has a couple of connection retrys and long timeouts configured! 
  *      Use car mode, or delete the TCD's configured WiFi network if you power up the
- *      TCD and FC at the same time.)
+ *      TCD and SID at the same time.)
  *    - Some code cleanups
  *    - Restrict WiFi Retrys to 10 (like WiFiManager)
- *    - Add "Wait for fake power on" option; if set, FC only boots
+ *    - Add "Wait for fake power on" option; if set, SID only boots
  *      after it received a fake-power-on signal from the TCD
  *      (Needs "Follow fake power" option set)
- *    - Fix parm handling of FPO and NM in fc_wifi
+ *    - Fix parm handling of FPO and NM in sid_wifi
  *  2023/08/20 (A10001986)
  *    - Fixes for siddisplay
  *  2023/08/14 (A10001986)

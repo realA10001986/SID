@@ -15,22 +15,10 @@
  ***                          Version Strings                          ***
  *************************************************************************/
 
-#define SID_VERSION       "V1.56"
-#define SID_VERSION_EXTRA "OCT052025"
+#define SID_VERSION       "V1.57"
+#define SID_VERSION_EXTRA "OCT072025"
 
 //#define SID_DBG              // debug output on Serial
-
-/*************************************************************************
- ***                     mDNS (Bonjour) support                        ***
- *************************************************************************/
-
-// Supply mDNS service 
-// Allows accessing the Config Portal via http://hostname.local
-// <hostname> is configurable in the Config Portal
-// This needs to be commented if WiFiManager provides mDNS
-#define SID_MDNS
-// Uncomment this if WiFiManager has mDNS enabled
-//#define SID_WM_HAS_MDNS
 
 /*************************************************************************
  ***                           Miscellaneous                           ***
