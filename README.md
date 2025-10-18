@@ -14,7 +14,7 @@ Features include
 - various idle patterns
 - [Time Travel](#time-travel) function, triggered by button, [Time Circuits Display](https://tcd.out-a-ti.me) or via [MQTT](#home-assistant--mqtt)
 - [IR remote controlled](#ir-remote-control); can learn keys from third-party remote
-- Spectrum Analyzer mode via built-in microphone
+- [Spectrum Analyzer](#spectrum-analyzer) mode via built-in microphone
 - advanced network-accessible [Config Portal](#the-config-portal) for setup (http://sid.local, hostname configurable)
 - [Wireless communication](#bttf-network-bttfn) with [Time Circuits Display](https://tcd.out-a-ti.me); used for synchronized time travels, GPS-speed adapted patterns, alarm, night mode, fake power, remote control of SID through TCD keypad, or [remote controlling](#remote-controlling-the-tcds-keypad) the TCD keypad.
 - [Home Assistant](#home-assistant--mqtt) (MQTT 3.1.1) support
