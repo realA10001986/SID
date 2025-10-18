@@ -48,11 +48,11 @@ As long as your SID is unconfigured, it creates its own WiFi network named "SID-
 
 It is ok to leave it in AP-mode, predominantly if used stand-alone. (To keep operating your SID in AP-mode, do not configure a WiFi network as described below, or check "Forget saved WiFi network" and click "Save" on the Config Portal's "WiFi Configuration" page.)
 
->Please do not leave computers/hand helds permanently connected to the SID's AP. These devices might think they are connected to the internet and therefore hammer your SID with DNS and HTTP requests which might lead to packet loss and disruptions.
+>Please do not leave computers/handhelds permanently connected to the SID's AP. These devices might think they are connected to the internet and therefore hammer your SID with DNS and HTTP requests which might lead to packet loss and disruptions.
 
 >If you want your device to remain in AP-mode, please choose a suitable WiFi channel on the Config Portal's "WiFi Configuration" page. See [here](#-wifi-channel).
 
->For experts: In the following, the term "WiFi network" is used for both "WiFi network" and "ip network" for simplicity reasons. However, for BTTFN/MQTT communication, the devices must (only) be on the same ip network, regardless of how they take part in it: They can be connected to different WiFi networks, if those WiFi networks are part of the same ip network, or, in case of the MQTT broker, by wire. If the TCD operates as access point for other props, connecting a prop to the TCD's WiFi network also takes care of suitable ip network configuration through DHCP.
+>For experts: In the following, the term "WiFi network" is used for both "WiFi network" and "ip network" for simplicity reasons. However, for BTTFN/MQTT communication, the devices must (only) be on the same IP network, regardless of how they take part in it: They can be connected to different WiFi networks, if those WiFi networks are part of the same ip network, or, in case of the MQTT broker, by wire. If the TCD operates as access point for other props, connecting a prop to the TCD's WiFi network also takes care of suitable ip network configuration through DHCP.
 
 ##### &#9654; Home setup with a pre-existing local WiFi network
 
@@ -131,7 +131,7 @@ As of firmware 1.53, IR learning can be initiated by entering *987654 followed b
 
 >With earlier firmware versions, IR learning required a physical [Time Travel](#time-travel) button, and the option **_TCD connected by wire_** in the Config Portal needs to be unchecked. To start the learning process, hold the [Time Travel](#time-travel) button for a few seconds. 
 
-When IR learning is started, the displays first shows "GO", immediately followed by "0". Press "0" on your remote, which the SID will visually acknowledge by displaying the next key to press. Then press "1", wait for the acknowledgement, and so on. Enter your keys in the following order:
+When IR learning is started, the display first shows "GO", immediately followed by "0". Press "0" on your remote, which the SID will visually acknowledge by displaying the next key to press. Then press "1", wait for the acknowledgement, and so on. Enter your keys in the following order:
 
 ```0 - 1 - 2 - 3 - 4 - 5 - 6 - 7 - 8 - 9 - * - # - Arrow up - Arrow down - Arrow left - Arrow right - OK``` 
 
@@ -287,7 +287,7 @@ Other ways of triggering a time travel are available if a [Time Circuits Display
 
 ## Spectrum Analyzer
 
-The spectrum analyzer (or rather: frequency-separated vu meter) works through a built-in microphone. This microphone is located behind the right hand side center hole of the enclosure.
+The spectrum analyzer (or rather: frequency-separated vu meter) works through a built-in microphone. This microphone is located behind the right-hand side center hole of the enclosure.
 
 Sticky peaks are optional, they can be switched on/off in the Config Portal and by typing *51 followed by OK on the remote.
 
@@ -431,7 +431,7 @@ After the SID has restarted, re-enter the SID's Config Portal (while the TCD is 
   - select the TCD's access point name in the list at the top ("TCD-AP"; if there is no list, click on "WiFi Scan") or enter *TCD-AP* into the *Network name (SSID)* field; if you password-protected your TCD's AP, enter this password in the *password* field. Leave all other fields empty,
   - click on *Save*.
 
-In order to access the SID's Config Portal in your car, connect your hand held or computer to the TCD's WiFi access point ("TCD-AP"), and direct your browser to http://sid.local ; if that does not work, go to the TCD's keypad menu, press ENTER until "BTTFN CLIENTS" is shown, hold ENTER, and look for the SID's IP address there; then direct your browser to that IP by using the URL http://a.b.c.d (a-d being the IP address displayed on the TCD display).
+In order to access the SID's Config Portal in your car, connect your handheld or computer to the TCD's WiFi access point ("TCD-AP"), and direct your browser to http://sid.local ; if that does not work, go to the TCD's keypad menu, press ENTER until "BTTFN CLIENTS" is shown, hold ENTER, and look for the SID's IP address there; then direct your browser to that IP by using the URL http://a.b.c.d (a-d being the IP address displayed on the TCD display).
 
 This "car setup" can also be used in a home setup with no local WiFi network present.
 
