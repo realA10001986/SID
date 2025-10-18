@@ -630,6 +630,6 @@ Check this to disable the supplied remote control; the SID will only accept comm
 
 Note that this only disables the supplied remote, unlike [IR locking](#locking-ir-control), where IR commands from any known remote are ignored.
 
-
+---
 _Text & images: (C) Thomas Winischhofer ("A10001986"). See LICENSE._ Source: https://sid.out-a-ti.me  
 _Other props: [Time Circuits Display](https://tcd.out-a-ti.me) ... [Flux Capacitor](https://fc.out-a-ti.me) ... [Dash Gauges](https://dg.out-a-ti.me) ... [VSR](https://vsr.out-a-ti.me) ... [Remote Control](https://remote.out-a-ti.me) ... [TFC](https://tfc.out-a-ti.me)_
