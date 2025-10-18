@@ -88,10 +88,10 @@ It can be accessed as follows:
 
 #### If SID is connected to a WiFi network
 
-- Connect your hand-held/computer to the same (WiFi) network to which the SID is connected, and
+- Connect your handheld/computer to the same (WiFi) network to which the SID is connected, and
 - navigate your browser to http://sid.local
 
-  >Accessing the Config Portal through this address requires the operating system of your hand-held/computer to support Bonjour/mDNS: Windows 10 version TH2     (1511) [other sources say 1703] and later, Android 13 and later; MacOS and iOS since the dawn of time.
+  >Accessing the Config Portal through this address requires the operating system of your handheld/computer to support Bonjour/mDNS: Windows 10 version TH2     (1511) [other sources say 1703] and later, Android 13 and later; MacOS and iOS since the dawn of time.
 
   >If connecting to http://sid.local fails due to a name resolution error, you need to find out the SID's IP address: Type *90 followed by OK on the remote control; the IP address will be shown on the display. Then, on your handheld or computer, navigate to http://a.b.c.d (a.b.c.d being the IP address as shown on the SID's display) in order to enter the Config Portal.
 
