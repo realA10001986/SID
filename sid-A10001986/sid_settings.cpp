@@ -129,9 +129,9 @@ static uint8_t  prevSavedBri = 12;
 static uint16_t prevSavedIM  = 0;
 static bool     prevSavedIRL = 0;
 
-static bool read_settings(File configFile);
+static bool read_settings(File configFile, int cfgReadCount);
 
-static void CopyTextParm(char *setting, const char *json, int setSize);
+static bool CopyTextParm(const char *json, char *setting, int setSize);
 static bool CopyCheckValidNumParm(const char *json, char *text, uint8_t psize, int lowerLim, int upperLim, int setDefault);
 static bool CopyCheckValidNumParmF(const char *json, char *text, uint8_t psize, float lowerLim, float upperLim, float setDefault);
 static bool checkValidNumParm(char *text, int lowerLim, int upperLim, int setDefault);
@@ -165,6 +165,7 @@ void settings_setup()
     const char *funcName = "settings_setup";
     bool writedefault = false;
     bool SDres = false;
+    int cfgReadCount = 0;
 
     #ifdef SID_DBG
     Serial.printf("%s: Mounting flash FS... ", funcName);
@@ -194,12 +195,14 @@ void settings_setup()
       
         #ifdef SID_DBG
         Serial.println("ok, loading settings");
+        Serial.printf("FlashFS: %d total, %d used\n", SPIFFS.totalBytes(), SPIFFS.usedBytes());
         #endif
         
         if(SPIFFS.exists(cfgName)) {
             File configFile = SPIFFS.open(cfgName, "r");
             if(configFile) {
-                writedefault = read_settings(configFile);
+                writedefault = read_settings(configFile, cfgReadCount);
+                cfgReadCount++;
                 configFile.close();
             } else {
                 writedefault = true;
@@ -266,7 +269,7 @@ void settings_setup()
             if(SD.exists(cfgName)) {
                 File configFile = SD.open(cfgName, "r");
                 if(configFile) {
-                    writedefault2 = read_settings(configFile);
+                    writedefault2 = read_settings(configFile, cfgReadCount);
                     configFile.close();
                 } else {
                     writedefault2 = true;
@@ -326,7 +329,7 @@ void unmount_fs()
     }
 }
 
-static bool read_settings(File configFile)
+static bool read_settings(File configFile, int cfgReadCount)
 {
     const char *funcName = "read_settings";
     bool wd = false;
@@ -353,28 +356,35 @@ static bool read_settings(File configFile)
 
         // WiFi Configuration
 
-        memset(settings.ssid, 0, sizeof(settings.ssid));
-        memset(settings.pass, 0, sizeof(settings.pass));
+        if(!cfgReadCount) {
+            memset(settings.ssid, 0, sizeof(settings.ssid));
+            memset(settings.pass, 0, sizeof(settings.pass));
+        }
+
         if(json["ssid"]) {
+            memset(settings.ssid, 0, sizeof(settings.ssid));
+            memset(settings.pass, 0, sizeof(settings.pass));
             strncpy(settings.ssid, json["ssid"], sizeof(settings.ssid) - 1);
             if(json["pass"]) {
                 strncpy(settings.pass, json["pass"], sizeof(settings.pass) - 1);
             }
-        } else settings.ssid[1] = 'X';  // marker for "no ssid tag in config file", ie read from NVS
+        } else {
+            if(!cfgReadCount) {
+                // Set a marker for "no ssid tag in config file", ie read from NVS.
+                settings.ssid[1] = 'X';
+            } else if(settings.ssid[0] || settings.ssid[1] != 'X') {
+                // FlashRO: If flash-config didn't set the marker, write new file 
+                // with ssid/pass from flash-config
+                wd = true;
+            }
+        }
 
-        if(json["hostName"]) {
-            CopyTextParm(settings.hostName, json["hostName"], sizeof(settings.hostName));
-        } else wd = true;
-
+        wd |= CopyTextParm(json["hostName"], settings.hostName, sizeof(settings.hostName));
         wd |= CopyCheckValidNumParm(json["wifiConRetries"], settings.wifiConRetries, sizeof(settings.wifiConRetries), 1, 10, DEF_WIFI_RETRY);
         wd |= CopyCheckValidNumParm(json["wifiConTimeout"], settings.wifiConTimeout, sizeof(settings.wifiConTimeout), 7, 25, DEF_WIFI_TIMEOUT);
-        
-        if(json["systemID"]) {
-            CopyTextParm(settings.systemID, json["systemID"], sizeof(settings.systemID));
-        } else wd = true;
-        if(json["appw"]) {
-            CopyTextParm(settings.appw, json["appw"], sizeof(settings.appw));
-        } else wd = true;
+
+        wd |= CopyTextParm(json["systemID"], settings.systemID, sizeof(settings.systemID));
+        wd |= CopyTextParm(json["appw"], settings.appw, sizeof(settings.appw));
         wd |= CopyCheckValidNumParm(json["apch"], settings.apChnl, sizeof(settings.apChnl), 0, 11, DEF_AP_CHANNEL);
 
         // Settings
@@ -387,9 +397,7 @@ static bool read_settings(File configFile)
         wd |= CopyCheckValidNumParm(json["SApeaks"], settings.SApeaks, sizeof(settings.SApeaks), 0, 1, DEF_SA_PEAKS);
         wd |= CopyCheckValidNumParm(json["ssTimer"], settings.ssTimer, sizeof(settings.ssTimer), 0, 999, DEF_SS_TIMER);
 
-        if(json["tcdIP"]) {
-            CopyTextParm(settings.tcdIP, json["tcdIP"], sizeof(settings.tcdIP));
-        } else wd = true;
+        wd |= CopyTextParm(json["tcdIP"], settings.tcdIP, sizeof(settings.tcdIP));
         wd |= CopyCheckValidNumParm(json["useGPSS"], settings.useGPSS, sizeof(settings.useGPSS), 0, 1, DEF_USE_GPSS);
         wd |= CopyCheckValidNumParm(json["useNM"], settings.useNM, sizeof(settings.useNM), 0, 1, DEF_USE_NM);
         wd |= CopyCheckValidNumParm(json["useFPO"], settings.useFPO, sizeof(settings.useFPO), 0, 1, DEF_USE_FPO);
@@ -399,12 +407,8 @@ static bool read_settings(File configFile)
 
         #ifdef SID_HAVEMQTT
         wd |= CopyCheckValidNumParm(json["useMQTT"], settings.useMQTT, sizeof(settings.useMQTT), 0, 1, 0);
-        if(json["mqttServer"]) {
-            CopyTextParm(settings.mqttServer, json["mqttServer"], sizeof(settings.mqttServer));
-        } else wd = true;
-        if(json["mqttUser"]) {
-            CopyTextParm(settings.mqttUser, json["mqttUser"], sizeof(settings.mqttUser));
-        } else wd = true;
+        wd |= CopyTextParm(json["mqttServer"], settings.mqttServer, sizeof(settings.mqttServer));
+        wd |= CopyTextParm(json["mqttUser"], settings.mqttUser, sizeof(settings.mqttUser));
         #endif
 
         wd |= CopyCheckValidNumParm(json["TCDpresent"], settings.TCDpresent, sizeof(settings.TCDpresent), 0, 1, DEF_TCD_PRES);
@@ -493,10 +497,13 @@ bool checkConfigExists()
  *  Helpers for parm copying & checking
  */
 
-static void CopyTextParm(char *setting, const char *json, int setSize)
+static bool CopyTextParm(const char *json, char *setting, int setSize)
 {
+    if(!json) return true;
+    
     memset(setting, 0, setSize);
     strncpy(setting, json, setSize - 1);
+    return false;
 }
 
 static bool CopyCheckValidNumParm(const char *json, char *text, uint8_t psize, int lowerLim, int upperLim, int setDefault)
