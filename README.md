@@ -386,7 +386,7 @@ The SID supports the MQTT protocol version 3.1.1 for the following features:
 
 ### Control the SID via MQTT
 
-The SID can - to a some extent - be controlled through messages sent to topic **bttf/sid/cmd**. Support commands are
+The SID can - to a some extent - be controlled through messages sent to topic **bttf/sid/cmd**. Supported commands are
 - TIMETRAVEL: Start a [time travel](#time-travel)
 - IDLE: Switch to idle mode
 - SA: Start spectrum analyzer
