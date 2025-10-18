@@ -467,7 +467,7 @@ Through this page you can either connect your SID to your local WiFi network, or
 
 In order to connect your SID to your WiFi network, all you need to do is either to click on one of the networks listed at the top or to enter a __Network name (SSID)__, and optionally a __passwort__ (WPAx). If there is no list displayed, click on "WiFi Scan".
 
->By default, the SID requests an IP address via DHCP. However, you can also configure a static IP for the SID by entering the IP, netmask, gateway and DNS server. All four fields must be filled for a valid static IP configuration. If you want to stick to DHCP, leave those four fields empty. If you connect your FC to your Time Circuits Display acting as access point ("TCD-AP"), leave these all empty.
+>By default, the SID requests an IP address via DHCP. However, you can also configure a static IP for the SID by entering the IP, netmask, gateway and DNS server. All four fields must be filled for a valid static IP configuration. If you want to stick to DHCP, leave those four fields empty. If you connect your SID to your Time Circuits Display acting as access point ("TCD-AP"), leave these all empty.
 
 ##### &#9654; Forget Saved WiFi Network
 
@@ -497,7 +497,7 @@ By default, when your SID creates a WiFi network of its own ("AP-mode"), this ne
 
 ##### &#9654; Password
 
-By default, and if this field is empty, the FC's own WiFi network ("SID-AP") will be unprotected. If you want to protect your SID access point, enter your password here. It needs to be 8 characters in length and only characters A-Z, a-z, 0-9 and - are allowed.
+By default, and if this field is empty, the SID's own WiFi network ("SID-AP") will be unprotected. If you want to protect your SID access point, enter your password here. It needs to be 8 characters in length and only characters A-Z, a-z, 0-9 and - are allowed.
 
 If you forget this password and are thereby locked out of your SID, enter *123456 followed by OK on the IR remote control; this deletes the WiFi password. Then power-down and power-up your SID and the access point will start unprotected.
 
