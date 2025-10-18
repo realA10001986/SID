@@ -503,7 +503,7 @@ If you forget this password and are thereby locked out of your SID, enter *12345
 
 ##### &#9654; WiFi channel
 
-Here you can select one out of 13 channels, or have the SID choose a random channel for you. The default channel is 1. Preferred are channels 1, 6 and 11.
+Here you can select one out of 11 channels, or have the SID choose a random channel for you. The default channel is 1. Preferred are channels 1, 6 and 11.
 
 WiFI channel selection is key for a trouble-free operation. Disturbed WiFi communication can lead to disrupted sequences, packet loss, hanging or freezing props, and other problems. A good article on WiFi channel selection is [here](https://community.ui.com/questions/Choosing-the-right-Wifi-Channel-on-2-4Ghz-Why-Conventional-Wisdom-is-Wrong/ea2ffae0-8028-45fb-8fbf-60569c6d026d).
 
