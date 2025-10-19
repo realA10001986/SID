@@ -424,6 +424,8 @@ Limitations: MQTT Protocol version 3.1.1; TLS/SSL not supported; ".local" domain
 
 If your SID, along with a [Time Circuits Display](https://tcd.out-a-ti.me), is mounted in a car, the following network configuration is recommended:
 
+![STAmode-car](img/stamode-car.png)
+
 #### TCD
 
 - Run your TCD in [*car mode*](https://tcd.out-a-ti.me/#car-mode);
