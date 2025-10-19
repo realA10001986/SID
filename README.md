@@ -329,9 +329,9 @@ The TCD can communicate with the SID wirelessly, via the built-in "**B**asic-**T
 |:--:|
 | Click to watch the video |
 
-Note that the TCD's firmware must be up to date for BTTFN. You can use [this](http://tcd.out-a-ti.me) one or CircuitSetup's release 2.9 or later.
+BTTFN requires the props all to be connected to the same network, such as, for example, your home WiFi network:
 
-![BTTFN connection](img/family-wifi-bttfn.png)
+![STAmode-bttfn](img/stamode-bttfn.png)
 
 In order to connect your SID to the TCD using BTTFN, just enter the TCD's IP address or hostname in the **_IP address or hostname of TCD_** field in the SID's Config Portal. On the TCD, no special configuration is required. 
 
@@ -412,19 +412,21 @@ MQTT and BTTFN can co-exist. However, the TCD only sends out time travel and ala
 
 ### Setup
 
-In order to connect to a MQTT network, a "broker" (such as [mosquitto](https://mosquitto.org/), [EMQ X](https://www.emqx.io/), [Cassandana](https://github.com/mtsoleimani/cassandana), [RabbitMQ](https://www.rabbitmq.com/), [Ejjaberd](https://www.ejabberd.im/), [HiveMQ](https://www.hivemq.com/) to name a few) must be present in your network, and its address needs to be configured in the Config Portal. The broker can be specified either by domain or IP (IP preferred, spares us a DNS call). The default port is 1883. If a different port is to be used, append a ":" followed by the port number to the domain/IP, such as "192.168.1.5:1884". 
+In order to connect to a MQTT network, a "broker" (such as [mosquitto](https://mosquitto.org/), [EMQ X](https://www.emqx.io/), [Cassandana](https://github.com/mtsoleimani/cassandana), [RabbitMQ](https://www.rabbitmq.com/), [Ejjaberd](https://www.ejabberd.im/), [HiveMQ](https://www.hivemq.com/) to name a few) must be present in your network.
+
+![STAmode-mqtt](img/stamode-mqtt.png)
+
+The broker's address needs to be configured in the Config Portal. It can be specified either by domain or IP (IP preferred, spares us a DNS call). The default port is 1883. If a different port is to be used, append a ":" followed by the port number to the domain/IP, such as "192.168.1.5:1884". 
 
 If your broker does not allow anonymous logins, a username and password can be specified.
 
-Note that MQTT is disabled when your SID is operated in AP-mode or when connected to the TCD run in AP-Mode (TCD-AP).
-
-Limitations: MQTT Protocol version 3.1.1; TLS/SSL not supported; ".local" domains (MDNS) not supported; server/broker must respond to PING (ICMP) echo requests. For proper operation with low latency, it is recommended that the broker is on your local network. 
+Limitations: MQTT Protocol version 3.1.1; TLS/SSL not supported; ".local" domains (MDNS) not supported; server/broker must respond to PING (ICMP) echo requests. For proper operation with low latency, it is recommended that the broker is on your local network. MQTT is disabled when your SID is operated in AP-mode or when connected to the TCD run in AP-Mode (TCD-AP).
 
 ## Car setup
 
 If your SID, along with a [Time Circuits Display](https://tcd.out-a-ti.me), is mounted in a car, the following network configuration is recommended:
 
-![STAmode-car](img/stamode-car.png)
+![STAmode-car](img/stamode-car2.png)
 
 #### TCD
 
