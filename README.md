@@ -44,21 +44,21 @@ The first step is to establish access to the SID's configuration web site ("Conf
 
 Your SID knows two ways of WiFi operation: Either it creates its own WiFi network, or it connects to a pre-existing WiFi network.
 
-As long as your SID is unconfigured, it creates its own WiFi network named "SID-AP". This mode of operation is called "**Access point mode**", or "AP-mode". In this mode, other devices - such as computers/handhelds - can connect to the SID, but the SID cannot talk to other devices.
+As long as your SID is unconfigured, it creates its own WiFi network named "SID-AP". This mode of operation is called "**Access point mode**", or **"AP-mode"**. In this mode, computers/handhelds can connect to your SID in order to access the Config Portal, but ways of communication end right here. There is no inter-prop-communication ([BTTFN](#bttf-network-bttfn)) and no [HA/MQTT](#home-assistant--mqtt).
 
 ![APmode](img/apmode.png)
 
-It is ok to leave it in AP-mode, predominantly if used stand-alone. (To keep operating your SID in AP-mode, do not configure a WiFi network as described below, or check "Forget saved WiFi network" and click "Save" on the Config Portal's "WiFi Configuration" page.)
+It is ok to leave it in AP-mode, predominantly if used stand-alone. (To keep operating your SID in AP-mode, simply _do not configure_ a WiFi network connection as described below.
 
->Please do not leave computers/handhelds permanently connected to the SID's AP. These devices might think they are connected to the internet and therefore hammer your SID with DNS and HTTP requests which might lead to disruptions.
+>Please do not leave computers/handhelds permanently connected to the SID in AP-mode. These devices might think they are connected to the internet and therefore hammer your SID with DNS and HTTP requests which might lead to disruptions.
 
->If you want your device to remain in AP-mode, please choose a suitable WiFi channel on the Config Portal's "WiFi Configuration" page. See [here](#-wifi-channel).
+>If you wish for your device to remain in AP-mode, please select a suitable WiFi channel on the Config Portal's "WiFi Configuration" page. See [here](#-wifi-channel).
 
 >For experts: In the following, the term "WiFi network" is used for both "WiFi network" and "ip network" for simplicity reasons. However, for BTTFN/MQTT communication, the devices must (only) be on the same IP network, regardless of how they take part in it: They can be connected to different WiFi networks, if those WiFi networks are part of the same ip network, or, in case of the MQTT broker, by wire. If the TCD operates as access point for other props, connecting a prop to the TCD's WiFi network also takes care of suitable ip network configuration through DHCP.
 
 #### &#9654; Home setup with a pre-existing local WiFi network
 
-In this case, you can connect your SID to your home WiFi network. This allows for wireless communication such as [BTTFN](#bttf-network-bttfn) and [HA/MQTT](#home-assistant--mqtt).
+In this case, you can connect your SID to your home WiFi network. This allows for inter-prop-communication ([BTTFN](#bttf-network-bttfn)) and [HA/MQTT](#home-assistant--mqtt).
 
 ![STAmode-home](img/stamode-home.png)
 
@@ -72,7 +72,7 @@ Click on "WiFi Configuration" and either select a network from the top of the pa
 
 In this case and with no [Time Circuits Display](https://tcd.out-a-ti.me) at hand, keep your SID operating in AP-mode.
 
-If you have a [Time Circuits Display](https://tcd.out-a-ti.me), you can connect your SID to the TCD's own WiFi network: 
+If you have a TCD, you can connect your SID to the TCD's own WiFi network: 
 
 ![STAmode-car](img/stamode-car.png)
 
