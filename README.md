@@ -44,7 +44,7 @@ The first step is to establish access to the SID's configuration web site ("Conf
 
 Your SID knows two ways of WiFi operation: Either it creates its own WiFi network, or it connects to a pre-existing WiFi network.
 
-As long as your SID is unconfigured, it creates its own WiFi network named "SID-AP". This mode of operation is called "**Access point mode**", or "AP-mode". In this mode, other devices - such as computers/handhelds - can connect to the SID, but there is no BTTFN, no HA/MQTT.
+As long as your SID is unconfigured, it creates its own WiFi network named "SID-AP". This mode of operation is called "**Access point mode**", or "AP-mode". In this mode, other devices - such as computers/handhelds - can connect to the SID, but the SID cannot talk to other devices.
 
 ![APmode](img/apmode.png)
 
@@ -58,7 +58,7 @@ It is ok to leave it in AP-mode, predominantly if used stand-alone. (To keep ope
 
 ##### &#9654; Home setup with a pre-existing local WiFi network
 
-In this case, you can connect your SID to your home WiFi network. This allows for BTTFN and HA/MQTT.
+In this case, you can connect your SID to your home WiFi network. This allows for wireless communication such as [BTTFN](#bttf-network-bttfn) and [HA/MQTT](#home-assistant--mqtt).
 
 ![STAmode-home](img/stamode-home.png)
 
@@ -435,7 +435,6 @@ If your SID, along with a [Time Circuits Display](https://tcd.out-a-ti.me), is m
 
 Enter the Config Portal on the SID, click on *Settings* and
   - enter *192.168.4.1* into the field **_IP address or hostname of TCD_**
-  - check the option **_Follow TCD fake power_** if you have a fake power switch for the TCD (like eg a TFC switch)
   - click on *Save*.
 
 After the SID has restarted, re-enter the SID's Config Portal (while the TCD is powered and in *car mode*) and
