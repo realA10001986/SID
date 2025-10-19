@@ -40,7 +40,7 @@ The first step is to establish access to the SID's configuration web site ("Conf
 - Connect your computer or handheld device to the WiFi network "SID-AP".
 - Navigate your browser to http://sid.local or http://192.168.4.1 to enter the Config Portal.
 
-#### Connecting to a WiFi network
+### Connecting to a WiFi network
 
 Your SID knows two ways of WiFi operation: Either it creates its own WiFi network, or it connects to a pre-existing WiFi network.
 
@@ -56,7 +56,7 @@ It is ok to leave it in AP-mode, predominantly if used stand-alone. (To keep ope
 
 >For experts: In the following, the term "WiFi network" is used for both "WiFi network" and "ip network" for simplicity reasons. However, for BTTFN/MQTT communication, the devices must (only) be on the same IP network, regardless of how they take part in it: They can be connected to different WiFi networks, if those WiFi networks are part of the same ip network, or, in case of the MQTT broker, by wire. If the TCD operates as access point for other props, connecting a prop to the TCD's WiFi network also takes care of suitable ip network configuration through DHCP.
 
-##### &#9654; Home setup with a pre-existing local WiFi network
+#### &#9654; Home setup with a pre-existing local WiFi network
 
 In this case, you can connect your SID to your home WiFi network. This allows for wireless communication such as [BTTFN](#bttf-network-bttfn) and [HA/MQTT](#home-assistant--mqtt).
 
@@ -68,7 +68,7 @@ Click on "WiFi Configuration" and either select a network from the top of the pa
 
 >Your SID requests an IP address via DHCP, unless you entered valid data in the fields for static IP addresses (IP, gateway, netmask, DNS). If the device is inaccessible as a result of incorrect static IPs, wait until it has completed its startup sequence, then type \*123456OK on the IR remote; static IP data will be deleted and the device will return to DHCP after a reboot.
 
-##### &#9654; Places without a WiFi network
+#### &#9654; Places without a WiFi network
 
 In this case and with no [Time Circuits Display](https://tcd.out-a-ti.me) at hand, keep your SID operating in AP-mode.
 
