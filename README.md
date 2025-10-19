@@ -48,7 +48,7 @@ As long as your SID is unconfigured, it creates its own WiFi network named "SID-
 
 ![APmode](img/apmode.png)
 
-It is ok to leave it in AP-mode, predominantly if used stand-alone. (To keep operating your SID in AP-mode, simply _do not configure_ a WiFi network connection as described below.
+It is ok to leave it in AP-mode, predominantly if used stand-alone. To keep operating your SID in AP-mode, simply _do not configure_ a WiFi network connection as described below.
 
 >Please do not leave computers/handhelds permanently connected to the SID in AP-mode. These devices might think they are connected to the internet and therefore hammer your SID with DNS and HTTP requests which might lead to disruptions.
 
