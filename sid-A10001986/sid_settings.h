@@ -66,6 +66,7 @@ extern uint8_t musFolderNum;
 #define DEF_WIFI_RETRY      3     // 1-10; Default: 3 retries
 #define DEF_WIFI_TIMEOUT    7     // 7-25; Default: 7 seconds
 #define DEF_AP_CHANNEL      1     // 1-13; 0 = random(1-13)
+#define DEF_WIFI_APOFFDELAY 0
 
 #define DEF_STRICT          1     // 0: Allow random diviations from movie patterns; 1: no not
 #define DEF_SKIP_TTANIM     1     // 0: Don't skip tt anim; 1: do
@@ -99,6 +100,7 @@ struct Settings {
     char systemID[8]        = "";
     char appw[10]           = "";
     char apChnl[4]          = MS(DEF_AP_CHANNEL);
+    char wifiAPOffDelay[4]  = MS(DEF_WIFI_APOFFDELAY);
     
     char strictMode[4]      = MS(DEF_STRICT);       // saved, but overruled by idlePat config file
     char skipTTAnim[4]      = MS(DEF_SKIP_TTANIM);

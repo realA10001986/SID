@@ -420,6 +420,7 @@ static WiFiUDP       bttfMcUDP;
 static UDP*          sidMcUDP;
 #endif
 static byte          BTTFUDPBuf[BTTF_PACKET_SIZE];
+static byte          BTTFUDPTBuf[BTTF_PACKET_SIZE];
 static unsigned long BTTFNUpdateNow = 0;
 static unsigned long bttfnSIDPollInt = BTTFN_POLL_INT;
 static unsigned long BTFNTSAge = 0;
@@ -438,7 +439,6 @@ static bool          TCDSupportsRemKP = false;
 #ifdef BTTFN_MC
 static uint32_t      tcdHostNameHash = 0;
 static byte          BTTFMCBuf[BTTF_PACKET_SIZE];
-static uint8_t       bttfnMcMarker = 0;
 static IPAddress     bttfnMcIP(224, 0, 0, 224);
 #endif
 static uint32_t      bttfnSeqCnt[BTTFN_REM_MAX_COMMAND+1] = { 1 };
@@ -512,6 +512,7 @@ static bool bttfn_checkmc();
 #endif
 static void BTTFNCheckPacket();
 static bool BTTFNTriggerUpdate();
+static void BTTFNPreparePacketTemplate();
 static void BTTFNSendPacket();
 static bool BTTFNConnected();
 
@@ -1142,9 +1143,9 @@ void main_loop()
         
         } else if(!IRLearning) {
 
-            // Wake up on GPS/RotEnc speed changes
+            // Wake up on RotEnc/Remote speed changes; on GPS only if old speed was <=0
             if(gpsSpeed != oldGpsSpeed) {
-                if(FPBUnitIsOn && spdIsRotEnc && gpsSpeed >= 0) {
+                if(FPBUnitIsOn && (spdIsRotEnc || oldGpsSpeed <= 0) && gpsSpeed >= 0) {
                     wakeup();
                 }
                 oldGpsSpeed = gpsSpeed;
@@ -1202,6 +1203,7 @@ void main_loop()
             (!BTTFNBootTO && !lastBTTFNpacket && (now - powerupMillis > 60*1000)) ) {
             tcdNM = false;
             tcdFPO = false;
+            remoteAllowed = false;
             gpsSpeed = -1;
             lastBTTFNpacket = 0;
             BTTFNBootTO = true;
@@ -2386,6 +2388,21 @@ static int execute(bool isIR)
                 }
                 inputReaction = 1;
                 break;
+            case 77:                              // *77 Restart WiFi after entering Power Save
+                if(!isIRLocked && !TTrunning) {
+                    bool blocked = false;
+                    if(wifiOnWillBlock()) {
+                        flushDelayedSave();
+                        blocked = true;
+                    }
+                    // Enable WiFi / even if in AP mode / with CP
+                    wifiOn(0, true, false);
+                    if(!blocked) inputReaction = 1;
+                    else ir_remote.loop(); // Flush IR afterwards
+                } else {
+                    inputReaction = -1;
+                }
+                break;
             case 90:                              // *90  display IP address
                 if(!isIRLocked) {
                     if(!TTrunning) {
@@ -2405,7 +2422,7 @@ static int execute(bool isIR)
             case 96:                              // *96  enter TCD keypad remote control mode
                 if(!irLocked) {                   //      yes, 'irLocked' - must not be entered while IR is locked
                     if(!TTrunning) {
-                        if(BTTFNConnected() && TCDSupportsRemKP && remoteAllowed) {
+                        if(BTTFNConnected() && remoteAllowed) {
                             remMode = true;
                             inputReaction = 1;
                         } else {
@@ -2852,6 +2869,8 @@ static void bttfn_setup()
     sidMcUDP = &bttfMcUDP;
     sidMcUDP->beginMulticast(bttfnMcIP, BTTF_DEFAULT_LOCAL_PORT + 2);
     #endif
+
+    BTTFNPreparePacketTemplate();
     
     BTTFNfailCount = 0;
     useBTTFN = true;
@@ -2922,6 +2941,25 @@ static void handle_tcd_notification(uint8_t *buf)
     #endif
     
     switch(buf[5]) {
+    case BTTFN_NOT_SPD:
+        seqCnt = GET32(buf, 12);
+        if(seqCnt == 1 || seqCnt > bttfnTCDSeqCnt) {
+            gpsSpeed = (int16_t)(buf[6] | (buf[7] << 8));
+            if(gpsSpeed > 88) gpsSpeed = 88;
+            switch(buf[8] | (buf[9] << 8)) {
+            case BTTFN_SSRC_GPS:
+                spdIsRotEnc = false;
+                break;
+            default:
+                spdIsRotEnc = true;
+            }
+        } else {
+            #ifdef SID_DBG
+            Serial.printf("Out-of-sequence packet received from TCD %d %d\n", seqCnt, bttfnTCDSeqCnt);
+            #endif
+        }
+        bttfnTCDSeqCnt = seqCnt;
+        break;
     case BTTFN_NOT_PREPARE:
         // Prepare for TT. Comes at some undefined point,
         // an undefined time before the actual tt, and
@@ -2968,25 +3006,6 @@ static void handle_tcd_notification(uint8_t *buf)
         if(!TTrunning && !IRLearning) {
             wakeup();
         }
-        break;
-    case BTTFN_NOT_SPD:
-        seqCnt = GET32(buf, 12);
-        if(seqCnt == 1 || seqCnt > bttfnTCDSeqCnt) {
-            gpsSpeed = (int16_t)(buf[6] | (buf[7] << 8));
-            if(gpsSpeed > 88) gpsSpeed = 88;
-            switch(buf[8] | (buf[9] << 8)) {
-            case BTTFN_SSRC_GPS:
-                spdIsRotEnc = false;
-                break;
-            default:
-                spdIsRotEnc = true;
-            }
-        } else {
-            #ifdef SID_DBG
-            Serial.printf("Out-of-sequence packet received from TCD %d %d\n", seqCnt, bttfnTCDSeqCnt);
-            #endif
-        }
-        bttfnTCDSeqCnt = seqCnt;
         break;
     }
 }
@@ -3103,6 +3122,18 @@ static void BTTFNCheckPacket()
         }
         #endif
 
+        if(BTTFUDPBuf[5] & 0x40) {
+            bttfnReqStatus &= ~0x40;     // Do no longer poll capabilities
+            #ifdef BTTFN_MC
+            if(BTTFUDPBuf[31] & 0x01) {
+                bttfnReqStatus &= ~0x02; // Do no longer poll speed, comes over multicast
+            }
+            #endif
+            if(BTTFUDPBuf[31] & 0x08) {
+                TCDSupportsRemKP = true;
+            }
+        }
+
         if(BTTFUDPBuf[5] & 0x01) {
             memcpy(bttfnDateBuf, &BTTFUDPBuf[10], sizeof(bttfnDateBuf));
             bttfnDateNow = mymillis;
@@ -3117,24 +3148,11 @@ static void BTTFNCheckPacket()
         if(BTTFUDPBuf[5] & 0x10) {
             tcdNM  = (BTTFUDPBuf[26] & 0x01) ? true : false;
             tcdFPO = (BTTFUDPBuf[26] & 0x02) ? true : false;   // 1 means fake power off
-            remoteAllowed = (BTTFUDPBuf[26] & 0x08) ? true : false;
+            remoteAllowed = (BTTFUDPBuf[26] & 0x08) ? TCDSupportsRemKP : false;
         } else {
             tcdNM = false;
             tcdFPO = false;
             remoteAllowed = false;
-        }
-
-        if(BTTFUDPBuf[5] & 0x40) {
-            bttfnReqStatus &= ~0x40;     // Do no longer poll capabilities
-            #ifdef BTTFN_MC
-            if(BTTFUDPBuf[31] & 0x01) {
-                bttfnMcMarker = BTTFN_SUP_MC;
-                bttfnReqStatus &= ~0x02; // Do no longer poll speed, comes over multicast
-            }
-            #endif
-            if(BTTFUDPBuf[31] & 0x08) {
-                TCDSupportsRemKP = true;
-            }
         }
 
         lastBTTFNpacket = mymillis;
@@ -3164,28 +3182,33 @@ static bool BTTFNTriggerUpdate()
     return true;
 }
 
-static void BTTFNPreparePacket()
+static void BTTFNPreparePacketTemplate()
 {
-    memset(BTTFUDPBuf, 0, BTTF_PACKET_SIZE);
+    memset(BTTFUDPTBuf, 0, BTTF_PACKET_SIZE);
 
     // ID
-    memcpy(BTTFUDPBuf, BTTFUDPHD, 4);
+    memcpy(BTTFUDPTBuf, BTTFUDPHD, 4);
 
-    // Tell the TCD about our hostname (0-term., 13 bytes total)
-    strncpy((char *)BTTFUDPBuf + 10, settings.hostName, 12);
-    BTTFUDPBuf[10+12] = 0;
+    // Tell the TCD about our hostname
+    // 13 bytes total. If hostname is longer, last in buf is '.'
+    memcpy(BTTFUDPTBuf + 10, settings.hostName, 13);
+    if(strlen(settings.hostName) > 13) BTTFUDPTBuf[10+12] = '.';
 
-    BTTFUDPBuf[10+13] = BTTFN_TYPE_SID;
+    BTTFUDPTBuf[10+13] = BTTFN_TYPE_SID;
 
     // Version, MC-marker
+    BTTFUDPTBuf[4] = BTTFN_VERSION;
     #ifdef BTTFN_MC
-    BTTFUDPBuf[4] = BTTFN_VERSION | bttfnMcMarker;  
-    #else
-    BTTFUDPBuf[4] = BTTFN_VERSION;
+    BTTFUDPTBuf[4] |= BTTFN_SUP_MC;
     #endif
 
     // Remote-ID
-    SET32(BTTFUDPBuf, 35, myRemID);                 
+    SET32(BTTFUDPTBuf, 35, myRemID);
+}
+
+static void BTTFNPreparePacket()
+{
+    memcpy(BTTFUDPBuf, BTTFUDPTBuf, BTTF_PACKET_SIZE);               
 }
 
 static void BTTFNDispatch()
@@ -3276,7 +3299,7 @@ static bool bttfn_trigger_tt()
 
 static bool bttfn_send_command(uint8_t cmd, uint8_t p1, uint8_t p2)
 {
-    if(!TCDSupportsRemKP || !remoteAllowed)
+    if(!remoteAllowed)
         return false;
         
     if(!BTTFNConnected())
@@ -3284,7 +3307,7 @@ static bool bttfn_send_command(uint8_t cmd, uint8_t p1, uint8_t p2)
 
     BTTFNPreparePacket();
     
-    BTTFUDPBuf[5] = 0x00;
+    //BTTFUDPBuf[5] = 0x00;   // 0 already
 
     SET32(BTTFUDPBuf, 6, bttfnSeqCnt[cmd]);
     bttfnSeqCnt[cmd]++;
