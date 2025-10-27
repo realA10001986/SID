@@ -460,7 +460,7 @@ The timer can be set to 0 (which disables it; WiFi is never switched off; this i
 
 After WiFi has been switched off due to timer expiration, it can be re-enabled by entering *77 followed by OK, in which case the timers are restarted (ie WiFi is again switched off after timer expiration).
 
-This command is also used to trigger a re-connection attempt in case your configured WiFi network was not available when the Remote was trying to connect, see [here](#-home-setup-with-a-pre-existing-local-wifi-network).
+> This command is also used to trigger a re-connection attempt in case your configured WiFi network was not available when the SID was trying to connect, see [here](#-home-setup-with-a-pre-existing-local-wifi-network).
 
 ## Flash Wear
 
