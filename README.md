@@ -50,13 +50,18 @@ As long as your SID is unconfigured, it creates its own WiFi network named "SID-
 
 It is ok to leave it in AP-mode, predominantly if used stand-alone. To keep operating your SID in AP-mode, simply _do not configure_ a WiFi network connection as described below.
 
+<details>
+<summary>More...</summary>
+
 >Please do not leave computers/handhelds permanently connected to the SID in AP-mode. These devices might think they are connected to the internet and therefore hammer your SID with DNS and HTTP requests which might lead to disruptions.
 
 >If you wish for your device to remain in AP-mode, please select a suitable WiFi channel on the Config Portal's "WiFi Configuration" page. See [here](#-wifi-channel).
 
 > In AP-mode, the SID can switch off WiFi to save power. See [here](#wifi-power-saving-features).
 
-#### &#9654; Home setup with a pre-existing local WiFi network
+</details>
+
+#### Home setup with a pre-existing local WiFi network
 
 In this case, you can connect your SID to your home WiFi network. This allows for inter-prop-communication ([BTTFN](#bttf-network-bttfn)) and [HA/MQTT](#home-assistant--mqtt).
 
@@ -64,11 +69,16 @@ In this case, you can connect your SID to your home WiFi network. This allows fo
 
 Click on "WiFi Configuration" and either select a network from the top of the page or enter a WiFi network name (SSID), and enter your WiFi password. After saving the WiFi network settings, your SID reboots and tries to connect to your selected WiFi network.
 
+<details>
+<summary>More...</summary>
+  
 >Your SID requests an IP address via DHCP, unless you entered valid data in the fields for static IP addresses (IP, gateway, netmask, DNS). If the device is inaccessible as a result of incorrect static IPs, wait until it has completed its startup sequence, then type \*123456OK on the IR remote; static IP data will be deleted and the device will return to DHCP after a reboot.
+
+</details>
 
 If the SID fails to connect, it falls back to AP-mode. You can trigger another connection attempt by entering *77 followed by OK.
 
-#### &#9654; Places without a WiFi network
+#### Places without a WiFi network
 
 In this case and with no [Time Circuits Display](https://tcd.out-a-ti.me) at hand, keep your SID operating in AP-mode.
 
@@ -76,7 +86,7 @@ If you have a TCD, you can connect your SID to the TCD's own WiFi network:
 
 ![STAmode-car](img/stamode-car.png)
 
-Run the TCD in AP-Mode, and on your SID's Config Portal, click on "WiFi Configuration" and either select "TCD-AP" from the top of the page or enter "TCD-AP" under *Network name (SSID)*. If you password-protected your TCD-AP, enter this password below. See [here](#car-setup) for more details.
+This setup is meant for cars, but suitable for any place with no WiFi network. See [here](#car-setup) for details.
 
 After completing WiFi setup, your SID is ready for use; you can also continue configuring it to your personal preferences through the Config Portal.
 
@@ -99,11 +109,11 @@ It can be accessed as follows:
 #### If SID is connected to a WiFi network
 
 - Connect your handheld/computer to the same (WiFi) network to which the SID is connected, and
-- navigate your browser to http://sid.local
+- navigate your browser to http://sid.local  <details><summary>More...</summary>
 
   >Accessing the Config Portal through this address requires the operating system of your handheld/computer to support Bonjour/mDNS: Windows 10 version TH2     (1511) [other sources say 1703] and later, Android 13 and later; MacOS and iOS since the dawn of time.
 
-  >If connecting to http://sid.local fails due to a name resolution error, you need to find out the SID's IP address: Type *90 followed by OK on the remote control; the IP address will be shown on the display. Then, on your handheld or computer, navigate to http://a.b.c.d (a.b.c.d being the IP address as shown on the SID's display) in order to enter the Config Portal.
+  >If connecting to http://sid.local fails due to a name resolution error, you need to find out the SID's IP address: Type *90 followed by OK on the remote control; the IP address will be shown on the display. Then, on your handheld or computer, navigate to http://a.b.c.d (a.b.c.d being the IP address as shown on the SID's display) in order to enter the Config Portal.</details>
 
 In the main menu, click on "Setup" to configure your SID. 
 
@@ -472,15 +482,15 @@ In order to reduce the number of write operations and thereby prolong the life o
 
 ### Main page
 
-##### &#9654; WiFi Configuration
+##### &#9193; WiFi Configuration
 
 This leads to the [WiFi configuration page](#wifi-configuration)
 
-##### &#9654; Settings
+##### &#9193; Settings
 
 This leads to the [Settings page](#settings).
 
-##### &#9654; Update
+##### &#9193; Update
 
 This leads to the firmware update page. You can select a locally stored firmware image file to upload (such as the ones published here in the install/ folder).
 
@@ -496,11 +506,11 @@ In order to connect your SID to your WiFi network, all you need to do is either 
 
 >By default, the SID requests an IP address via DHCP. However, you can also configure a static IP for the SID by entering the IP, netmask, gateway and DNS server. All four fields must be filled for a valid static IP configuration. If you want to stick to DHCP, leave those four fields empty. If you connect your SID to your Time Circuits Display acting as access point ("TCD-AP"), leave these all empty.
 
-##### &#9654; Forget Saved WiFi Network
+##### &#9193; Forget Saved WiFi Network
 
 Checking this box (and clicking SAVE) deletes the currently saved WiFi network (SSID and password as well as static IP data) and reboots the device; it will restart in "access point" (AP) mode. See [here](#connecting-to-a-wifi-network).
 
-##### &#9654; Hostname
+##### &#9193; Hostname
 
 The device's hostname in the WiFi network. Defaults to 'sid'. This also is the domain name at which the Config Portal is accessible from a browser in the same local network. The URL of the Config Portal then is http://<i>hostname</i>.local (the default is http://sid.local)
 
@@ -508,27 +518,27 @@ If you have more than one SID in your local network, please give them unique hos
 
 _This setting applies to both AP-mode and when your SID is connected to a WiFi network._ 
 
-##### &#9654; WiFi connection attempts
+##### &#9193; WiFi connection attempts
 
 Number of times the firmware tries to reconnect to a WiFi network, before falling back to AP-mode. See [here](#connecting-to-a-wifi-network)
 
-##### &#9654; WiFi connection timeout
+##### &#9193; WiFi connection timeout
 
 Number of seconds before a timeout occurs when connecting to a WiFi network. When a timeout happens, another attempt is made (see immediately above), and if all attempts fail, the device falls back to AP-mode. See [here](#connecting-to-a-wifi-network)
 
 #### <ins>Settings for AP-mode</ins>
 
-##### &#9654; Network name (SSID) appendix
+##### &#9193; Network name (SSID) appendix
 
 By default, when your SID creates a WiFi network of its own ("AP-mode"), this network is named "SID-AP". In case you have multiple SIDs in your vicinity, you can have a string appended to create a unique network name. If you, for instance, enter "-ABC" here, the WiFi network name will be "SID-AP-ABC". Characters A-Z, a-z, 0-9 and - are allowed.
 
-##### &#9654; Password
+##### &#9193; Password
 
 By default, and if this field is empty, the SID's own WiFi network ("SID-AP") will be unprotected. If you want to protect your SID access point, enter your password here. It needs to be 8 characters in length and only characters A-Z, a-z, 0-9 and - are allowed.
 
 If you forget this password and are thereby locked out of your SID, enter *123456 followed by OK on the IR remote control; this deletes the WiFi password. Then power-down and power-up your SID and the access point will start unprotected.
 
-##### &#9654; WiFi channel
+##### &#9193; WiFi channel
 
 Here you can select one out of 11 channels, or have the SID choose a random channel for you. The default channel is 1. Preferred are channels 1, 6 and 11.
 
@@ -541,7 +551,7 @@ If a WiFi Scan was done (which can be triggered by clicking "WiFI Scan"),
 
 The channel proposition is based on all WiFi networks found; it does not take non-WiFi equipment (baby monitors, cordless phones, Bluetooth devices, microwave ovens, etc) into account.
 
-##### &#9654; Power save timer
+##### &#9193; Power save timer
 
 See [here](#wifi-power-saving-features).
 
@@ -551,25 +561,25 @@ See [here](#wifi-power-saving-features).
 
 #### <ins>Basic settings</ins>
 
-##### &#9654; Adhere strictly to movie patterns
+##### &#9193; Adhere strictly to movie patterns
 
 If this option is checked, in idle modes 0-3 as well as when using GPS speed, only patterns which were extracted from the movies (plus some interpolations) are shown. If this option is unchecked, random variations will be shown, which is less accurate, but also less monotonous. Purists will want this option to be set, which is also the default. This option can also be changed by typing *50 followed by OK on the IR remote control.
 
 Note that this option setting, along with the current idle pattern, is only saved if there is an SD card present. Without an SD card, this setting is always reset to "checked" upon power-up.
 
-##### &#9654; Skip time tunnel animation
+##### &#9193; Skip time tunnel animation
 
 When set, the time travel sequence will not be animated (no flicker, no "moving bar"). Purists will want this option to be set; the default is unset.
 
-##### &#9654; Boot into Spectrum Analyzer
+##### &#9193; Boot into Spectrum Analyzer
 
 If this is checked, when the SID boots, it automatically enables the Spectrum Analyzer. If unchecked, it boots into idle mode.
 
-##### &#9654; Show peaks in Spectrum Analyzer
+##### &#9193; Show peaks in Spectrum Analyzer
 
 This selects the boot-up setting for showing or not showing the peaks in the Spectrum Analyzer. Can be changed anytime by typing *51 followed by OK on the IR remote control.
 
-##### &#9654; Screen saver timer
+##### &#9193; Screen saver timer
 
 Enter the number of minutes until the Screen Saver should become active when the SID is idle.
 
@@ -580,49 +590,49 @@ The Screen Saver, when active, disables all LEDs, until
 
 #### <ins>Settings for BTTFN communication</ins>
 
-##### &#9654; IP address or hostname of TCD
+##### &#9193; IP address or hostname of TCD
 
 If you want to have your SID to communicate with a Time Circuits Display wirelessly ("BTTF-Network"), enter the TCD's hostname - usually 'timecircuits' - or IP address here.
 
 If you connect your SID to the TCD's access point ("TCD-AP"), the TCD's IP address is 192.168.4.1.
 
-##### &#9654; Adapt to GPS speed
+##### &#9193; Adapt to GPS speed
 
 If this option is checked and your TCD is equipped with a GPS receiver or a rotary encoder, the SID will adapt its display pattern to current GPS speed or the reading of the encoder, respectively.
 
-##### &#9654; Follow TCD night-mode
+##### &#9193; Follow TCD night-mode
 
 If this option is checked, and your TCD goes into night mode, the SID will activate the Screen Saver with a very short timeout. 
 
-##### &#9654; Follow TCD fake power
+##### &#9193; Follow TCD fake power
 
 If this option is checked, and your TCD is equipped with a fake power switch, the SID will also fake-power up/down. If fake power is off, no LED is active and the SID will ignore all input from buttons, knobs and the IR control.
 
-##### &#9654; '0' and button trigger BTTFN-wide TT
+##### &#9193; '0' and button trigger BTTFN-wide TT
 
 If the SID is connected to a TCD through BTTFN, this option allows to trigger a synchronized time travel on all BTTFN-connected devices when pressing "0" on the IR remote control or pressing the Time Travel button, just as if the Time Travel was triggered by the TCD. If this option is unchecked, pressing "0" or the Time Travel button only triggers a Time Travel sequence on the SID.
 
-##### &#9654; Show clock when Screen Saver is active
+##### &#9193; Show clock when Screen Saver is active
 
 If this option is checked, the SID will show current local time - as queried from the TCD - when the Screen Saver is active.
 
 #### <ins>Home Assistant / MQTT settings</ins>
 
-##### &#9654; Use Home Assistant (MQTT 3.1.1)
+##### &#9193; Use Home Assistant (MQTT 3.1.1)
 
 If checked, the SID will connect to the broker (if configured) and send and receive messages via [MQTT](#home-assistant--mqtt)
 
-##### &#9654; Broker IP[:port] or domain[:port]
+##### &#9193; Broker IP[:port] or domain[:port]
 
 The broker server address. Can be a domain (eg. "myhome.me") or an IP address (eg "192.168.1.5"). The default port is 1883. If different port is to be used, it can be specified after the domain/IP and a colon ":", for example: "192.168.1.5:1884". Specifying the IP address is preferred over a domain since the DNS call adds to the network overhead. Note that ".local" (MDNS) domains are not supported.
 
-##### &#9654; User[:Password]
+##### &#9193; User[:Password]
 
 The username (and optionally the password) to be used when connecting to the broker. Can be left empty if the broker accepts anonymous logins.
 
 #### <ins>Settings for wired connections</ins>
 
-##### &#9654; TCD connected by wire
+##### &#9193; TCD connected by wire
 
 Check this if you have a Time Circuits Display connected by wire. Note that a wired connection only allows for synchronized time travel sequences, no other communication takes place.
 
@@ -630,7 +640,7 @@ While you can connect both a button and the TCD to the "time travel" connector o
 
 Do NOT check this option if your TCD is connected wirelessly (BTTFN, MQTT).
 
-##### &#9654; TCD signals Time Travel without 5s lead
+##### &#9193; TCD signals Time Travel without 5s lead
 
 Usually, the TCD signals a time travel with a 5 second lead, in order to give a prop a chance to play an acceleration sequence before the actual time travel takes place. Since this 5 second lead is unique to CircuitSetup props, and people sometimes want to connect third party props to the TCD, the TCD has the option of skipping this 5 second lead. If that is the case, and your SID is connected by wire, you need to set this option.
 
@@ -638,7 +648,7 @@ If your SID is connected wirelessly, this option has no effect.
 
 #### <ins>Other settings</ins>
 
-##### &#9654; Save secondary settings on SD
+##### &#9193; Save secondary settings on SD
 
 If this is checked, secondary settings (brightness, IR lock status, learned IR keys) are stored on the SD card (if one is present). This helps to minimize write operations to the internal flash memory and to prolong the lifetime of your SID. See [Flash Wear](#flash-wear).
 
@@ -655,7 +665,7 @@ This procedure ensures that all your settings are copied from the old to the new
 
 #### <ins>Hardware configuration settings</ins>
 
-##### &#9654; Disable supplied IR remote control
+##### &#9193; Disable supplied IR remote control
 
 Check this to disable the supplied remote control; the SID will only accept commands from a learned IR remote (if applicable). 
 
