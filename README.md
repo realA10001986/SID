@@ -404,7 +404,12 @@ _Do not connect 3_3V to the TCD!_
 
 Next, head to the Config Portal and set the option **_TCD connected by wire_**. On the TCD, the option "Control props connected by wire" must be set.
 
+<details>
+<summary>More...</summary>
+
 >You can connect both the TCD and a button to the TT connector. But the button should not be pressed when the option **_TCD connected by wire_** is set, as it might yield unwanted results. Also, note that the button connects IO13 to 3_3V (not GND!).
+
+</details>
 
 ## Home Assistant / MQTT
 
