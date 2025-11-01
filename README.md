@@ -266,7 +266,7 @@ In order to only disable the supplied IR remote control, check the option **_Dis
      <td align="left">*71&#9166;</td><td>6071</td>
     </tr>
     <tr>
-     <td align="left"><a href="#wifi-power-saving-features">Re-enable WiFi</a> or re-try to <a href="#-home-setup-with-a-pre-existing-local-wifi-network">connect to WiFi</a></td>
+     <td align="left"><a href="#wifi-power-saving-features">Re-enable WiFi</a> or re-try to <a href="#home-setup-with-a-pre-existing-local-wifi-network">connect to WiFi</a></td>
      <td align="left">*77&#9166;</td><td>-</td>
     </tr>
     <tr>
@@ -480,7 +480,7 @@ The timer can be set to 0 (which disables it; WiFi is never switched off; this i
 
 After WiFi has been switched off due to timer expiration, it can be re-enabled by entering *77 followed by OK, in which case the timers are restarted (ie WiFi is again switched off after timer expiration).
 
-> This command is also used to trigger a re-connection attempt in case your configured WiFi network was not available when the SID was trying to connect, see [here](#-home-setup-with-a-pre-existing-local-wifi-network).
+> This command is also used to trigger a re-connection attempt in case your configured WiFi network was not available when the SID was trying to connect, see [here](#home-setup-with-a-pre-existing-local-wifi-network).
 
 ## Flash Wear
 
