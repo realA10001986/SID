@@ -474,7 +474,7 @@ static void handleIRinput();
 static void handleIRKey(int command);
 static void handleRemoteCommand();
 static void clearInpBuf();
-static int  execute(bool isIR);
+static int  execute(bool isIR, bool injected);
 static void startIRfeedback();
 static void endIRfeedback();
 
@@ -765,7 +765,9 @@ void main_loop()
         if(ir_remote.loop()) {
             handleIRinput();
         }
-        handleRemoteCommand();
+        if(!IRLearning) {
+            handleRemoteCommand();
+        }
     }
 
     // Spectrum analyzer / Siddly / Snake loops
@@ -2172,7 +2174,7 @@ static void handleIRKey(int key)
         }
         break;
     case 16:                          // ENTER: Execute code command
-        doInpReaction = execute(true);
+        doInpReaction = execute(true, false);
         clearInpBuf();
         break;
     default:
@@ -2192,6 +2194,7 @@ static void handleRemoteCommand()
 {
     uint32_t command = commandQueue[oCmdIdx];
     int      doInpReaction = 0;
+    bool     injected = false;
 
     if(!command)
         return;
@@ -2204,6 +2207,11 @@ static void handleRemoteCommand()
         ssEnd();
     }
     ssRestartTimer();
+
+    if(command & 0x80000000) {
+        injected = true;
+        command &= ~0x80000000;
+    }
 
     // Some translation
     if(command < 10) {
@@ -2258,6 +2266,10 @@ static void handleRemoteCommand()
           
             sprintf(inputBuffer, "%03d", command);
             
+        } else if(command < 10000) {
+      
+            sprintf(inputBuffer, "%04d", command);
+        
         } else if(command < 100000) {
     
             sprintf(inputBuffer, "%05d", command);
@@ -2268,36 +2280,39 @@ static void handleRemoteCommand()
     
         }
     
-        doInpReaction = execute(false);
+        doInpReaction = execute(false, injected);
 
         // Restore current IR input buffer
         memcpy(inputBuffer, inputBackup, sizeof(inputBuffer));
 
     }
 
+    // Remote commands do now show positive IR feedback, only error
     if(doInpReaction < 0) {
         startIRErrFeedback();
-    } else if(doInpReaction > 0) {
+    } /*else if(doInpReaction > 0 && !injected) {
         startIRfeedback();
         irFeedBack = true;
         irFeedBackNow = millis();
         irFeedBackDur = 1000;
-    }
+    }*/
 }
 
-static int execute(bool isIR)
+static int execute(bool isIR, bool injected)
 {
     int  inputReaction = 0;
-    bool isIRLocked = isIR ? irLocked : false;
+    bool isIRLocked = (isIR && !injected) ? irLocked : false;
     uint16_t temp;
     unsigned long now = millis();
 
     switch(strlen(inputBuffer)) {
+
     case 1:
         if(!isIRLocked) {
             inputReaction = -1;
         }
         break;
+
     case 2:
         temp = atoi(inputBuffer);
         if(temp >= 10 && temp <= 19) {            // *10-*15 idle pattern
@@ -2389,7 +2404,7 @@ static int execute(bool isIR)
                 inputReaction = 1;
                 break;
             case 77:                              // *77 Restart WiFi after entering Power Save
-                if(!isIRLocked && !TTrunning) {
+                if(isIR && !isIRLocked && !TTrunning && !injected) {
                     bool blocked = false;
                     if(wifiOnWillBlock()) {
                         flushDelayedSave();
@@ -2420,7 +2435,7 @@ static int execute(bool isIR)
                 }
                 break;
             case 96:                              // *96  enter TCD keypad remote control mode
-                if(!irLocked) {                   //      yes, 'irLocked' - must not be entered while IR is locked
+                if(!irLocked && !injected) {      //      yes, 'irLocked' - must not be entered while IR is locked
                     if(!TTrunning) {
                         if(BTTFNConnected() && remoteAllowed) {
                             remMode = true;
@@ -2438,6 +2453,7 @@ static int execute(bool isIR)
             }
         }
         break;
+
     case 3:
         if(!isIRLocked) {
             temp = atoi(inputBuffer);
@@ -2453,9 +2469,30 @@ static int execute(bool isIR)
             }
         }
         break;
+
+    case 4:                                               // 1000 - 9999 MQTT commands
+
+        if(!isIR && !injected) {
+                  
+            temp = atoi(inputBuffer) - 1000;
+
+            switch(temp) {
+            case 0:
+                // Trigger Time Travel; treated like button, not
+                // like TT from TCD.
+                if(!TTrunning) {
+                    networkTimeTravel = true;
+                    networkTCDTT = false;
+                }
+                break;
+            }
+        }
+
+        break;
+            
     case 5:
         if(!isIRLocked) {
-            if(!strcmp(inputBuffer, "64738")) {
+            if(!strcmp(inputBuffer, "64738") && !injected) {
                 prepareReboot();
                 delay(500);
                 esp_restart();
@@ -2463,10 +2500,11 @@ static int execute(bool isIR)
             inputReaction = -1;
         }
         break;
+
     case 6:
         if(!isIRLocked) {
             if(!TTrunning) {
-                if(!strcmp(inputBuffer, "123456")) {
+                if(!strcmp(inputBuffer, "123456") && !injected) {
                     flushDelayedSave();
                     deleteIpSettings();               // *123456OK deletes IP settings
                     if(settings.appw[0]) {
@@ -2474,13 +2512,13 @@ static int execute(bool isIR)
                         write_settings();
                     }
                     inputReaction = 1;
-                } else if(!strcmp(inputBuffer, "654321")) {
+                } else if(!strcmp(inputBuffer, "654321") && !injected) {
                     deleteIRKeys();                   // *654321OK deletes learned IR remote
                     for(int i = 0; i < NUM_IR_KEYS; i++) {
                         remote_codes[i][1] = 0;
                     }
                     inputReaction = 1;
-                } else if(!strcmp(inputBuffer, "987654")) {
+                } else if(!strcmp(inputBuffer, "987654") && !injected) {
                     triggerIRLN = true;               // *987654OK initates IR learning
                     triggerIRLNNow = millis();
                     inputReaction = 1;
@@ -2827,7 +2865,7 @@ void mydelay(unsigned long mydel, bool withIR)
  * Basic Telematics Transmission Framework (BTTFN)
  */
 
-static void addCmdQueue(uint32_t command)
+void addCmdQueue(uint32_t command)
 {
     #ifdef SID_DBG
     Serial.printf("Received command %d\n", command);

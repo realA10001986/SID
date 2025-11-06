@@ -110,6 +110,7 @@ void setIdleMode(int idleNo);
 void switch_to_idle();
 void switch_to_sa();
 
+void addCmdQueue(uint32_t command);
 void bttfn_loop();
 
 #endif

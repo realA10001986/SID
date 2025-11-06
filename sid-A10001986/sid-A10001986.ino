@@ -104,13 +104,19 @@
 
 /*  Changelog
  *  
+ *  2025/11/05 (A10001986) [1.59]
+ *    - Add MQTT command "INJECT_"
+ *  2025/11/04 (A10001986)
+ *    - Put MQTT commands in command queue instead of executing them directly.
+ *  2025/11/02 (A10001986)
+ *    - WM: Generate HTML for checkboxes on-the-fly.
  *  2025/10/26 (A10001986) [1.58.1]
  *    - BTTFN: Fix hostname length issues; code optimizations; minor fix for mc 
  *      notifications. Breaks support for TCD firmwares < 3.2.
  *      Recommend to update all props' firmwares for similar fixes.
  *  2025/10/24 (A10001986)
  *    - Add WiFi power saving for AP-mode, and user-triggered WiFi connect retry. 
- *      Command sequence *77OK is to a) restart WiFi after entering PS mode, 2)
+ *      Command sequence *77OK is to 1) restart WiFi after entering PS mode, 2)
  *      trigger a connection attempt if configured WiFi could not be connected
  *      to during boot.
  *    - WM: Fix AP shutdown; handle mDNS
