@@ -266,7 +266,7 @@ In order to only disable the supplied IR remote control, check the option **_Dis
      <td align="left">*71&#9166;</td><td>6071</td>
     </tr>
     <tr>
-     <td align="left"><a href="#wifi-power-saving-features">Re-enable WiFi</a> or re-try to <a href="#home-setup-with-a-pre-existing-local-wifi-network">connect to WiFi</a></td>
+     <td align="left"><a href="#wifi-power-saving-features">Re-enable WiFi</a> or re-try to <a href="#home-setup-with-a-pre-existing-local-wifi-network">connect to WiFi<sup>1</sup></a></td>
      <td align="left">*77&#9166;</td><td>-</td>
     </tr>
     <tr>
@@ -274,7 +274,7 @@ In order to only disable the supplied IR remote control, check the option **_Dis
      <td align="left">*90&#9166;</td><td>6090</td>
     </tr>
     <tr>
-     <td align="left">Enter <a href="#remote-controlling-the-tcds-keypad">TCD keypad remote control mode</a></td>
+     <td align="left">Enter <a href="#remote-controlling-the-tcds-keypad">TCD keypad remote control mode<sup>1</sup></a></td>
      <td align="left">*96&#9166;</td><td>6096</td>
     </tr>
    <tr>
@@ -282,22 +282,24 @@ In order to only disable the supplied IR remote control, check the option **_Dis
      <td align="left">*400&#9166; - *415&#9166;</td><td>6400-6415</td>
     </tr>
     <tr>
-     <td align="left">Reboot the device</td>
+     <td align="left">Reboot the device<sup>1</sup></td>
      <td align="left">*64738&#9166;</td><td>6064738</td>
     </tr>
     <tr>
-     <td align="left">Delete static IP address<br>and WiFi-AP password</td>
+     <td align="left">Delete static IP address<br>and WiFi-AP password<sup>1</sup></td>
      <td align="left">*123456&#9166;</td><td>6123456</td>
     </tr>
     <tr>
-     <td align="left">Start IR remote <a href="#ir-learning">learning process</a></td>
+     <td align="left">Start IR remote <a href="#ir-learning">learning process<sup>1</sup></a></td>
      <td align="left">*987654&#9166;</td><td>6987654</td>
     </tr>
     <tr>
-     <td align="left">Delete learned IR remote control</td>
+     <td align="left">Delete learned IR remote control<sup>1</sup></td>
      <td align="left">*654321&#9166;</td><td>6654321</td>
     </tr>
 </table>
+
+1: Not supported through HA/MQTT [_INJECT_](#the-inject_x-command) command
 
 [Here](https://github.com/realA10001986/SID/blob/main/CheatSheet.pdf) is a cheat sheet for printing or screen-use. (Note that MacOS' preview application has a bug that scrambles the links in the document. Acrobat Reader does it correctly.)
 
@@ -371,9 +373,9 @@ You can use BTTF-Network and MQTT at the same time, see [below](#home-assistant-
 
 The SID can, through its IR remote control, remote control the TCD keypad. The TCD will react to pressing a key on the IR remote as if that key was pressed on the TCD keypad.
 
-In order to start TCD keypad remote control, type *96OK on the SID's IR remote control.
+In order to start TCD keypad remote control, type *96OK on the SID's IR remote control, enter 6096 on the TCD keypad or issue command INJECT_96 through HA/MQTT.
 
-Keys 0-9 as well as OK (=ENTER) will now be registered by the TCD as key presses.
+Keys 0-9 as well as OK (=ENTER) on your IR remote control will now be registered by the TCD as key presses.
 
 "Holding" a key on the TCD keypad is emulated by pressing * followed by the key, for instance *1 (in order to toggle the TCD alarm). Only keys 0-9 can be "held".
 
@@ -422,11 +424,22 @@ The SID supports the MQTT protocol version 3.1.1 for the following features:
 
 ### Control the SID via MQTT
 
-The SID can - to a some extent - be controlled through messages sent to topic **bttf/sid/cmd**. Supported commands are
+The SID can be controlled through messages sent to topic **bttf/sid/cmd**. Supported commands are
 - TIMETRAVEL: Start a [time travel](#time-travel)
 - IDLE: Switch to idle mode
 - SA: Start spectrum analyzer
 - IDLE_0, IDLE_1, IDLE_2, IDLE_3, IDLE_4: Select idle pattern
+- INJECT_x: See immediately below.
+
+#### The INJECT_x command
+
+This command allows remote control of your SID through HA/MQTT in the same way as through the TCD keypad by injecting commands in the SID's command queue (hence the name). Commands are listed [here](#remote-command-reference); nearly all are supported. The command is to be specified like the IR remote control sequence but without the "*". For example:
+
+To set idle pattern #4 (*14), issue the following command: **INJECT_14**
+
+To start the Spectrum Analyzer (*21), issue **INJECT_21**
+
+To set the brightness level to 15 (*415), issue **INJECT_415**
 
 ### Receive commands from Time Circuits Display
 
