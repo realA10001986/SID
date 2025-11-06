@@ -266,7 +266,7 @@ In order to only disable the supplied IR remote control, check the option **_Dis
      <td align="left">*71&#9166;</td><td>6071</td>
     </tr>
     <tr>
-     <td align="left"><a href="#wifi-power-saving-features">Re-enable WiFi</a> or re-try to <a href="#home-setup-with-a-pre-existing-local-wifi-network">connect to WiFi<sup>1</sup></a></td>
+     <td align="left"><a href="#wifi-power-saving-features">Re-enable WiFi</a> or re-try to <a href="#home-setup-with-a-pre-existing-local-wifi-network">connect to WiFi</a><sup>1</sup></td>
      <td align="left">*77&#9166;</td><td>-</td>
     </tr>
     <tr>
@@ -274,7 +274,7 @@ In order to only disable the supplied IR remote control, check the option **_Dis
      <td align="left">*90&#9166;</td><td>6090</td>
     </tr>
     <tr>
-     <td align="left">Enter <a href="#remote-controlling-the-tcds-keypad">TCD keypad remote control mode<sup>1</sup></a></td>
+     <td align="left">Enter <a href="#remote-controlling-the-tcds-keypad">TCD keypad remote control mode</a><sup>1</sup></td>
      <td align="left">*96&#9166;</td><td>6096</td>
     </tr>
    <tr>
@@ -290,7 +290,7 @@ In order to only disable the supplied IR remote control, check the option **_Dis
      <td align="left">*123456&#9166;</td><td>6123456</td>
     </tr>
     <tr>
-     <td align="left">Start IR remote <a href="#ir-learning">learning process<sup>1</sup></a></td>
+     <td align="left">Start IR remote <a href="#ir-learning">learning process</a><sup>1</sup></td>
      <td align="left">*987654&#9166;</td><td>6987654</td>
     </tr>
     <tr>
@@ -433,7 +433,7 @@ The SID can be controlled through messages sent to topic **bttf/sid/cmd**. Suppo
 
 #### The INJECT_x command
 
-This command allows remote control of your SID through HA/MQTT in the same way as through the TCD keypad by injecting commands in the SID's command queue (hence the name). Commands are listed [here](#remote-control-reference); nearly all are supported. The command is to be specified like the IR remote control sequence but without the "*". For example:
+This command allows remote control of your SID through HA/MQTT in the same way as through the TCD keypad by injecting commands in the SID's command queue (hence the name). Commands are listed [here](#remote-control-reference) unter "Special key sequences"; nearly all are supported. The command is to be specified like the IR remote control sequence but without the "*". For example:
 
 To set idle pattern #4 (*14), issue the following command: **INJECT_14**
 
