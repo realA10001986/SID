@@ -212,7 +212,7 @@ In order to only disable the supplied IR remote control, check the option **_Dis
     </tr>
 </table>
 
-<table>
+<table id='special_key_sequences'>
     <tr>
      <td align="center" colspan="3">Special sequences<br>(&#9166; = OK key)</td>
     </tr>
@@ -433,7 +433,7 @@ The SID can be controlled through messages sent to topic **bttf/sid/cmd**. Suppo
 
 #### The INJECT_x command
 
-This command allows remote control of your SID through HA/MQTT in the same way as through the TCD keypad by injecting commands in the SID's command queue (hence the name). Commands are listed [here](#remote-control-reference) unter "Special key sequences"; nearly all are supported. The command is to be specified like the IR remote control sequence but without the "*". For example:
+This command allows remote control of your SID through HA/MQTT in the same way as through the TCD keypad by injecting commands in the SID's command queue (hence the name). Commands are listed [here](#special_key_sequences); nearly all are supported. The command is to be specified like the IR remote control sequence but without the "*". For example:
 
 To set idle pattern #4 (*14), issue the following command: **INJECT_14**
 
