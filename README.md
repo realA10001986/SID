@@ -373,7 +373,7 @@ You can use BTTF-Network and MQTT at the same time, see [below](#home-assistant-
 
 The SID can, through its IR remote control, remote control the TCD keypad. The TCD will react to pressing a key on the IR remote as if that key was pressed on the TCD keypad.
 
-In order to start TCD keypad remote control, type *96OK on the SID's IR remote control, enter 6096 on the TCD keypad or issue command INJECT_96 through HA/MQTT.
+In order to start TCD keypad remote control, type *96OK on the SID's IR remote control or enter 6096 on the TCD keypad.
 
 Keys 0-9 as well as OK (=ENTER) on your IR remote control will now be registered by the TCD as key presses.
 
