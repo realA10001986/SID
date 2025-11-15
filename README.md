@@ -127,7 +127,7 @@ A full reference of the Config Portal is [here](#appendix-a-the-config-portal).
 
 When the SID is idle, it shows an idle pattern. There are alternative idle patterns to choose from, selected by *10OK through *14OK on the remote, or via MQTT. If an SD card is present, the setting will be persistent across reboots.
 
-If the option **_Adhere strictly to movie patterns_** is set (which is the default), the idle patterns #0 through #3 will only use patterns extracted from the movies (plus some interpolations); the same goes for when [GPS speed](#bttf-network-bttfn) is used. If this option is unset, random variations are shown, which is less boring, but also less accurate.
+If the option **_Adhere strictly to movie patterns_** is set (which is the default), the idle patterns #0 through #3 will only use patterns extracted from the movies (plus some interpolations); the same goes for when [TCD-provided speed](#bttf-network-bttfn) is used. If this option is unset, random variations are shown, which is less boring, but also less accurate.
 
 For ways to trigger a time travel, see [here](#time-travel).
 
@@ -367,7 +367,7 @@ Afterwards, the SID and the TCD can communicate wirelessly and
 - both play an alarm-sequence when the TCD's alarm occurs,
 - the SID can be remote controlled through the TCD's keypad (command codes 6xxx),
 - the SID can remote control the TCD's keypad (see [below](#remote-controlling-the-tcds-keypad))
-- the SID queries the TCD for GPS speed if desired to adapt its idle pattern to GPS speed,
+- the SID queries the TCD for speed (GPS, rotary encoder, Remote) if desired to adapt its idle pattern to speed,
 - the SID queries the TCD for fake power and night mode, in order to react accordingly if so configured,
 - pressing "0" on the IR remote control or the SID's Time Travel button can trigger a synchronized Time Travel on all BTTFN-connected devices, just like if that Time Travel was triggered through the TCD.
 
@@ -590,7 +590,7 @@ See [here](#wifi-power-saving-features).
 
 ##### &#9193; Adhere strictly to movie patterns
 
-If this option is checked, in idle modes 0-3 as well as when using GPS speed, only patterns which were extracted from the movies (plus some interpolations) are shown. If this option is unchecked, random variations will be shown, which is less accurate, but also less monotonous. Purists will want this option to be set, which is also the default. This option can also be changed by typing *50 followed by OK on the IR remote control.
+If this option is checked, in idle modes 0-3 as well as when using TCD-provided speed, only patterns which were extracted from the movies (plus some interpolations) are shown. If this option is unchecked, random variations will be shown, which is less accurate, but also less monotonous. Purists will want this option to be set, which is also the default. This option can also be changed by typing *50 followed by OK on the IR remote control.
 
 Note that this option setting, along with the current idle pattern, is only saved if there is an SD card present. Without an SD card, this setting is always reset to "checked" upon power-up.
 
@@ -623,7 +623,7 @@ If you want to have your SID to communicate with a Time Circuits Display wireles
 
 If you connect your SID to the TCD's access point ("TCD-AP"), the TCD's IP address is 192.168.4.1.
 
-##### &#9193; Adapt to GPS speed
+##### &#9193; Adapt pattern to TCD-provided speed
 
 If this option is checked and your TCD is equipped with a GPS receiver or a rotary encoder, the SID will adapt its display pattern to current GPS speed or the reading of the encoder, respectively.
 
