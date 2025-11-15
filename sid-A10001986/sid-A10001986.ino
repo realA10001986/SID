@@ -104,6 +104,24 @@
 
 /*  Changelog
  *  
+ *  2025/11/14 (A10001986) [1.60]
+ *    - Remove BTTFN_MC conditional
+ *  2025/11/13 (A10001986)
+ *    - Block WiFi scan during certain animations
+ *    - Allow using TCD command codes 6xxx with MQTT-INJECT command
+ *  2025/11/10 (A10001986)
+ *    - Support MQTT-"TIMETRAVEL" command for inter-prop communication with lead
+ *      time and time tunnel duration attached ("TIMETRAVEL_1234_9876") (TCD 3.9)
+ *    - Clean-up stand-alone time travel
+ *  2025/11/09 (A10001986)
+ *    - Add BTTFN_NOT_BUSY support (TCD 3.9)
+ *  2025/11/08 (A10001986)
+ *    - Allocate MQTT buffer only if MQTT is actually used
+ *  2025/11/07 (A10001986)
+ *    - Make TCD notifications synchronous (wakeup, prepareTT)
+ *  2025/11/06 (A10001986)
+ *    - Add command 97 (6097/INJECT_97) to remotely quit TCD keypad remote control mode
+ *    - Allow INJECT_96
  *  2025/11/05 (A10001986) [1.59]
  *    - Add MQTT command "INJECT_"
  *  2025/11/04 (A10001986)

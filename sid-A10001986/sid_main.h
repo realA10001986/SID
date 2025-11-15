@@ -70,6 +70,7 @@ extern bool TCDconnected;
 
 extern bool FPBUnitIsOn;
 extern bool sidNM;
+extern bool blockScan;
 
 extern bool TTrunning;
 extern bool IRLearning;
@@ -80,8 +81,12 @@ extern bool networkReentry;
 extern bool networkAbort;
 extern bool networkAlarm;
 extern uint16_t networkLead;
+extern uint16_t networkP1;
 
 extern uint32_t myRemID;
+
+extern bool doPrepareTT;
+extern bool doWakeup;
 
 void main_boot();
 void main_setup();

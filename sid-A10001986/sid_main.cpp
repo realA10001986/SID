@@ -90,6 +90,9 @@ bool networkReentry    = false;
 bool networkAbort      = false;
 bool networkAlarm      = false;
 uint16_t networkLead   = ETTO_LEAD;
+uint16_t networkP1     = 6600;
+
+static bool tcdIsBusy  = false;
 
 #define SID_IDLE_0    0
 #define SID_IDLE_1    1
@@ -161,6 +164,9 @@ static int  FPOSAMode = -1;
 static bool bttfnTT = true;
 static bool oldSidNM = false;
 
+bool doPrepareTT = false;
+bool doWakeup = false;
+
 static bool skipTTAnim = false;
 
 // Time travel status flags etc.
@@ -168,6 +174,7 @@ bool                 TTrunning = false;  // TT sequence is running
 static bool          extTT = false;      // TT was triggered by TCD
 static unsigned long TTstart = 0;
 static unsigned long P0duration = ETTO_LEAD;
+static unsigned long P1_maxtimeout = 10000;
 static bool          TTP0 = false;
 static bool          TTP1 = false;
 static bool          TTP2 = false;
@@ -286,7 +293,8 @@ static const int TTampFacts[TT_AMP_STEPS] = {
 
 // Durations of tt phases for internal tt
 #define P0_DUR          5000    // acceleration phase
-#define P1_DUR          5000    // time tunnel phase
+#define P1_DUR_TCD      6600    // time tunnel phase (synced; overruled by TCD network commands)
+#define P1_DUR          5000    // time tunnel phase (stand-alone)
 #define P2_DUR          3000    // re-entry phase
 
 bool         TCDconnected = false;
@@ -313,6 +321,7 @@ static bool          ssClockOffinNM = false;
 static bool          nmOld = false;
 static bool          fpoOld = false;
 bool                 FPBUnitIsOn = true;
+bool                 blockScan = false;
 
 /*
  * Leave first two columns at 0 here, those will be filled
@@ -393,10 +402,11 @@ static bool          remHoldKey = false;
 #define BTTFN_NOT_AUX_CMD  11
 #define BTTFN_NOT_VSR_CMD  12
 #define BTTFN_NOT_SPD      15
+#define BTTFN_NOT_BUSY     16
 #define BTTFN_TYPE_ANY     0    // Any, unknown or no device
 #define BTTFN_TYPE_FLUX    1    // Flux Capacitor
 #define BTTFN_TYPE_SID     2    // SID
-#define BTTFN_TYPE_PCG     3    // Plutonium gauge panel
+#define BTTFN_TYPE_PCG     3    // Dash Gauges
 #define BTTFN_TYPE_VSR     4    // VSR
 #define BTTFN_TYPE_AUX     5    // Aux (user custom device)
 #define BTTFN_TYPE_REMOTE  6    // Futaba remote control
@@ -415,10 +425,8 @@ static const uint8_t BTTFUDPHD[4] = { 'B', 'T', 'T', 'F' };
 static bool          useBTTFN = false;
 static WiFiUDP       bttfUDP;
 static UDP*          sidUDP;
-#ifdef BTTFN_MC
 static WiFiUDP       bttfMcUDP;
 static UDP*          sidMcUDP;
-#endif
 static byte          BTTFUDPBuf[BTTF_PACKET_SIZE];
 static byte          BTTFUDPTBuf[BTTF_PACKET_SIZE];
 static unsigned long BTTFNUpdateNow = 0;
@@ -436,11 +444,9 @@ static IPAddress     bttfnTcdIP;
 static uint32_t      bttfnTCDSeqCnt = 0;
 static uint8_t       bttfnReqStatus = 0x53; // Request capabilities, status, speed, date/time
 static bool          TCDSupportsRemKP = false;
-#ifdef BTTFN_MC
 static uint32_t      tcdHostNameHash = 0;
 static byte          BTTFMCBuf[BTTF_PACKET_SIZE];
 static IPAddress     bttfnMcIP(224, 0, 0, 224);
-#endif
 static uint32_t      bttfnSeqCnt[BTTFN_REM_MAX_COMMAND+1] = { 1 };
 
 enum {
@@ -481,7 +487,7 @@ static void endIRfeedback();
 static void showBaseLine(int variation = 20, uint16_t flags = 0);
 static void showIdle(bool freezeBaseLine = false);
 static void play_startup();
-static void timeTravel(bool TCDtriggered, uint16_t P0Dur);
+static void timeTravel(bool TCDtriggered, uint16_t P0Dur, uint16_t P1Dur = 0);
 
 static void showChar(const char text);
 static void fadeOutChar();
@@ -507,9 +513,7 @@ static void ssUpdateClock();
 
 static void bttfn_setup();
 static void bttfn_loop_quick();
-#ifdef BTTFN_MC
 static bool bttfn_checkmc();
-#endif
 static void BTTFNCheckPacket();
 static bool BTTFNTriggerUpdate();
 static void BTTFNPreparePacketTemplate();
@@ -610,9 +614,11 @@ void main_setup()
         sid.off();
 
         // Light up IR feedback for 500ms
+        blockScan = true;
         startIRfeedback();
         mydelay(500, false);
         endIRfeedback();
+        blockScan = false;
 
         Serial.println("Waiting for TCD fake power on");
     
@@ -684,6 +690,9 @@ void main_loop()
             snake_stop();
 
             flushDelayedSave();
+
+            doPrepareTT = false;
+            doWakeup = false;
             
             // FIXME - anything else?
             
@@ -726,6 +735,20 @@ void main_loop()
     // Discard (incomplete) input from IR after 30 seconds of inactivity
     if(now - lastKeyPressed >= 30*1000) {
         clearInpBuf();
+    }
+
+    // Eval flags set in handle_tcd_notification
+    if(doPrepareTT) {
+        if(FPBUnitIsOn && !IRLearning && !TTrunning) {
+            prepareTT();
+        }
+        doPrepareTT = false;
+    }
+    if(doWakeup) {
+        if(FPBUnitIsOn && !IRLearning && !TTrunning) {
+            wakeup();
+        }
+        doWakeup = false;
     }
 
     // IR feedback
@@ -818,7 +841,7 @@ void main_loop()
                     ssEnd();
                 }
                 if(TCDconnected || !bttfnTT || !bttfn_trigger_tt()) {
-                    timeTravel(TCDconnected, noETTOLead ? 0 : ETTO_LEAD);
+                    timeTravel(TCDconnected, (TCDconnected && noETTOLead) ? 0 : ETTO_LEAD);
                 }
             }
         }
@@ -827,7 +850,7 @@ void main_loop()
         if(networkTimeTravel) {
             networkTimeTravel = false;
             ssEnd();
-            timeTravel(networkTCDTT, networkLead);
+            timeTravel(networkTCDTT, networkLead, networkP1);
         }
     }
 
@@ -891,7 +914,7 @@ void main_loop()
                 } else {
 
                     if(TTstart == TTfUpdNow) {
-                        // If we have skipped P0, set last step of sequence at least
+                        // If we have missed P0, set last step of sequence at least
                         // Do this also in sa mode and if strict (pattern is same)
                         for(int i = 0; i < 10; i++) {
                             sid.drawBarWithHeight(i, ttledseq[TT_SQ_LN - 1][i]);
@@ -921,10 +944,11 @@ void main_loop()
 
                 }
             }
-            if(TTP1) {   // Peak/"time tunnel" - ends with pin going LOW or MQTT "REENTRY"
+            if(TTP1) {   // Peak/"time tunnel" - ends with pin going LOW or MQTT "REENTRY" (or a long timeout)
 
-                if( (networkTCDTT && (!networkReentry && !networkAbort)) || (!networkTCDTT && digitalRead(TT_IN_PIN))) 
-                {
+                if(((networkTCDTT && (!networkReentry && !networkAbort)) || 
+                  (!networkTCDTT && digitalRead(TT_IN_PIN)))               &&
+                  (millis() - TTstart <  P1_maxtimeout) ) {
 
                     if(TTFInt && (now - TTfUpdNow >= TTFInt)) {
                         if(TTLMTrigger) {
@@ -992,8 +1016,6 @@ void main_loop()
             if(TTP0) {   // Acceleration - runs for P0_DUR ms
 
                 if(now - TTstart < P0_DUR) {
-
-                    // TT acceleration (use gpsSpeed if available)
 
                     if(!TTFDelay || (now - TTfUpdNow >= TTFDelay)) {
 
@@ -1670,7 +1692,7 @@ static void showIdle(bool freezeBaseLine)
  * 
  */
 
-static void timeTravel(bool TCDtriggered, uint16_t P0Dur)
+static void timeTravel(bool TCDtriggered, uint16_t P0Dur, uint16_t P1Dur)
 {
     if(TTrunning || IRLearning)
         return;
@@ -1690,9 +1712,17 @@ static void timeTravel(bool TCDtriggered, uint16_t P0Dur)
     TTrunning = true;
     TTstart = TTfUpdNow = millis();
     TTP0 = true;   // phase 0
+    TTP1 = TTP2 = false;
     TTSAStopped = false;
     TTsbFlags = skipTTAnim ? 0 : SBLF_ANIM;
     TTLMIdx = 0;
+
+    // P1Dur, even if coming from TCD, is not used for timing, 
+    // but only to calculate steps and for a max timeout
+    if(!P1Dur) {
+        P1Dur = TCDtriggered ? P1_DUR_TCD : P1_DUR;
+    }
+    P1_maxtimeout = P1Dur + 3000;
     
     #ifdef SID_DBG
     Serial.printf("TT: baseLine %d, entry %d\n", sidBaseLine, seqEntry[sidBaseLine]);
@@ -1778,6 +1808,8 @@ static void play_startup()
     uint8_t w[10];
     uint8_t oldBri = sid.getBrightness();
 
+    blockScan = true;
+
     sid.clearBuf();
     sid.clearDisplayDirect();
 
@@ -1827,6 +1859,8 @@ static void play_startup()
         sid.show();
         mydelay(30 + (i*5), false);
     }
+
+    blockScan = false;
 }
 
 void setIdleMode(int idleNo)
@@ -2203,15 +2237,22 @@ static void handleRemoteCommand()
     oCmdIdx++;
     oCmdIdx &= 0x0f;
 
+    if(command & 0x80000000) {
+        injected = true;
+        command &= ~0x80000000;
+        // Allow user to use IR sequence or TCD code
+        if(command >= 6000 && command <= 6999) {
+            command -= 6000;
+        } else if(command >= 6000000 && command <= 6999999) {
+            command -= 6000000;
+        }
+        if(!command) return;
+    }
+
     if(ssActive) {
         ssEnd();
     }
     ssRestartTimer();
-
-    if(command & 0x80000000) {
-        injected = true;
-        command &= ~0x80000000;
-    }
 
     // Some translation
     if(command < 10) {
@@ -2435,9 +2476,9 @@ static int execute(bool isIR, bool injected)
                 }
                 break;
             case 96:                              // *96  enter TCD keypad remote control mode
-                if(!irLocked && !injected) {      //      yes, 'irLocked' - must not be entered while IR is locked
+                if(!irLocked) {                   //      yes, 'irLocked' - must not be entered while IR is locked
                     if(!TTrunning) {
-                        if(BTTFNConnected() && remoteAllowed) {
+                        if(BTTFNConnected() && remoteAllowed && !tcdIsBusy) {
                             remMode = true;
                             inputReaction = 1;
                         } else {
@@ -2445,6 +2486,14 @@ static int execute(bool isIR, bool injected)
                         }
                     } else inputReaction = -1;
                 }
+                break;
+            case 97:                              // 6097 quits TCD keypad remote control mode
+                if(!isIR) {                       //      command not possible through IR, naturally
+                    if(remMode) {
+                        remMode = remHoldKey = false;                    
+                        bttfn_send_command(BTTFN_REMCMD_KP_BYE, 0, 0);
+                    }
+                } else inputReaction = -1;
                 break;
             default:
                 if(!isIRLocked) {
@@ -2472,21 +2521,21 @@ static int execute(bool isIR, bool injected)
 
     case 4:                                               // 1000 - 9999 MQTT commands
 
+        #ifdef SID_HAVEMQTT
         if(!isIR && !injected) {
                   
             temp = atoi(inputBuffer) - 1000;
 
             switch(temp) {
             case 0:
-                // Trigger Time Travel; treated like button, not
-                // like TT from TCD.
+                // Trigger stand-alone Time Travel
                 if(!TTrunning) {
-                    networkTimeTravel = true;
-                    networkTCDTT = false;
+                    timeTravel(false, ETTO_LEAD);
                 }
                 break;
             }
         }
+        #endif
 
         break;
             
@@ -2644,6 +2693,7 @@ void allOff()
 
 static void fadeOut()
 {
+    // blockscan already set by caller
     int a = sid.getBrightness();
     while(a >= 0) {
         sid.setBrightnessDirect(a);
@@ -2668,6 +2718,8 @@ void showWordSequence(const char *text, int speed)
 
     if(speed < 0) speed = 0;
     if(speed > 5) speed = 5;
+
+    blockScan = true;
     
     sid.clearDisplayDirect();
     for(int i = 0; i < strlen(text); i++) {
@@ -2680,6 +2732,9 @@ void showWordSequence(const char *text, int speed)
     sid.clearDisplayDirect();
     sid.setBrightness(255);
     LMState = LMIdx = id5idx = 0;
+    
+    blockScan = false;
+    
     ir_remote.loop();     // Ignore IR received in the meantime
 }
 
@@ -2691,6 +2746,7 @@ static void showChar(const char text)
 
 static void fadeOutChar()
 {
+    // Only used while IRlearning, so wifi scan is already blocked
     fadeOut();
     mydelay(50, false);
     sid.clearDisplayDirect();
@@ -2821,6 +2877,8 @@ void prepareTT()
     ssEnd();
     siddly_stop();
     snake_stop();
+
+    doPrepareTT = false;
 }
 
 // Wakeup: Sent by TCD upon entering dest date,
@@ -2830,6 +2888,8 @@ void wakeup()
 {
     // End screen saver
     ssEnd();
+
+    doWakeup = false;
 }
 
 /*
@@ -2889,13 +2949,9 @@ static void bttfn_setup()
     haveTCDIP = isIp(settings.tcdIP);
     
     if(!haveTCDIP) {
-        #ifdef BTTFN_MC
         tcdHostNameHash = 0;
         unsigned char *s = (unsigned char *)settings.tcdIP;
         for ( ; *s; ++s) tcdHostNameHash = 37 * tcdHostNameHash + tolower(*s);
-        #else
-        return;
-        #endif
     } else {
         bttfnTcdIP.fromString(settings.tcdIP);
     }
@@ -2903,10 +2959,8 @@ static void bttfn_setup()
     sidUDP = &bttfUDP;
     sidUDP->begin(BTTF_DEFAULT_LOCAL_PORT);
 
-    #ifdef BTTFN_MC
     sidMcUDP = &bttfMcUDP;
     sidMcUDP->beginMulticast(bttfnMcIP, BTTF_DEFAULT_LOCAL_PORT + 2);
-    #endif
 
     BTTFNPreparePacketTemplate();
     
@@ -2916,16 +2970,12 @@ static void bttfn_setup()
 
 void bttfn_loop()
 {
-    #ifdef BTTFN_MC
     int t = 100;
-    #endif
     
     if(!useBTTFN)
         return;
 
-    #ifdef BTTFN_MC
     while(bttfn_checkmc() && t--) {}
-    #endif
 
     BTTFNCheckPacket();
     
@@ -2942,16 +2992,12 @@ void bttfn_loop()
 
 static void bttfn_loop_quick()
 {
-    #ifdef BTTFN_MC
     int t = 100;
-    #endif
     
     if(!useBTTFN)
         return;
 
-    #ifdef BTTFN_MC
     while(bttfn_checkmc() && t--) {}
-    #endif
 }
 
 static bool check_packet(uint8_t *buf)
@@ -2974,14 +3020,16 @@ static void handle_tcd_notification(uint8_t *buf)
 {
     uint32_t seqCnt;
 
-    #ifdef SID_DBG
-    Serial.printf("Received notification %d\n", buf[5]);
-    #endif
+    // Note: This might be called while we are in a
+    // wait-delay-loop. Best to just set flags here
+    // that are evaluated synchronously (=later).
+    // Do not stuff that messes with display, input,
+    // etc.
     
     switch(buf[5]) {
     case BTTFN_NOT_SPD:
         seqCnt = GET32(buf, 12);
-        if(seqCnt == 1 || seqCnt > bttfnTCDSeqCnt) {
+        if(seqCnt > bttfnTCDSeqCnt || seqCnt == 1 ) {
             gpsSpeed = (int16_t)(buf[6] | (buf[7] << 8));
             if(gpsSpeed > 88) gpsSpeed = 88;
             switch(buf[8] | (buf[9] << 8)) {
@@ -2991,11 +3039,7 @@ static void handle_tcd_notification(uint8_t *buf)
             default:
                 spdIsRotEnc = true;
             }
-        } else {
-            #ifdef SID_DBG
-            Serial.printf("Out-of-sequence packet received from TCD %d %d\n", seqCnt, bttfnTCDSeqCnt);
-            #endif
-        }
+        } 
         bttfnTCDSeqCnt = seqCnt;
         break;
     case BTTFN_NOT_PREPARE:
@@ -3004,9 +3048,7 @@ static void handle_tcd_notification(uint8_t *buf)
         // may not come at all.
         // We don't ignore this if TCD is connected by wire,
         // because this signal does not come via wire.
-        if(!TTrunning && !IRLearning) {
-            prepareTT();
-        }
+        doPrepareTT = true;
         break;
     case BTTFN_NOT_TT:
         // Trigger Time Travel (if not running already)
@@ -3017,6 +3059,7 @@ static void handle_tcd_notification(uint8_t *buf)
             networkReentry = false;
             networkAbort = false;
             networkLead = buf[6] | (buf[7] << 8);
+            networkP1 = buf[8] | (buf[9] << 8);
         }
         break;
     case BTTFN_NOT_REENTRY:
@@ -3035,20 +3078,19 @@ static void handle_tcd_notification(uint8_t *buf)
         break;
     case BTTFN_NOT_ALARM:
         networkAlarm = true;
-        // Eval this at our convenience
         break;
     case BTTFN_NOT_SID_CMD:
         addCmdQueue(GET32(buf, 6));
         break;
     case BTTFN_NOT_WAKEUP:
-        if(!TTrunning && !IRLearning) {
-            wakeup();
-        }
+        doWakeup = true;
+        break;
+    case BTTFN_NOT_BUSY:
+        tcdIsBusy = !!(buf[8]);
         break;
     }
 }
 
-#ifdef BTTFN_MC
 static bool bttfn_checkmc()
 {
     int psize = sidMcUDP->parsePacket();
@@ -3069,30 +3111,25 @@ static bool bttfn_checkmc()
 
     if(haveTCDIP) {
         if(bttfnTcdIP != sidMcUDP->remoteIP())
-            return true; //false;
+            return true;
     } else {
         // Do not use tcdHostNameHash; let DISCOVER do its work
         // and wait for a result.
-        return true; //false;
+        return true;
     }
 
     if(!check_packet(BTTFMCBuf))
-        return true; //false;
+        return true;
 
     if((BTTFMCBuf[4] & 0x4f) == (BTTFN_VERSION | 0x40)) {
 
         // A notification from the TCD
         handle_tcd_notification(BTTFMCBuf);
     
-    } /*else {
-      
-        return false;
-
-    }*/
+    }
 
     return true;
 }
-#endif
 
 // Check for pending packet and parse it
 static void BTTFNCheckPacket()
@@ -3144,7 +3181,6 @@ static void BTTFNCheckPacket()
         // If it's our expected packet, no other is due for now
         BTTFNPacketDue = false;
 
-        #ifdef BTTFN_MC
         if(BTTFUDPBuf[5] & 0x80) {
             if(!haveTCDIP) {
                 bttfnTcdIP = sidUDP->remoteIP();
@@ -3158,15 +3194,12 @@ static void BTTFNCheckPacket()
                 #endif
             }
         }
-        #endif
 
         if(BTTFUDPBuf[5] & 0x40) {
             bttfnReqStatus &= ~0x40;     // Do no longer poll capabilities
-            #ifdef BTTFN_MC
             if(BTTFUDPBuf[31] & 0x01) {
                 bttfnReqStatus &= ~0x02; // Do no longer poll speed, comes over multicast
             }
-            #endif
             if(BTTFUDPBuf[31] & 0x08) {
                 TCDSupportsRemKP = true;
             }
@@ -3187,6 +3220,7 @@ static void BTTFNCheckPacket()
             tcdNM  = (BTTFUDPBuf[26] & 0x01) ? true : false;
             tcdFPO = (BTTFUDPBuf[26] & 0x02) ? true : false;   // 1 means fake power off
             remoteAllowed = (BTTFUDPBuf[26] & 0x08) ? TCDSupportsRemKP : false;
+            tcdIsBusy = (BTTFUDPBuf[26] & 0x10) ? true : false;
         } else {
             tcdNM = false;
             tcdFPO = false;
@@ -3235,10 +3269,7 @@ static void BTTFNPreparePacketTemplate()
     BTTFUDPTBuf[10+13] = BTTFN_TYPE_SID;
 
     // Version, MC-marker
-    BTTFUDPTBuf[4] = BTTFN_VERSION;
-    #ifdef BTTFN_MC
-    BTTFUDPTBuf[4] |= BTTFN_SUP_MC;
-    #endif
+    BTTFUDPTBuf[4] = BTTFN_VERSION | BTTFN_SUP_MC;
 
     // Remote-ID
     SET32(BTTFUDPTBuf, 35, myRemID);
@@ -3257,18 +3288,14 @@ static void BTTFNDispatch()
     }
     BTTFUDPBuf[BTTF_PACKET_SIZE - 1] = a;
 
-    #ifdef BTTFN_MC
     if(haveTCDIP) {
-    #endif  
         sidUDP->beginPacket(bttfnTcdIP, BTTF_DEFAULT_LOCAL_PORT);
-    #ifdef BTTFN_MC    
     } else {
         #ifdef SID_DBG
         Serial.printf("Sending multicast (hostname hash %x)\n", tcdHostNameHash);
         #endif
         sidUDP->beginPacket(bttfnMcIP, BTTF_DEFAULT_LOCAL_PORT + 1);
     }
-    #endif
     sidUDP->write(BTTFUDPBuf, BTTF_PACKET_SIZE);
     sidUDP->endPacket();
 }
@@ -3284,12 +3311,10 @@ static void BTTFNSendPacket()
     // Request flags
     BTTFUDPBuf[5] = bttfnReqStatus;                
 
-    #ifdef BTTFN_MC
     if(!haveTCDIP) {
         BTTFUDPBuf[5] |= 0x80;
         SET32(BTTFUDPBuf, 31, tcdHostNameHash);
     }
-    #endif
 
     BTTFNDispatch();
 }
@@ -3299,11 +3324,9 @@ static bool BTTFNConnected()
     if(!useBTTFN)
         return false;
 
-    #ifdef BTTFN_MC
     if(!haveTCDIP)
         return false;
-    #endif
-
+    
     if(WiFi.status() != WL_CONNECTED)
         return false;
 
@@ -3318,7 +3341,7 @@ static bool bttfn_trigger_tt()
     if(!BTTFNConnected())
         return false;
 
-    if(TTrunning || IRLearning)
+    if(TTrunning || IRLearning || tcdIsBusy)
         return false;
 
     BTTFNPreparePacket();
@@ -3327,10 +3350,6 @@ static bool bttfn_trigger_tt()
     BTTFUDPBuf[5] = 0x80;           
 
     BTTFNDispatch();
-
-    #ifdef SID_DBG
-    Serial.println("Triggered BTTFN-wide TT");
-    #endif
 
     return true;
 }

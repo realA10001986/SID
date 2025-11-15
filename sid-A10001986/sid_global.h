@@ -15,8 +15,8 @@
  ***                          Version Strings                          ***
  *************************************************************************/
 
-#define SID_VERSION       "V1.59"
-#define SID_VERSION_EXTRA "NOV062025"
+#define SID_VERSION       "V1.60"
+#define SID_VERSION_EXTRA "NOV142025"
 
 //#define SID_DBG              // debug output on Serial
 
@@ -32,9 +32,6 @@
 // without 5s lead" is set on the TCD, the SID option "TCD signals without
 // lead" must be set, too.
 #define ETTO_LEAD 5000
-
-// Uncomment to include BTTFN discover support (multicast)
-#define BTTFN_MC
 
 // Use SPIFFS (if defined) or LittleFS (if undefined; esp32-arduino >= 2.x)
 //#define USE_SPIFFS
