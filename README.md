@@ -377,13 +377,13 @@ You can use BTTF-Network and MQTT at the [same time](#receive-commands-from-time
 
 The SID can, through its IR remote control, remote control the TCD keypad. The TCD will react to pressing a key on the IR remote as if that key was pressed on the TCD keypad.
 
-In order to start TCD keypad remote control, type *96OK on the SID's IR remote control or enter 6096 on the TCD keypad.
+In order to start TCD keypad remote control, type *95OK on the SID's IR remote control (or issue command 6095 from the TCD or through [HA/MQTT](#control-the-fc-via-mqtt)).
 
 Keys 0-9 as well as OK (=ENTER) on your IR remote control will now be registered by the TCD as key presses.
 
 "Holding" a key on the TCD keypad is emulated by pressing * followed by the key, for instance *1 (in order to toggle the TCD alarm). Only keys 0-9 can be "held".
 
-Pressing # quits TCD keypad remote control mode, as does entering 6097 on the TCD keypad, or [INJECTing](#control-the-sid-via-mqtt) 6097 through HA/MQTT.
+Pressing # quits TCD keypad remote control mode, as does issuing command 6097 on the TCD or through HA/MQTT.
 
 >Since the TCD itself can remote control every other compatible prop (3xxx = Flux Capacitor, 6xxx = SID, 7xxx = Futaba Remote Control, 8xxx = VSR, 9xxx = Dash Gauges), and the IR remote can emulate the TCD keypad, it can essentially remote control every other prop.
 
