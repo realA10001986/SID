@@ -277,6 +277,10 @@ In order to only disable the supplied IR remote control, check the option **_Dis
      <td align="left">Enter <a href="#remote-controlling-the-tcds-keypad">TCD keypad remote control mode</a><sup>1</sup></td>
      <td align="left">*96&#9166;</td><td>6096</td>
     </tr>
+    <tr>
+     <td align="left">Quit <a href="#remote-controlling-the-tcds-keypad">TCD keypad remote control mode</a></td>
+     <td align="left">-</td><td>6097</td>
+    </tr>
    <tr>
      <td align="left">Set brightness level (00-15)</td>
      <td align="left">*400&#9166; - *415&#9166;</td><td>6400-6415</td>
@@ -433,13 +437,13 @@ The SID can be controlled through messages sent to topic **bttf/sid/cmd**. Suppo
 
 #### The INJECT_x command
 
-This command allows remote control of your SID through HA/MQTT in the same way as through the TCD keypad by injecting commands in the SID's command queue (hence the name). Commands are listed [here](#special_key_sequences); nearly all are supported. The command is to be specified like the IR remote control sequence but without the "*" (or in other words: Take the TCD command code minus 6000). For example:
+This command allows remote control of your SID through HA/MQTT in the same way as through the TCD keypad by injecting commands in the SID's command queue (hence the name). Commands are listed [here](#special_key_sequences); nearly all are supported. For example:
 
-To set idle pattern #4 (*14), issue the following command: **INJECT_14**
+To set idle pattern #4 (6014), issue the following command: **INJECT_6014**
 
-To start the Spectrum Analyzer (*21), issue **INJECT_21**
+To start the Spectrum Analyzer (6021), issue **INJECT_6021**
 
-To set the brightness level to 15 (*415), issue **INJECT_415**
+To set the brightness level to 15 (6415), issue **INJECT_6415**
 
 ### Receive commands from Time Circuits Display
 
