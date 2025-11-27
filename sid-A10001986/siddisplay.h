@@ -52,6 +52,12 @@
 #ifndef _SIDDISPLAY_H
 #define _SIDDISPLAY_H
 
+// Special sequences
+#define SID_SS_REMSTART    1
+#define SID_SS_REMEND      2
+#define SID_SS_IRBADINP    3
+#define SID_SS_MAX         SID_SS_IRBADINP
+
 #define SD_BUF_SIZE   16  // Buffer size in words (16bit)
 
 class sidDisplay {
@@ -87,13 +93,21 @@ class sidDisplay {
         void drawLetterMask(char alpha, int x, int y);
         void drawClockAndShow(uint8_t *dateBuf, int dx, int dy);
 
+        void specialSig(uint8_t sig);
+        bool specialTrigger();
+
     private:
+        void superImposeSpecSig();
         void directCmd(uint8_t val);
         
         uint8_t _address[2] = { 0, 0 };
 
         uint8_t _brightness = 15;     // current display brightness
         uint8_t _origBrightness = 15; // value from settings
+
+        uint8_t       _specialSig = 0;
+        unsigned long _specialSigNow = 0;
+        bool          _specialTrigger = false;
         
         uint16_t _displayBuffer[SD_BUF_SIZE];
 

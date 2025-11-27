@@ -88,6 +88,8 @@ extern uint32_t myRemID;
 extern bool doPrepareTT;
 extern bool doWakeup;
 
+extern bool sidBusy;
+
 void main_boot();
 void main_setup();
 void main_loop();

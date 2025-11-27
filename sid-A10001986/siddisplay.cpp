@@ -282,6 +282,14 @@ static const uint16_t translator[10][20][2] =
     }   
 };
 
+#define SID_SIG_DURATION 2000
+
+static const uint16_t sigMaps[SID_SS_MAX] = {
+    0b1000000000,   // TCD-keypad remote control mode start
+    0b0000000001,   // TCD-keypad remote control mode end
+    0b1000000001    // Bad IR input
+};
+
 // Store i2c address and display ID
 sidDisplay::sidDisplay(uint8_t address1, uint8_t address2)
 {
@@ -629,11 +637,36 @@ void sidDisplay::drawClockAndShow(uint8_t *dateBuf, int dx, int dy)
     drawFieldAndShow(field);
 }
 
+void sidDisplay::superImposeSpecSig()
+{
+    uint16_t sigMap = sigMaps[_specialSig - 1];
+    
+    for(int i = 0; i < 10; i++) {
+        if(sigMap & (1 << i)) {
+            _displayBuffer[translator[i][0][0]] |= translator[i][0][1];
+        } else {
+            _displayBuffer[translator[i][0][0]] &= ~translator[i][0][1];
+        }
+        // Clear second row to make clearer
+        //_displayBuffer[translator[i][1][0]] &= ~translator[i][1][1];
+        // ... or better yet, set it
+        _displayBuffer[translator[i][1][0]] |= translator[i][1][1];
+    }
+}
 
 // Show the buffer
 void sidDisplay::show()
 {
     uint16_t *tp = &_displayBuffer[0];
+
+    if(_specialSig) {
+        if(millis() - _specialSigNow < SID_SIG_DURATION) {
+            superImposeSpecSig();
+        } else {
+            _specialSig = 0;
+            _specialTrigger = false;
+        }
+    }
     
     for(int j = 0; j < 2; j++) {
         Wire.beginTransmission(_address[j]);
@@ -645,6 +678,30 @@ void sidDisplay::show()
         }
         Wire.endTransmission();
     }
+}
+
+void sidDisplay::specialSig(uint8_t sig)
+{
+    if(!sig || sig > SID_SS_MAX)
+        return;
+
+    _specialSig = sig;
+    _specialSigNow = millis();
+    _specialTrigger = true;
+}
+
+bool sidDisplay::specialTrigger()
+{
+    if(!_specialTrigger) return false;
+    
+    if(_specialSig && (millis() - _specialSigNow > SID_SIG_DURATION)) {
+        _specialSig = 0;
+        _specialTrigger = false;
+        return true;
+    }
+    
+    _specialTrigger = false;
+    return true;
 }
 
 void sidDisplay::clearDisplayDirect()

@@ -93,6 +93,7 @@ uint16_t networkLead   = ETTO_LEAD;
 uint16_t networkP1     = 6600;
 
 static bool tcdIsBusy  = false;
+bool        sidBusy    = false;
 
 #define SID_IDLE_0    0
 #define SID_IDLE_1    1
@@ -190,6 +191,7 @@ static bool          TTSAStopped = false;
 static uint16_t      TTsbFlags = 0;
 static int           TTLMIdx = 0;
 static bool          TTLMTrigger = false;
+static int           TTsidBaseLineIdx = 0;
 
 #define TT_SQF_LN 51
 static const uint8_t ttledseqfull[TT_SQF_LN][10] = {
@@ -485,7 +487,7 @@ static void startIRfeedback();
 static void endIRfeedback();
 
 static void showBaseLine(int variation = 20, uint16_t flags = 0);
-static void showIdle(bool freezeBaseLine = false);
+static bool showIdle(bool freezeBaseLine = false);
 static void play_startup();
 static void timeTravel(bool TCDtriggered, uint16_t P0Dur, uint16_t P1Dur = 0);
 
@@ -694,7 +696,7 @@ void main_loop()
             doPrepareTT = false;
             doWakeup = false;
             
-            // FIXME - anything else?
+            // anything else?
             
         } else {
             // Power on: 
@@ -720,7 +722,7 @@ void main_loop()
 
             ir_remote.loop();
 
-            // FIXME - anything else?
+            // anything else?
 
             // Restore sa mode if active before FPO
             if(bootSA || (FPOSAMode > 0)) {
@@ -883,10 +885,12 @@ void main_loop()
                                 if(TTcnt > 0) {
                                     TTcnt--;
                                     if(TTsbFlags & SBLF_STRICT) {
+                                        TTsidBaseLineIdx = TT_SQF_LN - 1 - TTcnt;
                                         for(int i = 0; i < 10; i++) {
                                             sid.drawBarWithHeight(i, ttledseqfull[TT_SQF_LN - 1 - TTcnt][i]);
                                         }
                                     } else {
+                                        TTsidBaseLineIdx = TT_SQ_LN - 1 - TTcnt;
                                         for(int i = 0; i < 10; i++) {
                                             sid.drawBarWithHeight(i, ttledseq[TT_SQ_LN - 1 - TTcnt][i]);
                                         }
@@ -913,25 +917,39 @@ void main_loop()
 
                 } else {
 
-                    if(TTstart == TTfUpdNow) {
-                        // If we have missed P0, set last step of sequence at least
-                        // Do this also in sa mode and if strict (pattern is same)
-                        for(int i = 0; i < 10; i++) {
-                            sid.drawBarWithHeight(i, ttledseq[TT_SQ_LN - 1][i]);
+                    if(!networkAbort) {
+                        if(TTstart == TTfUpdNow) {
+                            // If we have missed P0, set last step of sequence at least
+                            // Do this also in sa mode and if strict (pattern is same)
+                            for(int i = 0; i < 10; i++) {
+                                sid.drawBarWithHeight(i, ttledseq[TT_SQ_LN - 1][i]);
+                            }
+                            sid.show();
                         }
-                        sid.show();
-                    }
+    
+                        if(saActive) {
+                            //span_stop(true);
+                            sa_deactivate();
+                            TTSAStopped = true;
+                        }
 
-                    if(saActive) {
-                        //span_stop(true);
-                        sa_deactivate();
-                        TTSAStopped = true;
+                        strictBaseLine = TT_SQF_LN - 1;
+                        sidBaseLine = 19;
+
+                    } else {
+
+                        // determine baseline at time of abort
+                        if(TTsbFlags & SBLF_STRICT) {
+                            strictBaseLine = TTsidBaseLineIdx;
+                        } else {
+                            sidBaseLine = TTsidBaseLineIdx;
+                        }
+
                     }
 
                     TTP0 = false;
                     TTP1 = true;
-                    sidBaseLine = 19;
-                    strictBaseLine = TT_SQF_LN - 1;
+                    
                     TTstart = TTfUpdNow = now;
                     TTFInt = 1000 + ((int)(esp_random() % 200) - 100);
 
@@ -1189,7 +1207,13 @@ void main_loop()
                 if(ssActive && ssClock) {
                     ssUpdateClock();
                 } else {
-                    showIdle();
+                    if(!showIdle()) {
+                        // If showIdle did nothing due to waiting,
+                        // redraw once if a special signal was triggered
+                        if(sid.specialTrigger()) {
+                            sid.show();
+                        }
+                    }
                 }
             }
 
@@ -1227,7 +1251,7 @@ void main_loop()
             (!BTTFNBootTO && !lastBTTFNpacket && (now - powerupMillis > 60*1000)) ) {
             tcdNM = false;
             tcdFPO = false;
-            remoteAllowed = false;
+            remoteAllowed = remMode = remHoldKey = false;
             gpsSpeed = -1;
             lastBTTFNpacket = 0;
             BTTFNBootTO = true;
@@ -1385,7 +1409,7 @@ static void showBaseLine(int variation, uint16_t flags)
     #endif
 }
 
-static void showIdle(bool freezeBaseLine)
+static bool showIdle(bool freezeBaseLine)
 {
     unsigned long now = millis();
     int oldBaseLine = sidBaseLine;
@@ -1404,8 +1428,8 @@ static void showIdle(bool freezeBaseLine)
         usingGPSS = true;
        
         if(!strictMode) {
-            if(now - lastChange < 500) 
-                return;
+            if(now - lastChange < 500)
+                return false;
 
             if(!freezeBaseLine) {
                 sidBaseLine = (max(10, (int)gpsSpeed) * 20 / 88) - 1;
@@ -1418,7 +1442,7 @@ static void showIdle(bool freezeBaseLine)
         } else {
           
             if((gpsSpeed == prevGPSSpeed) && (now - lastChange < 500))
-                return;
+                return false;
             
             if(!freezeBaseLine) {
                 strictBaseLine = gpsSpeed * 100 / (88 * 100 / (TT_SQF_LN - 1));
@@ -1448,7 +1472,7 @@ static void showIdle(bool freezeBaseLine)
     } else if(idleMode == SID_IDLE_BL) {     // "backlot mode"
 
         if(now - lastChange < idleDelay)
-            return;
+            return false;
           
         lastChange = now;
 
@@ -1466,7 +1490,7 @@ static void showIdle(bool freezeBaseLine)
     } else {
         
         if(now - lastChange < idleDelay)
-            return;
+            return false;
           
         lastChange = now;
 
@@ -1685,6 +1709,8 @@ static void showIdle(bool freezeBaseLine)
     if(sblFlags & SBLF_SKIPSHOW) {
         sid.show();
     }
+
+    return true;
 }
 
 /*
@@ -1749,6 +1775,7 @@ static void timeTravel(bool TCDtriggered, uint16_t P0Dur, uint16_t P1Dur)
             TTcnt = TT_SQ_LN - seqEntry[sidBaseLine];
         }
     }
+    TTsidBaseLineIdx = sidBaseLine;
     
     if(TCDtriggered) {    // TCD-triggered TT (GPIO, BTTFN or MQTT) (synced with TCD)
         extTT = true;
@@ -1809,6 +1836,7 @@ static void play_startup()
     uint8_t oldBri = sid.getBrightness();
 
     blockScan = true;
+    // Not long enough to justify sidBusy
 
     sid.clearBuf();
     sid.clearDisplayDirect();
@@ -2078,12 +2106,13 @@ static void handleIRKey(int key)
     if(inputRecord && key >= 0 && key <= 9) {
         recordKey(key);
         return;
-    }  else if(remMode) {
+    } else if(remMode) {
         // Remote mode for TCD keypad: (Must not be started while irlocked - user wouldn't be able to unlock IR)
         if(key == 11) {   // # quits
             remMode = remHoldKey = false;
             clearInpBuf();    // Relevant if initiated by TCD (6096)
             bttfn_send_command(BTTFN_REMCMD_KP_BYE, 0, 0);
+            sid.specialSig(SID_SS_REMEND);
             irFeedBackDur = 1000;
         } else if(key == 10) {   // * means the following key is "held" on TCD keypad
             remHoldKey = true;
@@ -2218,7 +2247,11 @@ static void handleIRKey(int key)
     }
 
     if(doInpReaction < 0) {
-        startIRErrFeedback();
+        if(doInpReaction < -1 || TTrunning || siActive || snActive) {
+            startIRErrFeedback();
+        } else {
+            sid.specialSig(SID_SS_IRBADINP);
+        }
     } else if(doInpReaction) {
         irFeedBackDur = 1000;
     }
@@ -2328,9 +2361,13 @@ static void handleRemoteCommand()
 
     }
 
-    // Remote commands do now show positive IR feedback, only error
+    // Remote commands do not show positive IR feedback, only error
     if(doInpReaction < 0) {
-        startIRErrFeedback();
+        if(doInpReaction < -1 || TTrunning || siActive || snActive) {
+            startIRErrFeedback();
+        } else {
+            sid.specialSig(SID_SS_IRBADINP);
+        }
     } /*else if(doInpReaction > 0 && !injected) {
         startIRfeedback();
         irFeedBack = true;
@@ -2389,7 +2426,7 @@ static int execute(bool isIR, bool injected)
                 break;
             case 22:                              // *22 siddly
                 if(!isIRLocked) {
-                    if(!TTrunning) {
+                    if(!TTrunning && !remMode) {
                         span_stop();
                         snake_stop();
                         siddly_start();
@@ -2399,7 +2436,7 @@ static int execute(bool isIR, bool injected)
                 break;
             case 23:                              // *23 snake
                 if(!isIRLocked) {
-                    if(!TTrunning) {
+                    if(!TTrunning && !remMode) {
                         siddly_stop();
                         span_stop();
                         snake_start();
@@ -2476,10 +2513,14 @@ static int execute(bool isIR, bool injected)
                 }
                 break;
             case 96:                              // *96  enter TCD keypad remote control mode
-                if(!irLocked) {                   //      yes, 'irLocked' - must not be entered while IR is locked
+                if(!irLocked) {                   //      yes, 'irLocked', not 'isIRLocked' - must not be entered while IR is locked
                     if(!TTrunning) {
                         if(BTTFNConnected() && remoteAllowed && !tcdIsBusy) {
+                            siddly_stop();
+                            snake_stop();
                             remMode = true;
+                            remHoldKey = false;
+                            sid.specialSig(SID_SS_REMSTART);
                             inputReaction = 1;
                         } else {
                             inputReaction = -1;
@@ -2492,6 +2533,7 @@ static int execute(bool isIR, bool injected)
                     if(remMode) {
                         remMode = remHoldKey = false;                    
                         bttfn_send_command(BTTFN_REMCMD_KP_BYE, 0, 0);
+                        sid.specialSig(SID_SS_REMEND);
                     }
                 } else inputReaction = -1;
                 break;
@@ -2719,7 +2761,7 @@ void showWordSequence(const char *text, int speed)
     if(speed < 0) speed = 0;
     if(speed > 5) speed = 5;
 
-    blockScan = true;
+    blockScan = sidBusy = true;
     
     sid.clearDisplayDirect();
     for(int i = 0; i < strlen(text); i++) {
@@ -2733,7 +2775,7 @@ void showWordSequence(const char *text, int speed)
     sid.setBrightness(255);
     LMState = LMIdx = id5idx = 0;
     
-    blockScan = false;
+    blockScan = sidBusy = false;
     
     ir_remote.loop();     // Ignore IR received in the meantime
 }
@@ -3030,15 +3072,22 @@ static void handle_tcd_notification(uint8_t *buf)
     case BTTFN_NOT_SPD:
         seqCnt = GET32(buf, 12);
         if(seqCnt > bttfnTCDSeqCnt || seqCnt == 1 ) {
-            gpsSpeed = (int16_t)(buf[6] | (buf[7] << 8));
-            if(gpsSpeed > 88) gpsSpeed = 88;
             switch(buf[8] | (buf[9] << 8)) {
             case BTTFN_SSRC_GPS:
                 spdIsRotEnc = false;
                 break;
+            case BTTFN_SSRC_P1:
+                // If packets come out-of-order, we might
+                // get this one before TTrunning, and we
+                // don't want the loop to switch to
+                // usingGPSS only because of P1 speed
+                if(!TTrunning) return;
+                // fall through
             default:
                 spdIsRotEnc = true;
             }
+            gpsSpeed = (int16_t)(buf[6] | (buf[7] << 8));
+            if(gpsSpeed > 88) gpsSpeed = 88;
         } 
         bttfnTCDSeqCnt = seqCnt;
         break;
@@ -3053,7 +3102,7 @@ static void handle_tcd_notification(uint8_t *buf)
     case BTTFN_NOT_TT:
         // Trigger Time Travel (if not running already)
         // Ignore command if TCD is connected by wire
-        if(!TCDconnected && !TTrunning && !IRLearning) {
+        if(!TCDconnected && !TTrunning && !IRLearning && !sidBusy) {
             networkTimeTravel = true;
             networkTCDTT = true;
             networkReentry = false;
@@ -3080,13 +3129,17 @@ static void handle_tcd_notification(uint8_t *buf)
         networkAlarm = true;
         break;
     case BTTFN_NOT_SID_CMD:
-        addCmdQueue(GET32(buf, 6));
+        if(!sidBusy) {
+            addCmdQueue(GET32(buf, 6));
+        }
         break;
     case BTTFN_NOT_WAKEUP:
         doWakeup = true;
         break;
     case BTTFN_NOT_BUSY:
         tcdIsBusy = !!(buf[8]);
+        remoteAllowed = !(buf[6] & 0x02);
+        if(!remoteAllowed) remMode = remHoldKey = false;
         break;
     }
 }
@@ -3221,10 +3274,11 @@ static void BTTFNCheckPacket()
             tcdFPO = (BTTFUDPBuf[26] & 0x02) ? true : false;   // 1 means fake power off
             remoteAllowed = (BTTFUDPBuf[26] & 0x08) ? TCDSupportsRemKP : false;
             tcdIsBusy = (BTTFUDPBuf[26] & 0x10) ? true : false;
+            if(!remoteAllowed) remMode = remHoldKey = false;
         } else {
             tcdNM = false;
             tcdFPO = false;
-            remoteAllowed = false;
+            remoteAllowed = remMode = remHoldKey = false;
         }
 
         lastBTTFNpacket = mymillis;
