@@ -702,21 +702,23 @@ Note that this only disables the supplied remote, unlike [IR locking](#locking-i
 
 ## Appendix B: LED signals
 
+Signals are shown in the top two rows of the display.
+
 <table>
     <tr>
-     <td align="left">$${\color{red}&#9675; &#9679; &#9679; &#9679; &#9679; &#9679; &#9679; &#9679; &#9679; &#9675;}$$<br>
+     <td align="left">&#9675; &#9679; &#9679; &#9679; &#9679; &#9679; &#9679; &#9679; &#9679; &#9675;<br>
                       &#9675; &#9675; &#9675; &#9675; &#9675; &#9675; &#9675; &#9675; &#9675; &#9675;</td>
      <td align="left">Bad input from IR</td>
     </tr>
     <tr>
      <td align="left">&#9675; &#9679; &#9679; &#9679; &#9679; &#9679; &#9679; &#9679; &#9679; &#9679;<br>
                       &#9675; &#9675; &#9675; &#9675; &#9675; &#9675; &#9675; &#9675; &#9675; &#9675;</td>
-     <td align="left">TCD-keypad remote control mode started</td>
+     <td align="left"><a href='#remote-controlling-the-tcds-keypad'>TCD-keypad remote control mode</a> started</td>
     </tr>
     <tr>
      <td align="left">&#9679; &#9679; &#9679; &#9679; &#9679; &#9679; &#9679; &#9679; &#9679; &#9675;<br>
                       &#9675; &#9675; &#9675; &#9675; &#9675; &#9675; &#9675; &#9675; &#9675; &#9675;</td>
-     <td align="left">TCD-keypad remote control mode ended</td>
+     <td align="left"><a href='#remote-controlling-the-tcds-keypad'>TCD-keypad remote control mode</a> ended</td>
     </tr>
 </table>
 
