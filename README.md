@@ -519,6 +519,10 @@ This leads to the [WiFi configuration page](#wifi-configuration)
 
 This leads to the [Settings page](#settings).
 
+##### &#9193; HA/MQTT Settings
+
+This leads to the [HomeAssistant/MQTT Settings page](#hamqtt-settings).
+
 ##### &#9193; Update
 
 This leads to the firmware update page. You can select a locally stored firmware image file to upload (such as the ones published here in the install/ folder).
@@ -645,20 +649,6 @@ If the SID is connected to a TCD through BTTFN, this option allows to trigger a 
 
 If this option is checked, the SID will show current local time - as queried from the TCD - when the Screen Saver is active.
 
-#### <ins>Home Assistant / MQTT settings</ins>
-
-##### &#9193; Use Home Assistant (MQTT 3.1.1)
-
-If checked, the SID will connect to the broker (if configured) and send and receive messages via [MQTT](#home-assistant--mqtt)
-
-##### &#9193; Broker IP[:port] or domain[:port]
-
-The broker server address. Can be a domain (eg. "myhome.me") or an IP address (eg "192.168.1.5"). The default port is 1883. If different port is to be used, it can be specified after the domain/IP and a colon ":", for example: "192.168.1.5:1884". Specifying the IP address is preferred over a domain since the DNS call adds to the network overhead. Note that ".local" (MDNS) domains are not supported.
-
-##### &#9193; User[:Password]
-
-The username (and optionally the password) to be used when connecting to the broker. Can be left empty if the broker accepts anonymous logins.
-
 #### <ins>Settings for wired connections</ins>
 
 ##### &#9193; TCD connected by wire
@@ -699,6 +689,24 @@ This procedure ensures that all your settings are copied from the old to the new
 Check this to disable the supplied remote control; the SID will only accept commands from a learned IR remote (if applicable). 
 
 Note that this only disables the supplied remote, unlike [IR locking](#locking-ir-control), where IR commands from any known remote are ignored.
+
+### HA/MQTT Settings
+
+##### &#9193; Home Assistant support (MQTT)
+
+If checked, the SID will connect to the broker (if configured) and send and receive messages via [MQTT](#home-assistant--mqtt)
+
+##### &#9193; Broker IP[:port] or domain[:port]
+
+The broker server address. Can be a domain (eg. "myhome.me") or an IP address (eg "192.168.1.5"). The default port is 1883. If different port is to be used, it can be specified after the domain/IP and a colon ":", for example: "192.168.1.5:1884". Specifying the IP address is preferred over a domain since the DNS call adds to the network overhead. Note that ".local" (MDNS) domains are not supported.
+
+##### &#9193; Protocol version
+
+The firmware supports MQTT 3.1.1 and 5.0. There is no difference in features, so there is no advantage in selecting 5.0. This was implemented only for brokers that do not support 3.1.1.
+
+##### &#9193; User[:Password]
+
+The username (and optionally the password) to be used when connecting to the broker. Can be left empty if the broker accepts anonymous logins.
 
 ## Appendix B: LED signals
 
