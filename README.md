@@ -413,7 +413,7 @@ For a connection by wire, connect GND and GPIO on the SID's "Time Travel" connec
 
 _Do not connect 3_3V to the TCD!_
 
-Next, head to the Config Portal and set the option **_TCD connected by wire_**. On the TCD, the option "Control props connected by wire" must be set.
+Next, head to the Config Portal and set the option **_TCD connected by wire_**. On the TCD, the option [TT-OUT] _"signals Time Travel"_ must be checked.
 
 <details>
 <summary>More...</summary>
