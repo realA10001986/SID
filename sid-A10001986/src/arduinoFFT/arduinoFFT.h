@@ -17,10 +17,15 @@
 	You should have received a copy of the GNU General Public License
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+	Adapted by Thomas Winischhofer (A10001986) in 2023/2025
+
 */
 
-#ifndef ArduinoFFT_h /* Prevent loading library twice */
+#ifndef ArduinoFFT_h
 #define ArduinoFFT_h
+
+//#define INCL_WINDOWING
+//#define INCL_MAJORPEAK
 
 //#define FFT_DOUBLE
 
@@ -28,137 +33,100 @@
 #define FTYPE double
 #define FFT_COS cos
 #define FFT_SQRT sqrt
+#error "Literals are marked float"
 #else
 #define FTYPE float
 #define FFT_COS cosf
 #define FFT_SQRT sqrtf
 #endif
 
-#ifdef ARDUINO
-#if ARDUINO >= 100
 #include "Arduino.h"
-#else
-#include "WProgram.h" /* This is where the standard Arduino code lies */
-#endif
-#else
-#include <stdio.h>
-#include <stdlib.h>
-
-#ifdef __AVR__
-#include <avr/io.h>
-#include <avr/pgmspace.h>
-#endif
-#include "defs.h"
-#include "types.h"
-#include <math.h>
-
-#endif
-
-// Define this to use a low-precision square root approximation instead of the
-// regular sqrt() call
-// This might only work for specific use cases, but is significantly faster.
-// Only works for ArduinoFFT<float>.
-// #define FFT_SQRT_APPROXIMATION
-
-#ifdef FFT_SQRT_APPROXIMATION
-#include <type_traits>
-#else
-#define sqrt_internal sqrt
-#endif
 
 enum class FFTDirection { Reverse, Forward };
 
 enum class FFTWindow {
-  Rectangle,        // rectangle (Box car)
-  Hamming,          // hamming
-  Hann,             // hann
-  Triangle,         // triangle (Bartlett)
-  Nuttall,          // nuttall
-  Blackman,         // blackman
-  Blackman_Nuttall, // blackman nuttall
-  Blackman_Harris,  // blackman harris
-  Flat_top,         // flat top
-  Welch             // welch
+    Rectangle,        // (Box car)
+    Hamming,
+    Hann,
+    Triangle,         // (Bartlett)
+    Nuttall,
+    Blackman,
+    Blackman_Nuttall,
+    Blackman_Harris,
+    Flat_top,
+    Welch
 };
-#define FFT_LIB_REV 0x15
+
 /* Custom constants */
 #define FFT_FORWARD FFTDirection::Forward
 #define FFT_REVERSE FFTDirection::Reverse
 
 /* Windowing type */
-#define FFT_WIN_TYP_RECTANGLE FFTWindow::Rectangle /* rectangle (Box car) */
-#define FFT_WIN_TYP_HAMMING FFTWindow::Hamming     /* hamming */
-#define FFT_WIN_TYP_HANN FFTWindow::Hann           /* hann */
-#define FFT_WIN_TYP_TRIANGLE FFTWindow::Triangle   /* triangle (Bartlett) */
-#define FFT_WIN_TYP_NUTTALL FFTWindow::Nuttall     /* nuttall */
-#define FFT_WIN_TYP_BLACKMAN FFTWindow::Blackman   /* blackman */
-#define FFT_WIN_TYP_BLACKMAN_NUTTALL                                           \
-  FFTWindow::Blackman_Nuttall /* blackman nuttall */
-#define FFT_WIN_TYP_BLACKMAN_HARRIS                                            \
-  FFTWindow::Blackman_Harris                    /* blackman harris*/
-#define FFT_WIN_TYP_FLT_TOP FFTWindow::Flat_top /* flat top */
-#define FFT_WIN_TYP_WELCH FFTWindow::Welch      /* welch */
-/*Mathematial constants*/
-#define twoPi 6.28318531
-#define fourPi 12.56637061
-#define sixPi 18.84955593
+#define FFT_WIN_TYP_RECTANGLE        FFTWindow::Rectangle
+#define FFT_WIN_TYP_HAMMING          FFTWindow::Hamming
+#define FFT_WIN_TYP_HANN             FFTWindow::Hann
+#define FFT_WIN_TYP_TRIANGLE         FFTWindow::Triangle
+#define FFT_WIN_TYP_NUTTALL          FFTWindow::Nuttall
+#define FFT_WIN_TYP_BLACKMAN         FFTWindow::Blackman
+#define FFT_WIN_TYP_BLACKMAN_NUTTALL FFTWindow::Blackman_Nuttall
+#define FFT_WIN_TYP_BLACKMAN_HARRIS  FFTWindow::Blackman_Harris
+#define FFT_WIN_TYP_FLT_TOP          FFTWindow::Flat_top
+#define FFT_WIN_TYP_WELCH            FFTWindow::Welch
 
-#ifdef __AVR__
-static const FTYPE _c1[] PROGMEM = {
-    0.0000000000, 0.7071067812, 0.9238795325, 0.9807852804, 0.9951847267,
-    0.9987954562, 0.9996988187, 0.9999247018, 0.9999811753, 0.9999952938,
-    0.9999988235, 0.9999997059, 0.9999999265, 0.9999999816, 0.9999999954,
-    0.9999999989, 0.9999999997};
-static const FTYPE _c2[] PROGMEM = {
-    1.0000000000, 0.7071067812, 0.3826834324, 0.1950903220, 0.0980171403,
-    0.0490676743, 0.0245412285, 0.0122715383, 0.0061358846, 0.0030679568,
-    0.0015339802, 0.0007669903, 0.0003834952, 0.0001917476, 0.0000958738,
-    0.0000479369, 0.0000239684};
-#endif
+/* Mathematial constants */
+#define twoPi   6.28318531f
+#define fourPi 12.56637061f
+#define sixPi  18.84955593f
+
 class arduinoFFT {
-public:
-  /* Constructor */
-  arduinoFFT(void);
-  arduinoFFT(FTYPE *vReal, FTYPE *vImag, uint16_t samples,
-             FTYPE samplingFrequency);
-  /* Destructor */
-  ~arduinoFFT(void);
-  /* Functions */
-  uint8_t Revision(void);
-  uint8_t Exponent(uint16_t value);
+    public:
+        /* Constructors */
+        arduinoFFT(void);
+        arduinoFFT(FTYPE *vReal, FTYPE *vImag, uint16_t samples, FTYPE samplingFrequency);
 
-  void ComplexToMagnitude(FTYPE *vReal, FTYPE *vImag, uint16_t samples);
-  void Compute(FTYPE *vReal, FTYPE *vImag, uint16_t samples,
-               FFTDirection dir);
-  void Compute(FTYPE *vReal, FTYPE *vImag, uint16_t samples, uint8_t power,
-               FFTDirection dir);
-  void DCRemoval(FTYPE *vData, uint16_t samples);
-  FTYPE MajorPeak(FTYPE *vD, uint16_t samples, FTYPE samplingFrequency);
-  void MajorPeak(FTYPE *vD, uint16_t samples, FTYPE samplingFrequency,
-                 FTYPE *f, FTYPE *v);
-  void Windowing(FTYPE *vData, uint16_t samples, FFTWindow windowType,
-                 FFTDirection dir);
+        /* Destructor */
+        ~arduinoFFT(void);
 
-  void ComplexToMagnitude();
-  void Compute(FFTDirection dir);
-  void DCRemoval();
-  FTYPE MajorPeak();
-  void MajorPeak(FTYPE *f, FTYPE *v);
-  void Windowing(FFTWindow windowType, FFTDirection dir);
+        /* Functions */
+        uint8_t Exponent(uint16_t value);
 
-  FTYPE MajorPeakParabola();
+        void  ComplexToMagnitude();
+        void  ComplexToMagnitude(FTYPE *vReal, FTYPE *vImag, uint16_t samples);
 
-private:
-  /* Variables */
-  uint16_t _samples;
-  FTYPE _samplingFrequency;
-  FTYPE *_vReal;
-  FTYPE *_vImag;
-  uint8_t _power;
-  /* Functions */
-  void Swap(FTYPE *x, FTYPE *y);
-  void Parabola(FTYPE x1, FTYPE y1, FTYPE x2, FTYPE y2, FTYPE x3,
-                FTYPE y3, FTYPE *a, FTYPE *b, FTYPE *c);
+        void  Compute(FFTDirection dir);
+        void  Compute(FTYPE *vReal, FTYPE *vImag, uint16_t samples, FFTDirection dir);
+        void  Compute(FTYPE *vReal, FTYPE *vImag, uint16_t samples, uint8_t power, FFTDirection dir);
+
+        void  DCRemoval();
+        void  DCRemoval(FTYPE *vData, uint16_t samples);
+
+        #ifdef INCL_WINDOWING
+        void  Windowing(FTYPE *vData, uint16_t samples, FFTWindow windowType, FFTDirection dir);
+        void  Windowing(FFTWindow windowType, FFTDirection dir);
+        #endif
+
+        #ifdef INCL_MAJORPEAK
+        FTYPE MajorPeak();
+        void  MajorPeak(FTYPE *f, FTYPE *v);
+        FTYPE MajorPeak(FTYPE *vD, uint16_t samples, FTYPE samplingFrequency);
+        void  MajorPeak(FTYPE *vD, uint16_t samples, FTYPE samplingFrequency, FTYPE *f, FTYPE *v);
+        FTYPE MajorPeakParabola();
+        #endif
+
+    private:
+        /* Variables */
+        uint16_t  _samples;
+        FTYPE     _samplingFrequency;
+        FTYPE *   _vReal;
+        FTYPE *   _vImag;
+        uint8_t   _power;
+
+        /* Functions */
+        void Swap(FTYPE *x, FTYPE *y);
+
+        #ifdef INCL_MAJORPEAK
+        void Parabola(FTYPE x1, FTYPE y1, FTYPE x2, FTYPE y2, FTYPE x3, FTYPE y3, FTYPE *a, FTYPE *b, FTYPE *c);
+        #endif
 };
 
 #endif
