@@ -104,6 +104,8 @@
 
 /*  Changelog
  *  
+ *  2026/01/09 (A10001986) [1.63]
+ *    - BTTFN: Fix keep-alive logic and re-connection after a TCD-reboot.
  *  2026/01/09 (A10001986) [1.62]
  *    - SA: Shift frequency bands slightly to better match mic frequency
  *      response and possibly batch-to-batch dispersion; better pace-keeping; 

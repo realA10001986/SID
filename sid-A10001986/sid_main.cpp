@@ -393,7 +393,8 @@ static bool          remHoldKey = false;
 #define BTTFN_POLL_INT          1000
 #define BTTFN_POLL_INT_FAST      800
 #define BTTFN_RESPONSE_TO        700
-#define BTTFN_KA_INTERVAL  (63*1000)
+#define BTTFN_KA_OFFSET            3
+#define BTTFN_KA_INTERVAL  ((60+BTTFN_KA_OFFSET)*1000)
 #define BTTFN_DATA_TO          16200
 #define BTTFN_TYPE_ANY     0    // Any, unknown or no device
 #define BTTFN_TYPE_FLUX    1    // Flux Capacitor
@@ -459,6 +460,7 @@ static bool          haveTCDIP = false;
 static IPAddress     bttfnTcdIP;
 static uint32_t      bttfnTCDSeqCnt = 0;
 static uint32_t      bttfnTCDDataSeqCnt = 0;
+static uint32_t      bttfnSessionID = 0;
 static uint8_t       bttfnReqStatus = 0x53; // Request capabilities, status, speed, date/time
 static bool          TCDSupportsRemKP = false;
 static bool          TCDSupportsNOTData = false;
@@ -3091,6 +3093,12 @@ static void handle_tcd_notification(uint8_t *buf)
         if(TCDSupportsNOTData) {
             bttfnDataNotEnabled = true;
             bttfnLastNotData = millis();
+            seqCnt = GET32(buf, 27);
+            if(bttfnSessionID && (bttfnSessionID != seqCnt)) {
+                lastBTTFNKA = bttfnLastNotData - BTTFN_KA_INTERVAL + (BTTFN_KA_OFFSET*1000);
+                bttfnTCDDataSeqCnt = 1;
+            }
+            bttfnSessionID = seqCnt;
             seqCnt = GET32(buf, 6);
             if(seqCnt > bttfnTCDDataSeqCnt || seqCnt == 1) {
                 #ifdef SID_DBG
@@ -3294,11 +3302,11 @@ static void BTTFNCheckPacket()
                 Serial.println("Internal error - received unexpected DISCOVER response");
                 #endif
             }
-        } else {
-            lastBTTFNKA = mymillis;
         }
 
-        lastBTTFNpacket = mymillis;
+        // TCD did register us, so use current millis as
+        // baseline for KEEP_ALIVE (lastBTTFNKA)
+        lastBTTFNpacket = lastBTTFNKA = mymillis;
 
         bttfn_eval_response(BTTFUDPBuf, true);
     }
@@ -3507,12 +3515,16 @@ void bttfn_loop()
             BTTFNLastCmdSent = 0;
             do {
                 lastBTTFNKA += BTTFN_KA_INTERVAL;
-            } while(now - lastBTTFNKA > BTTFN_KA_INTERVAL);
+            } while(now - lastBTTFNKA >= BTTFN_KA_INTERVAL);
         }
         if(now - bttfnLastNotData > BTTFN_DATA_TO) {
             // Return to polling if no NOT_DATA for too long
             bttfnDataNotEnabled = false;
-            bttfnTCDDataSeqCnt = lastBTTFNKA = 0;
+            bttfnTCDDataSeqCnt = 1;
+            // Re-do DISCOVER, TCD might have got new IP address
+            if(tcdHostNameHash) {
+                haveTCDIP = false;
+            }
             #ifdef SID_DBG
             Serial.println("NOT_DATA timeout, returning to polling");
             #endif
