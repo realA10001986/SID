@@ -1,7 +1,7 @@
 /*
  * -------------------------------------------------------------------
  * CircuitSetup.us Status Indicator Display
- * (C) 2023-2025 Thomas Winischhofer (A10001986)
+ * (C) 2023-2026 Thomas Winischhofer (A10001986)
  * https://github.com/realA10001986/SID
  * https://sid.out-a-ti.me
  *
@@ -86,7 +86,7 @@
 #endif 
 
 static const char *cfgName    = "/sidconfig.json";  // Main config (flash)
-static const char *idName     = "/fcid.json";       // SID remote ID (flash)
+static const char *idName     = "/sidid.json";      // SID remote ID (flash)
 static const char *ipCfgName  = "/sidipcfg.json";   // IP config (flash)
 static const char *briCfgName = "/sidbricfg.json";  // Brightness config (flash/SD)
 static const char *irlCfgName = "/sidirlcfg.json";  // IR lock (flash/SD)
@@ -162,7 +162,9 @@ static void firmware_update();
  */
 void settings_setup()
 {
+    #ifdef SID_DBG
     const char *funcName = "settings_setup";
+    #endif
     bool writedefault = false;
     bool SDres = false;
     int cfgReadCount = 0;
@@ -262,6 +264,9 @@ void settings_setup()
     }
 
     if(haveSD) {
+
+        firmware_update();
+
         if(SD.exists("/SID_FLASH_RO") || !haveFS) {
             bool writedefault2 = false;
             FlashROMode = true;
@@ -341,7 +346,7 @@ static bool read_settings(File configFile, int cfgReadCount)
     #if ARDUINOJSON_VERSION_MAJOR < 7
     jsonSize = json.memoryUsage();
     if(jsonSize > JSON_SIZE) {
-        Serial.printf("%s: ERROR: Config file too large (%d vs %d), memory corrupted, awaiting doom.\n", funcName, jsonSize, JSON_SIZE);
+        Serial.printf("ERROR: Config file too large (%d vs %d), memory corrupted, awaiting doom.\n", jsonSize, JSON_SIZE);
     }
     
     #ifdef SID_DBG

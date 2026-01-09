@@ -1,7 +1,7 @@
 /*
  * -------------------------------------------------------------------
  * CircuitSetup.us Status Indicator Display
- * (C) 2023-2025 Thomas Winischhofer (A10001986)
+ * (C) 2023-2026 Thomas Winischhofer (A10001986)
  * https://github.com/realA10001986/SID
  * https://sid.out-a-ti.me
  *
@@ -15,8 +15,8 @@
  ***                          Version Strings                          ***
  *************************************************************************/
 
-#define SID_VERSION       "V1.61"
-#define SID_VERSION_EXTRA "NOV262025"
+#define SID_VERSION       "V1.62"
+#define SID_VERSION_EXTRA "JAN092026"
 
 //#define SID_DBG              // debug output on Serial
 
@@ -59,8 +59,10 @@
 // IR feedback
 #define IR_FB_PIN         17
 
-// Time Travel button (or TCD input trigger)
+// Time Travel button (or TCD trigger input)
 #define TT_IN_PIN         13
+
+#define TT_OUT_PIN        14 // (no terminal)
 
 // I2S audio pins
 #define I2S_BCLK_PIN      26

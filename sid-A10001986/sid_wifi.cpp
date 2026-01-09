@@ -1,7 +1,7 @@
 /*
  * -------------------------------------------------------------------
  * CircuitSetup.us Status Indicator Display
- * (C) 2023-2025 Thomas Winischhofer (A10001986)
+ * (C) 2023-2026 Thomas Winischhofer (A10001986)
  * https://github.com/realA10001986/SID
  * https://sid.out-a-ti.me
  *
@@ -249,8 +249,8 @@ static bool shouldDeleteIPConfig = false;
 // Did user configure a WiFi network to connect to?
 bool wifiHaveSTAConf = false;
 
-static unsigned long lastConnect = 0;
-static unsigned long consecutiveAPmodeFB = 0;
+//static unsigned long lastConnect = 0;
+//static unsigned long consecutiveAPmodeFB = 0;
 
 // WiFi power management in AP mode
 bool          wifiInAPMode = false;
@@ -296,7 +296,6 @@ static void preSaveWiFiCallback();
 static bool preWiFiScanCallback();
 
 static void setupStaticIP();
-static void ipToString(char *str, IPAddress ip);
 static IPAddress stringToIp(char *str);
 
 static void getParam(String name, char *destBuf, size_t length, int defaultVal);
@@ -536,7 +535,6 @@ void wifi_setup2()
     if(useMQTT) {
 
         uint16_t mqttPort = 1883;
-        bool mqttRes = false;
         char *t;
         int tt;
 
@@ -936,7 +934,17 @@ static void wifiOff(bool force)
         }
     }
 
-    wm.disableWiFi();
+    // Parm for disableWiFi() is "waitForOFF"
+    // which should be true if we stop in AP
+    // mode and immediately re-connect, without
+    // process()ing for a while after this call.
+    // "force" is true if we want to try to
+    // reconnect after disableWiFi(), false if 
+    // we disconnect upon timer expiration, 
+    // so it matches the purpose.
+    // "false" also does not cause any delays,
+    // while "true" may take up to 2 seconds.
+    wm.disableWiFi(force);
 }
 
 void wifiOn(unsigned long newDelay, bool alsoInAPMode, bool deferCP)
@@ -1001,68 +1009,8 @@ void wifiOn(unsigned long newDelay, bool alsoInAPMode, bool deferCP)
 
         }
 
-    } else {      // unused
-
-        /*
-         
-        // If no user-config'd network - no point, bail
-        if(!wifiHaveSTAConf) return;
-
-        if(wifiInAPMode) {  // We are in AP mode (because connection failed)
-
-            #ifdef SID_DBG
-            Serial.printf("wifiOn: consecutiveAPmodeFB %d\n", consecutiveAPmodeFB);
-            #endif
-
-            // Reset counter of consecutive AP-mode fallbacks
-            // after a couple of days
-            if(Now - lastConnect > 4*24*60*60*1000)
-                consecutiveAPmodeFB = 0;
-
-            // Give up after so many attempts
-            if(consecutiveAPmodeFB > 5)
-                return;
-
-            // Do not try to switch from AP- to STA-mode
-            // if last fall-back to AP-mode was less than
-            // 15 (for the first 2 attempts, then 90) minutes ago
-            if(Now - lastConnect < ((consecutiveAPmodeFB <= 2) ? 15*60*1000 : 90*60*1000))
-                return;
-
-            if(!wifiAPIsOff) {
-
-                // If ON, disable WiFi at this point
-                // (in hope of successful connection below)
-                wifiOff(true);
-
-            }
-
-        } else {            // We are in STA mode
-
-            // If WiFi is not off, check if caller wanted
-            // to start the CP, and do so, if not running
-            if(!wifiIsOff && (WiFi.status() == WL_CONNECTED)) {
-                if(!deferCP) {
-                    if(!wm.getWebPortalActive()) {
-                        wm.startWebPortal();
-                    }
-                }
-                // Add 60 seconds to timer in case the NTP
-                // request might fall off the edge
-                if(origWiFiOffDelay > 0) {
-                    if((Now - wifiOnNow >= wifiOffDelay) ||
-                       ((wifiOffDelay - (Now - wifiOnNow)) < (60*1000))) {
-                        wifiOnNow += (60*1000);
-                    }
-                }
-                return;
-            }
-
-        }
-
-        */
-
-    }
+    } else 
+        return;
 
     // (Re)connect
     wifiConnect(deferCP);
@@ -1585,12 +1533,6 @@ bool isIp(char *str)
         return true;
 
     return false;
-}
-
-// IPAddress to string
-static void ipToString(char *str, IPAddress ip)
-{
-    sprintf(str, "%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
 }
 
 // String to IPAddress

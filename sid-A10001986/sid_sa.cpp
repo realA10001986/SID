@@ -1,7 +1,7 @@
 /*
  * -------------------------------------------------------------------
  * CircuitSetup.us Status Indicator Display
- * (C) 2023-2025 Thomas Winischhofer (A10001986)
+ * (C) 2023-2026 Thomas Winischhofer (A10001986)
  * https://github.com/realA10001986/SID
  * https://sid.out-a-ti.me
  *
@@ -75,24 +75,25 @@ static int32_t rawSamples[NUMSAMPLES];
 static FTYPE vReal[NUMSAMPLES];
 static FTYPE vImag[NUMSAMPLES];
 
-static FTYPE freqBands[NUMBANDS] = { 0 };
+static FTYPE freqBands[NUMBANDS] = { 0.0f };
 
 // 32 = 32ms * 32 = 1 sec
 // 64 = 32ms * 64 = 2 secs
 // 128 = 32ms * 128 = 4 secs
 #define FQ_HIST 128
 static int histIdx = 0;
-static FTYPE freqBandsHistory[FQ_HIST][NUMBANDS] = { 0 };
+static FTYPE freqBandsHistory[FQ_HIST][NUMBANDS] = { 0.0f };
 
 // The frequency bands
 // First one is "garbage bin", not used for display
 static const int freqSteps[NUMBANDS] = {
-    80,  100,  150,  250,  430,  600, 1000, 2000, 4000, 7000, 10000
+    80,  100,  150,  250,  430,  600, 1000, 2000, 4000, 6000, 8000
+//  80,  100,  150,  250,  430,  600, 1000, 2000, 4000, 7000, 10000
 };
 
 // Noise threshold per band. Lower bands have more noise.
-static const int minTreshold[NUMBANDS] = {
-    0, 5000, 5000, 5000, 3000, 1000, 1000, 1000, 1000, 1000, 1000
+static const FTYPE minTreshold[NUMBANDS] = {
+    0.0f, 5000.0f, 5000.0f, 5000.0f, 3000.0f, 1000.0f, 1000.0f, 1000.0f, 1000.0f, 1000.0f, 1000.0f
 };
 
 static const uint8_t maxTTHeight[10] = {
@@ -129,7 +130,7 @@ static const i2s_pin_config_t i2sPins = {
     .bck_io_num   = I2S_BCLK_PIN,
     .ws_io_num    = I2S_LRCLK_PIN,
     .data_out_num = I2S_PIN_NO_CHANGE,
-    .data_in_num  = I2S_DIN_PIN
+    .data_in_num  = I2S_DIN_PIN,
 };
 
 static const i2s_config_t i2s_config = {
@@ -253,8 +254,8 @@ void sa_loop()
 {
     size_t bytesRead = 0;
     unsigned long now = millis();
-    int mmaxi = 0, band = 0;
-    FTYPE mmax = 1.0;
+    int band = 0;
+    FTYPE mmax = 1.0f;
     
     if(!saActive || !sa_avail)
         return;
@@ -262,10 +263,16 @@ void sa_loop()
     if(lastTime && (now - lastTime < (NUMSAMPLES * 1000 / SAMPLERATE)))
         return;
 
-    lastTime = now;
+    //unsigned long dnow1 = millis();
 
-    // Read i2c data  - do I need a timeout? FIXME
+    // Read. This waits until our requested data is fully available,...
     i2s_read(I2S_PORT, (void *)rawSamples, sizeof(rawSamples), &bytesRead, portMAX_DELAY);
+
+    // .. and therefore, to keep the pace, we update lastTime here, and not above.
+    // (-X because ... this leads to us being called a bit earlier than necessary
+    // but that's better than too late (if we return above a tad before the data 
+    // is ready). Could as well be -5 or -10, but then we burn too much time here.)
+    lastTime = millis() - 2;
 
     if(bytesRead != sizeof(rawSamples)) {
         // what now?
@@ -282,10 +289,12 @@ void sa_loop()
     
     #else
 
+    //unsigned long dnow2 = millis();
+
     // Convert; clear vImag
     for(int i = 0; i < NUMSAMPLES; i++) {
         vReal[i] = (FTYPE)(rawSamples[i] / 16384); // do NOT shift; result of shifting negative integer is undefined
-        vImag[i] = 0.0;
+        vImag[i] = 0.0f;
     }
 
     // Do the FFT
@@ -313,7 +322,7 @@ void sa_loop()
         if(freq >= freqSteps[band]) {
             band++;
             if(band == NUMBANDS) break;
-            else freqBands[band] = 0.0;
+            else freqBands[band] = 0.0f;
         }
         if(band && (vReal[i] > minTreshold[band])) {
             freqBands[band] += vReal[i];      
@@ -329,12 +338,14 @@ void sa_loop()
 
     // Find maximum in history table for scaling each bar
     for(int i = 1; i < NUMBANDS; i++) {
-        mmax = 1.0;
+        mmax = 1.0f;
         for(int j = 0; j < FQ_HIST; j++) {
             if(mmax < freqBandsHistory[j][i]) mmax = freqBandsHistory[j][i];
         }
         freqBands[i] /= mmax;
     }
+
+    //Serial.printf("   %d \n", dnow2-dnow1); 
 
     now = millis();
 
@@ -361,7 +372,7 @@ void sa_loop()
             histIdx = 0;
             for(int i = 0; i < FQ_HIST; i++) {
                 for(int j = 1; j < NUMBANDS; j++) {
-                    freqBandsHistory[i][j] = 0.0;
+                    freqBandsHistory[i][j] = 0.0f;
                 }
             }
         }
@@ -387,7 +398,7 @@ void sa_loop()
                 else                           height = oldHeight[i] - 1;
             }
     
-            // Now do peak
+            // Now do peaks
             if(height - 1 > peaks[i]) {
                 peaks[i] = min(LEDS_PER_BAR - 1, height - 1);
                 newPeak[i] = now;

@@ -1,7 +1,7 @@
 /*
  * -------------------------------------------------------------------
  * CircuitSetup.us Status Indicator Display
- * (C) 2023-2025 Thomas Winischhofer (A10001986)
+ * (C) 2023-2026 Thomas Winischhofer (A10001986)
  * https://github.com/realA10001986/SID
  * https://sid.out-a-ti.me
  *
@@ -71,7 +71,6 @@ static int spy = 0;
 static int sdx = 0;
 static int sdy = 0;
 static int scl = 0;
-static int sml = 0;
 static int snake[MAXLENGTH][2] = { { 0, 0 } };
 
 static int apx = 0;
@@ -222,7 +221,6 @@ void sn_loop()
         scl++;
         acnt++;
         if(scl >= MAXLENGTH || acnt > APPLES_PER_LEVEL) {
-            char lvl[2];
             resetGame();
             if(level < NUM_LEVELS - 1) {
                 char lvl[2];

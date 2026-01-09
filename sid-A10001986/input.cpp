@@ -1,7 +1,7 @@
 /*
  * -------------------------------------------------------------------
  * CircuitSetup.us Status Indicator Display
- * (C) 2023-2025 Thomas Winischhofer (A10001986)
+ * (C) 2023-2026 Thomas Winischhofer (A10001986)
  * https://github.com/realA10001986/SID
  * https://sid.out-a-ti.me
  *
@@ -157,7 +157,7 @@ bool IRRemote::loop()
 
     // Copy result to backup buffer
     _buflen = _irlen;
-    for(uint8_t i = 0; i < _buflen; i++) {
+    for(int i = 0; i < _buflen; i++) {
         _buf[i] = _irbuf[i];
     }
 

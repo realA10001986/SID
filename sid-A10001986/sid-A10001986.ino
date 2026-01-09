@@ -1,7 +1,7 @@
 /*
  * -------------------------------------------------------------------
  * CircuitSetup.us Status Indicator Display
- * (C) 2023-2025 Thomas Winischhofer (A10001986)
+ * (C) 2023-2026 Thomas Winischhofer (A10001986)
  * https://github.com/realA10001986/SID
  * https://sid.out-a-ti.me
  *
@@ -70,7 +70,7 @@
  *   communications chip is used: Either SLAB CP210x USB-to-UART or CH340. Installing
  *   a driver might be required.
  *   Mac: 
- *   For the SLAB CP210x (which is used by NodeMCU-boards distributed by CircuitSetup)
+ *   For the SLAB CP210x (which is on the NodeMCU-boards distributed by CircuitSetup)
  *   installing a driver is required:
  *   https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers?tab=downloads
  *   The port ("Tools -> "Port") is named /dev/cu.SLAB_USBtoUART, and the maximum
@@ -104,6 +104,16 @@
 
 /*  Changelog
  *  
+ *  2026/01/09 (A10001986) [1.62]
+ *    - SA: Shift frequency bands slightly to better match mic frequency
+ *      response and possibly batch-to-batch dispersion; better pace-keeping; 
+ *      clean up arduinoFFT.
+ *    - IO14 is now mirror of the TCD's TT-OUT (in its original function); goes HIGH 
+ *      on start of temporal displacement, LOW on re-entry. There is no lead time.
+ *      Note: There is no terminal for IO14. It is, however, accessible through a 
+ *      solder pad next to the ESP32, pin no. 8 from bottom.
+ *    - BTTFN enhancements in sync with TCD capabilities
+ *    - Code refinements
  *  2025/11/26 (A10001986) [1.61]
  *    - Prevent P1-speed from becoming the reason to switch to adapting to
  *      TCD-provided speed in speedo-less time-travel sequences

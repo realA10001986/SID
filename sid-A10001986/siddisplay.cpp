@@ -1,7 +1,7 @@
 /*
  * -------------------------------------------------------------------
  * CircuitSetup.us Status Indicator Display
- * (C) 2023-2025 Thomas Winischhofer (A10001986)
+ * (C) 2023-2026 Thomas Winischhofer (A10001986)
  * https://github.com/realA10001986/SID
  * https://sid.out-a-ti.me
  *
@@ -458,7 +458,7 @@ void sidDisplay::drawFieldAndShow(uint8_t *fieldData)
 void sidDisplay::drawLetterAndShow(char alpha, int x, int y)
 {
     uint8_t field[20*10] = { 0 };
-    int w = 10, h = 10, fx = 0, fy = 0, a = 0x200, s;
+    int w = 10, h = 10, fx = 0, fy = 0, a = 0x200;
 
     if(x < -9 || x > 9 || y < -9 || y > 19) {
         clearDisplayDirect();
@@ -490,7 +490,7 @@ void sidDisplay::drawLetterAndShow(char alpha, int x, int y)
     } else if(alpha == '~') {
         alpha = 44;
     } else {
-        clearDisplayDirect();   
+        clearDisplayDirect();
         return;
     }
 
@@ -511,7 +511,7 @@ void sidDisplay::drawLetterAndShow(char alpha, int x, int y)
     }
 
     for(int yy = fy; yy < h; yy++, y++) {
-        uint16_t font = alphaChars[alpha][yy];
+        uint16_t font = alphaChars[(unsigned int)alpha][yy];
         int xxx = x;
         for(int xx = fx, s = a; xx < w; xx++, s >>= 1, xxx++) {
             if(font & s) {
@@ -524,7 +524,7 @@ void sidDisplay::drawLetterAndShow(char alpha, int x, int y)
 
 void sidDisplay::drawLetterMask(char alpha, int x, int y)
 {
-    int w = 8, h = 8, fx = 0, fy = 0, a = 0x80, s;
+    int w = 8, h = 8, fx = 0, fy = 0, a = 0x80;
 
     if(x < -7 || x > 9 || y < -7 || y > 19) {
         return;
@@ -564,7 +564,7 @@ void sidDisplay::drawLetterMask(char alpha, int x, int y)
     }
 
     for(int yy = fy; yy < h; yy++, y++) {
-        uint8_t font = alphaChars8[alpha][yy];
+        uint8_t font = alphaChars8[(unsigned int)alpha][yy];
         int xxx = x;
         for(int xx = fx, s = a; xx < w; xx++, s >>= 1, xxx++) {
             if(font & s) {
@@ -581,7 +581,7 @@ void sidDisplay::drawClockAndShow(uint8_t *dateBuf, int dx, int dy)
     int x[4], y[4], nums[4];
     int ampm = -1;
     uint8_t t = dateBuf[4];
-    int s, c, cx, h, w, ox, oy, yyy;
+    int c, h, w, ox, oy;
 
     if(dx < -9 || dy < -11 || dx > 9 || dy > 19) {
         clearDisplayDirect();   
@@ -599,6 +599,10 @@ void sidDisplay::drawClockAndShow(uint8_t *dateBuf, int dx, int dy)
     nums[1] = t % 10;
     nums[2] = dateBuf[5] / 10;
     nums[3] = dateBuf[5] % 10;
+
+    // AM/PM not shown; no idea where to put
+    // it; corners are not an option, defeats
+    // the idea of a screenSAVER.
     
     for(c = 0; c < 4; c++) {
         for(int yy = y[c], yyy = 0; yy < y[c] + 5; yy++, yyy++) {
