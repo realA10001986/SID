@@ -22,6 +22,8 @@ Features include
 - [SD card](#sd-card) support
 - built-in OTA installer for firmware updates
 
+>This [repository](https://sid.out-a-ti.me) is the upstream source for CircuitSetup's releases. The only difference is that both code and documentation [here](https://sid.out-a-ti.me) might be ahead in development.
+
 ## Installation
 
 If a previous version of the SID firmware is installed on your device, you can update easily using the pre-compiled binary. Enter the [Config Portal](#the-config-portal), click on "Update" and select the pre-compiled binary file provided in this repository ([install/sid-A10001986.ino.nodemcu-32s.bin](https://github.com/realA10001986/SID/blob/main/install/sid-A10001986.ino.nodemcu-32s.bin)).
