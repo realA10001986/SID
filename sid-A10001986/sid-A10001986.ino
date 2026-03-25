@@ -104,8 +104,27 @@
 
 /*  Changelog
  *  
+ *  2026/03/25 (A10001986) [1.71]
+ *    *********************************************************************************
+ *    ** If updating from below 1.70, please install 1.70 first to have your         **
+ *    ** settings converted. If 1.70 is skipped, many of your settings (static IP,   **
+ *    ** brightness, movie mode, peaks in SA, IR lock) will be restored to default   **
+ *    ** values. It suffices to install 1.70 and boot once; you can then immediately **
+ *    ** update to a later version.                                                  **
+ *    ** https://github.com/realA10001986/SID/releases/tag/V1.70                     **
+ *    *********************************************************************************
+ *    - MQTT: Add user-defined topic to subscribe to, and display messages for, 
+ *      similar to TCD. Only the first max. 8 characters of messages (and only 
+ *      a-z/A-Z and 0-9) are shown.
+ *    - WiFi: Allow defining a BSSID (AP MAC address) to connect to a specific AP
+ *      if multiple APs with identical SSID are available.
+ *    - MQTT: Disable if server can't be resolved
+ *    - WiFi: Do not power down AP long as a client is connected
+ *    - Brush up Config Portal a bit
+ *    - Code optimizations and fixes.
  *  2026/02/15 (A10001986) [1.70]
- *    - New file format settings. This version of the firmware converts old to new.
+ *    - New file format for secondary and IP settings. This version of the firmware 
+ *      converts old to new.
  *    - SID will boot into either Idle or SA mode depending on what was used  
  *      before reboot/power-down (SD card required); "Boot into SA" option removed.
  *      Current mode is saved 10 seconds after activation (or upon fake-power-down

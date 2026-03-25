@@ -88,6 +88,11 @@ extern bool networkAlarm;
 extern uint16_t networkLead;
 extern uint16_t networkP1;
 
+extern uint32_t mqttDisp;
+#ifdef SID_HAVEMQTT
+extern char mqttMsg[];
+#endif
+
 extern uint32_t myRemID;
 
 extern bool doPrepareTT;
@@ -115,6 +120,7 @@ void copyIRarray(uint32_t *irkeys, int index);
 void showWordSequence(const char *text, int speed = 3);
 
 void mydelay(unsigned long mydel, bool withIR);
+unsigned long millisNonZero();
 
 void prepareTT();
 void wakeup();

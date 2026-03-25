@@ -369,8 +369,8 @@ static unsigned long irFeedBackDur = IR_FEEDBACK_DUR;
 static bool          irErrFeedBack = false;
 static unsigned long irErrFeedBackNow = 0;
 static int           irErrFBState = 0;
-bool                 irShowPosFBDisplay = false;
-bool                 irShowCmdFBDisplay = false;
+bool                 irShowPosFBDisplay = true;
+bool                 irShowCmdFBDisplay = true;
 
 bool                 irLocked = false;
 
@@ -1231,52 +1231,59 @@ void main_loop()
 
     } else if(!siActive && !snActive && !saActive) {    // No TT currently
 
-        if(networkAlarm && !IRLearning) {
-            
-            ssEnd();
-            
-            if(!FPBUnitIsOn) {
-                sid.on();
-            }
-            
-            // play alarm sequence
-            showWordSequence("ALARM", 4);
-            
-            if(!FPBUnitIsOn) {
-                sid.off();
-            }
+        if(!IRLearning) {
 
-            networkAlarm = false;
-        
-        } else if(!IRLearning) {
-
-            // Wake up on RotEnc/Remote speed changes; on GPS only if old speed was <=0
-            if(gpsSpeed != oldGpsSpeed) {
-                if(FPBUnitIsOn && (spdIsRotEnc || oldGpsSpeed <= 0) && gpsSpeed >= 0) {
-                    wakeup();
+            if(networkAlarm || mqttDisp) {
+            
+                ssEnd();
+                
+                if(!FPBUnitIsOn) {
+                    sid.on();
                 }
-                oldGpsSpeed = gpsSpeed;
-            }
 
-            now = millis();
-
-            // "Screen saver"
-            if(FPBUnitIsOn) {
-                if(!ssActive && ssDelay && (now - ssLastActivity > ssDelay)) {
-                    ssStart();
-                }
-            }
-          
-            // Default idle sequence
-            if(FPBUnitIsOn) {
-                if(ssActive && ssClock) {
-                    ssUpdateClock();
+                if(networkAlarm) {
+                    // play alarm sequence
+                    showWordSequence("ALARM", 4);
+                    networkAlarm = false;
                 } else {
-                    if(!showIdle()) {
-                        // If showIdle did nothing due to waiting,
-                        // redraw once if a special signal was triggered
-                        if(sid.specialTrigger()) {
-                            sid.show();
+                    showWordSequence(mqttMsg, 4);
+                    mqttDisp = 0;
+                }
+                
+                if(!FPBUnitIsOn) {
+                    sid.off();
+                }
+              
+            } else {
+
+                // Wake up on RotEnc/Remote speed changes; on GPS only if old speed was <=0
+                if(gpsSpeed != oldGpsSpeed) {
+                    if(FPBUnitIsOn && (spdIsRotEnc || oldGpsSpeed <= 0) && gpsSpeed >= 0) {
+                        wakeup();
+                    }
+                    oldGpsSpeed = gpsSpeed;
+                }
+    
+                now = millis();
+    
+                // "Screen saver"
+                if(FPBUnitIsOn) {
+                    if(!ssActive && ssDelay && (now - ssLastActivity > ssDelay)) {
+                        ssStart();
+                    }
+                }
+              
+                // Default idle sequence
+                if(FPBUnitIsOn) {
+                    if(ssActive && ssClock) {
+                        ssUpdateClock();
+                    } else {
+                        if(!showIdle()) {
+                            // If showIdle did nothing due to waiting,
+                            // redraw once if a special signal was triggered
+                            if(sid.specialTrigger()) {
+                                sid.show();
+                            }
                         }
                     }
                 }
@@ -1338,7 +1345,7 @@ void main_loop()
             irlchanged = false;
             saveIRLock();
         } else if(bmdchanged && (now - bmdchgnow > 10000)) {
-            // Save irlock 10 seconds after last change
+            // Save boot mode 10 seconds after last change
             bmdchanged = false;
             saveBootMode();
         }
@@ -2881,17 +2888,6 @@ static void fadeOut()
     }
 }
 
-void prepareReboot()
-{
-    allOff();
-    endIRfeedback();
-    setTTOUT(LOW);
-    flushDelayedSave();
-    delay(500);
-    unmount_fs();
-    delay(100);
-}
-
 void showWordSequence(const char *text, int speed)
 {
     const int speedDelay[6] = { 100, 200, 300, 400, 500, 1000 };
@@ -2947,6 +2943,17 @@ void copyIRarray(uint32_t *irkeys, int index)
     for(int i = 0; i < NUM_IR_KEYS; i++) {
         irkeys[i] = remote_codes[i][index];
     }
+}
+
+void prepareReboot()
+{
+    allOff();
+    endIRfeedback();
+    setTTOUT(LOW);
+    flushDelayedSave();
+    delay(500);
+    unmount_fs();
+    delay(100);
 }
 
 // TT button
@@ -3108,6 +3115,12 @@ void mydelay(unsigned long mydel, bool withIR)
     }
 }
 
+unsigned long millisNonZero()
+{
+    unsigned long now = millis();
+    if(!now) now--;
+    return now;
+}
 
 /*
  * Basic Telematics Transmission Framework (BTTFN)
@@ -3339,7 +3352,7 @@ static bool bttfn_checkmc()
 // Check for pending packet and parse it
 static void BTTFNCheckPacket()
 {
-    unsigned long mymillis = millis();
+    unsigned long mymillis = millisNonZero();
     
     int psize = sidUDP->parsePacket();
     if(!psize) {
@@ -3459,7 +3472,7 @@ static bool BTTFNSendRequest()
 {
     BTTFNPacketDue = false;
 
-    BTTFNUpdateNow = millis();
+    BTTFNUpdateNow = millisNonZero();
 
     if(WiFi.status() != WL_CONNECTED) {
         BTTFNWiFiUp = false;
@@ -3555,7 +3568,7 @@ static bool bttfn_send_command(uint8_t cmd, uint8_t p1, uint8_t p2)
     Serial.printf("Sent command %d\n", cmd);
     #endif
 
-    BTTFNLastCmdSent = millis();
+    BTTFNLastCmdSent = millisNonZero();
 
     return true;
 }
@@ -3599,7 +3612,7 @@ void bttfn_loop()
     
     while(bttfn_checkmc() && t--) {}
 
-    unsigned long now = millis();
+    unsigned long now = millisNonZero();
             
     BTTFNCheckPacket();
     

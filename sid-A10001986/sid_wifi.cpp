@@ -106,6 +106,7 @@ static const char *mqttpCustHTMLSrc[4] = {
     ">5.0%s"
 };
 static const char mqttMsgDisabled[] = "Disabled";
+static const char mqttMsgResolvErr[] = "DNS lookup error";
 static const char mqttMsgConnecting[] = "Connecting...";
 static const char mqttMsgTimeout[] = "Connection time-out";
 static const char mqttMsgFailed[] = "Connection failed";
@@ -127,9 +128,9 @@ static const char *wmBuildMQTTprot(const char *dest, int op);
 static const char *wmBuildMQTTstate(const char *dest, int op);
 #endif
 
-static const char custHTMLHdr1[] = "<div class='cmp0'";
-static const char custHTMLHdr2[] = "><label class='mp0' for='";
-static const char custHTMLHdrI[] = " style='margin-left:20px'";
+static const char custHTMLHdr1[] = "<div class='cmp0";
+static const char custHTMLHdrI[] = " ml20";
+static const char custHTMLHdr2[] = "'><label class='mp0' for='";
 static const char custHTMLSHdr[] = "</label><select class='sel0' value='";
 static const char osde[] = "</option></select></div>";
 static const char ooe[]  = "</option><option value='";
@@ -164,7 +165,6 @@ WiFiManagerParameter custom_hostName("hostname", HNTEXT, settings.hostName, 31, 
 
 WiFiManagerParameter custom_sectstart_wifi("WiFi connection: Other settings", WFM_SECTS|WFM_HL);
 WiFiManagerParameter custom_wifiConRetries("wifiret", "Connection attempts (1-10)", settings.wifiConRetries, 2, "type='number' min='1' max='10'");
-WiFiManagerParameter custom_wifiConTimeout("wificon", "Connection timeout (7-25[seconds])", settings.wifiConTimeout, 2, "type='number' min='7' max='25'");
 
 WiFiManagerParameter custom_sectstart_ap("Access point (AP) mode settings", WFM_SECTS|WFM_HL);
 WiFiManagerParameter custom_sysID("sysID", "Network name (SSID) appendix<br><span>Will be appended to \"SID-AP\" [a-z/0-9/-]</span>", settings.systemID, 7, "pattern='[A-Za-z0-9\\-]+'");
@@ -181,7 +181,7 @@ WiFiManagerParameter custom_sTTANI("sTTANI", "Skip time tunnel animation", setti
 WiFiManagerParameter custom_SApeaks("sap", "Show peaks in Spectrum Analyzer", settings.SApeaks, "", WFM_LABEL_AFTER|WFM_IS_CHKBOX);
 WiFiManagerParameter custom_PIRFB("pir", "Show positive IR feedback on display", settings.PIRFB, "", WFM_LABEL_AFTER|WFM_IS_CHKBOX);
 WiFiManagerParameter custom_PIRCFB("pirc", "Show IR command entry feedback on display", settings.PIRCFB, "class='mb10'", WFM_LABEL_AFTER|WFM_IS_CHKBOX);
-WiFiManagerParameter custom_ssDelay("ssDel", "Screen Saver timer (minutes; 0=off)", settings.ssTimer, 3, "type='number' min='0' max='999'");
+WiFiManagerParameter custom_ssDelay("ssDel", "Screen Saver timer (1-999[minutes]; 0=off)", settings.ssTimer, 3, "type='number' min='0' max='999'");
 
 WiFiManagerParameter custom_sectstart_nw("Wireless communication (BTTF-Network)", WFM_SECTS|WFM_HL);
 WiFiManagerParameter custom_tcdIP("tcdIP", "IP address or hostname of TCD", settings.tcdIP, 31, "pattern='(^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$)|([A-Za-z0-9\\-]+)' placeholder='Example: 192.168.4.1'");
@@ -190,10 +190,10 @@ WiFiManagerParameter custom_uNM("uNM", "Follow TCD night-mode<br><span>If checke
 WiFiManagerParameter custom_uFPO("uFPO", "Follow TCD fake power", settings.useFPO, "", WFM_LABEL_AFTER|WFM_IS_CHKBOX);
 WiFiManagerParameter custom_bttfnTT("bttfnTT", "'0' and button trigger BTTFN-wide TT<br><span>If checked, pressing '0' on the IR remote or pressing the Time Travel button triggers a BTTFN-wide TT</span>", settings.bttfnTT, "class='mb0'", WFM_LABEL_AFTER|WFM_IS_CHKBOX);
 WiFiManagerParameter custom_ssClock("ssClk", "Show clock when Screen Saver is active", settings.ssClock, "", WFM_LABEL_AFTER|WFM_IS_CHKBOX);
-WiFiManagerParameter custom_ssClockO("ssClkO", "Clock off in Night Mode", settings.ssClockOffNM, "class='mb0 mt5' style='margin-left:20px'", WFM_LABEL_AFTER|WFM_IS_CHKBOX);
+WiFiManagerParameter custom_ssClockO("ssClkO", "Clock off in Night Mode", settings.ssClockOffNM, "class='mb0 mt5 ml20'", WFM_LABEL_AFTER|WFM_IS_CHKBOX);
 
 WiFiManagerParameter custom_TCDpresent("TCDpres", "TCD connected by wire", settings.TCDpresent, "title='Check if you have a Time Circuits Display connected via wire' class='mt5'", WFM_LABEL_AFTER|WFM_IS_CHKBOX|WFM_SECTS);
-WiFiManagerParameter custom_noETTOL("uEtNL", "TCD signals Time Travel without 5s lead", settings.noETTOLead, "class='mt5' style='margin-left:20px'", WFM_LABEL_AFTER|WFM_IS_CHKBOX);
+WiFiManagerParameter custom_noETTOL("uEtNL", "TCD signals Time Travel without 5s lead", settings.noETTOLead, "class='mt5 ml20'", WFM_LABEL_AFTER|WFM_IS_CHKBOX);
 
 WiFiManagerParameter custom_haveSD(wmBuildHaveSD, WFM_SECTS);
 WiFiManagerParameter custom_CfgOnSD("CfgOnSD", "Save secondary settings on SD<br><span>Check this to avoid flash wear</span>", settings.CfgOnSD, "class='mt5 mb0'", WFM_LABEL_AFTER|WFM_IS_CHKBOX);
@@ -206,26 +206,23 @@ WiFiManagerParameter custom_useMQTT("uMQTT", "Home Assistant support (MQTT)", se
 WiFiManagerParameter custom_state(wmBuildMQTTstate);
 WiFiManagerParameter custom_mqttServer("ha_server", "Broker IP[:port] or domain[:port]", settings.mqttServer, 79, "pattern='[a-zA-Z0-9\\.:\\-]+' placeholder='Example: 192.168.1.5'");
 WiFiManagerParameter custom_mqttVers(wmBuildMQTTprot);
-WiFiManagerParameter custom_mqttUser("ha_usr", "User[:Password]", settings.mqttUser, 63, "placeholder='Example: ronald:mySecret'", WFM_LABEL_BEFORE|WFM_FOOT);
+WiFiManagerParameter custom_mqttUser("ha_usr", "User[:Password]", settings.mqttUser, 63, "placeholder='Example: ronald:mySecret'");
+WiFiManagerParameter custom_mqttTopic("MQt", "Topic to display", settings.mqttTopic, 63, "placeholder='Optional. Example: home/alarm/status'", WFM_LABEL_BEFORE|WFM_SECTS|WFM_FOOT);
 #endif // HAVEMQTT
 
-#ifdef SID_HAVEMQTT
-#define TC_MENUSIZE 8
-#else
-#define TC_MENUSIZE 7
-#endif
-static const int8_t wifiMenu[TC_MENUSIZE] = { 
+static const int8_t wifiMenu[] = { 
     WM_MENU_WIFI,
     WM_MENU_PARAM,
     #ifdef SID_HAVEMQTT
     WM_MENU_PARAM2,
     #endif
-    WM_MENU_SEP,
+    WM_MENU_SEP_F,
     WM_MENU_UPDATE,
     WM_MENU_SEP,
     WM_MENU_CUSTOM,
     WM_MENU_END
 };
+#define TC_MENUSIZE (sizeof(wifiMenu) / sizeof(wifiMenu[0]))
 
 #define AA_TITLE "SID"
 #define AA_ICON "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQBAMAAADt3eJSAAAAD1BMVEWOkJHMy8dDtiT22DHyJT118zqFAAAALUlEQVQI12MQhAIGAQYwYAQzXGAMY0wGswGQYYzBAJIQhhKTAhARxYBbCncGAAUkB7Vkqvl1AAAAAElFTkSuQmCC"
@@ -233,21 +230,30 @@ static const int8_t wifiMenu[TC_MENUSIZE] = {
 #define UNI_VERSION_EXTRA SID_VERSION_EXTRA
 #define WEBHOME "sid"
 #define PARM2TITLE WM_PARAM2_TITLE
+#define PARM3TITLE ""
 #define CURRVERSION SID_VERSION
+static const char r_link[] = "sidr.out-a-ti.me";
+static const char apName[]  = "SID-AP";
 
 static const char myTitle[] = AA_TITLE;
-static const char apName[] = "SID-AP";
-static const char myHead[]  = "<link rel='shortcut icon' type='image/png' href='data:image/png;base64," AA_ICON "'><script>window.onload=function(){xx=false;document.title=xxx='" AA_TITLE "';id=-1;ar=['/u','/uac','/wifisave','/paramsave','/param2save'];ti=['Firmware upload','','WiFi Configuration','Settings','" PARM2TITLE "'];if(ge('s')&&ge('dns')){xx=true;yyy=ti[2]}if(ge('uploadbin')||(id=ar.indexOf(wlp()))>=0){xx=true;if(id>=2){yyy=ti[id]}else{yyy=ti[0]};aa=gecl('wrap');if(aa.length>0){if(ge('uploadbin')){aa[0].style.textAlign='center';}aa=getn('H3');if(aa.length>0){aa[0].remove()}aa=getn('H1');if(aa.length>0){aa[0].remove()}}}if(ge('ttrp')||wlp()=='/param'||wlp()=='/param2'){xx=true;yyy=ti[3];}if(ge('ebnew')){xx=true;bb=getn('H3');aa=getn('H1');yyy=bb[0].innerHTML;ff=aa[0].parentNode;ff.style.position='relative';}if(xx){zz=(Math.random()>0.8);dd=document.createElement('div');dd.classList.add('tpm0');dd.innerHTML='<div class=\"tpm\" onClick=\"window.location=\\'/\\'\"><div class=\"tpm2\"><img src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABAAQMAAACQp+OdAAAABlBMVEUAAABKnW0vhlhrAAAAAXRSTlMAQObYZgAAA'+(zz?'GBJREFUKM990aEVgCAABmF9BiIjsIIbsJYNRmMURiASePwSDPD0vPT12347GRejIfaOOIQwigSrRHDKBK9CCKoEqQF2qQMOSQAzEL9hB9ICNyMv8DPKgjCjLtAD+AV4dQM7O4VX9m1RYAAAAABJRU5ErkJggg==':'HtJREFUKM990bENwyAUBuFnuXDpNh0rZIBIrJUqMBqjMAIlBeIihQIF/fZVX39229PscYG32esCzeyjsXUzNHZsI0ocxJ0kcZIOsoQjnxQJT3FUiUD1NAloga6wQQd+4B/7QBQ4BpLAOZAn3IIy4RfUibCgTTDq+peG6AvsL/jPTu1L9wAAAABJRU5ErkJggg==')+'\" class=\"tpm3\"></div><H1 class=\"tpmh1\"'+(zz?' style=\"margin-left:1.4em\"':'')+'>'+xxx+'</H1>'+'<H3 class=\"tpmh3\"'+(zz?' style=\"padding-left:5em\"':'')+'>'+yyy+'</div></div>';}if(ge('ebnew')){bb[0].remove();aa[0].replaceWith(dd);}else if(xx){aa=gecl('wrap');if(aa.length>0){aa[0].insertBefore(dd,aa[0].firstChild);aa[0].style.position='relative';}}var lc=ge('lc');if(lc){lc.style.transform='rotate('+(358+[0,1,3,4,5][Math.floor(Math.random()*4)])+'deg)'}}</script><style type='text/css'>H1,H2{margin-top:0px;margin-bottom:0px;text-align:center;}H3{margin-top:0px;margin-bottom:5px;text-align:center;}button{transition-delay:250ms;margin-top:10px;margin-bottom:10px;font-variant-caps:all-small-caps;border-bottom:0.2em solid #225a98}input{border:thin inset}em > small{display:inline}form{margin-block-end:0;}.tpm{cursor:pointer;border:1px solid black;border-radius:5px;padding:0 0 0 0px;min-width:18em;}.tpm2{position:absolute;top:-0.7em;z-index:130;left:0.7em;}.tpm3{width:4em;height:4em;}.tpmh1{font-variant-caps:all-small-caps;font-weight:normal;margin-left:2.2em;overflow:clip;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI Semibold',Roboto,'Helvetica Neue',Verdana,Helvetica}.tpmh3{background:#000;font-size:0.6em;color:#ffa;padding-left:7.2em;margin-left:0.5em;margin-right:0.5em;border-radius:5px}.tpm0{position:relative;width:20em;padding:5px 0px 5px 0px;margin:0 auto 0 auto;}.cmp0{margin:0;padding:0;}.sel0{font-size:90%;width:auto;margin-left:10px;vertical-align:baseline;}.mt5{margin-top:5px!important}.mb10{margin-bottom:10px!important}.mb0{margin-bottom:0px!important}.mb15{margin-bottom:15px!important}.ss>label span{font-size:80%}</style>";
-static const char* myCustMenu = "<img id='ebnew' style='display:block;margin:10px auto 5px auto;' src='data:image/png;base64,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'><div style='font-size:0.9em;line-height:0.9em;font-weight:bold;margin:5px auto 0px auto;text-align:center;font-variant:all-small-caps'>" UNI_VERSION " (" UNI_VERSION_EXTRA ")<br>Powered by A10001986 <a href='https://" WEBHOME ".out-a-ti.me' style='text-decoration:underline' target=_blank>[Home/Updates]</a></div>";
-
-const char menu_UAI[] = "<hr><div style='margin-left:auto;margin-right:auto;text-align:center;'>Update available (";
-const char menu_end[] = ")</div><hr>";
+static const char myHead[]  = "<link rel='icon' type='image/png' href='data:image/png;base64," AA_ICON "'><script>window.onload=function(){xxx='" AA_TITLE "';yyy='?';wr=ge('wrap');if(wr){aa=ge('h3');if(aa){yyy=aa.innerHTML;aa.remove();dlel('h1')}zz=(Math.random()>0.8);dd=document.createElement('div');dd.classList.add('tpm0');dd.innerHTML='<div class=\"tpm\" onClick=\"shsp(1);window.location=\\'/\\'\"><div class=\"tpm2\"><img id=\"spi\" src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABAAQMAAACQp+OdAAAABlBMVEUAAABKnW0vhlhrAAAAAXRSTlMAQObYZgAAA'+(zz?'GBJREFUKM990aEVgCAABmF9BiIjsIIbsJYNRmMURiASePwSDPD0vPT12347GRejIfaOOIQwigSrRHDKBK9CCKoEqQF2qQMOSQAzEL9hB9ICNyMv8DPKgjCjLtAD+AV4dQM7O4VX9m1RYAAAAABJRU5ErkJggg==':'HtJREFUKM990bENwyAUBuFnuXDpNh0rZIBIrJUqMBqjMAIlBeIihQIF/fZVX39229PscYG32esCzeyjsXUzNHZsI0ocxJ0kcZIOsoQjnxQJT3FUiUD1NAloga6wQQd+4B/7QBQ4BpLAOZAn3IIy4RfUibCgTTDq+peG6AvsL/jPTu1L9wAAAABJRU5ErkJggg==')+'\" class=\"tpm3\"></div><H1 class=\"tpmh1\"'+(zz?' style=\"margin-left:1.4em\"':'')+'>'+xxx+'</H1>'+'<H3 class=\"tpmh3\"'+(zz?' style=\"padding-left:5em\"':'')+'>'+yyy+'</div></div>';wr.insertBefore(dd,wr.firstChild);wr.style.position='relative'}var lc=ge('lc');if(lc){lc.style.transform='rotate('+(358+[0,1,3,4,5][Math.floor(Math.random()*4)])+'deg)'}}</script><style>H1{font-family:Bahnschrift,-apple-system,'Segoe UI Semibold',Roboto,'Helvetica Neue',Arial,Verdana,sans-serif;margin:0;text-align:center;}H3{margin:0 0 5px 0;text-align:center;}input{border:thin inset}em > small{display:inline}form{margin-block-end:0;}.tpm{background-color:#fff;cursor:pointer;border:1px solid black;border-radius:5px;padding:0 0 0 0px;min-width:18em;}.tpm2{position:absolute;top:-0.7em;z-index:130;left:0.7em;}.tpm3{width:4em;height:4em;}.tpmh1{font-variant-caps:all-small-caps;font-weight:normal;margin-left:2.2em;overflow:clip;}.tpmh3{background:#000;font-size:0.6em;color:#ffa;padding-left:7.2em;margin-left:0.5em;margin-right:0.5em;border-radius:5px;overflow:hidden;white-space:nowrap}.tpm0{position:relative;width:20em;padding:5px 0px 5px 0px;margin:0 auto 0 auto;}.cmp0{margin:0;padding:0;}.sel0{font-size:90%;width:auto;margin-left:10px;vertical-align:baseline;}.mt5{margin-top:5px!important}.mb10{margin-bottom:10px!important}.mb0{margin-bottom:0px!important}.mb15{margin-bottom:15px!important}.ml20{margin-left:20px}.ss>label span{font-size:80%}</style>";
+static const char* myCustMenu = "<img style='display:block;margin:10px auto 5px auto;' src='data:image/png;base64,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'><div style='font-size:0.75em;line-height:1.2em;font-weight:bold;text-align:center;text-transform:uppercase'>" UNI_VERSION " (" UNI_VERSION_EXTRA ")<br>Powered by A10001986 <a href='https://" WEBHOME ".out-a-ti.me' target=_blank>[Home/Updates]</a></div>";
 
 static char newversion[8];
+static unsigned long lastUpdateCheck = 0;
 
-static int  shouldSaveConfig = 0;
-static bool shouldSaveIPConfig = false;
-static bool shouldDeleteIPConfig = false;
+#define WLA_IP      1
+#define WLA_DEL_IP  2
+#define WLA_WIFI    4
+#define WLA_SET1    8
+#define WLA_SET1_B      3
+#define WLA_SET2    16
+#define WLA_SET2_B      4
+#define WLA_SET3    32
+#define WLA_SET3_B      5
+#define WLA_SET     (WLA_WIFI|WLA_SET1|WLA_SET2|WLA_SET3)
+#define WLA_ANY     (WLA_IP|WLA_DEL_IP|WLA_SET)
+static uint32_t     wifiLoopSaveAction = 0;
 
 // Did user configure a WiFi network to connect to?
 bool wifiHaveSTAConf = false;
@@ -287,7 +293,9 @@ static bool          mqttPingDone = false;
 static unsigned long mqttPingNow = 0;
 static unsigned long mqttPingInt = MQTT_SHORT_INT;
 static uint16_t      mqttPingsExpired = 0;
+char                 mqttMsg[10] = { 0 };
 #endif
+uint32_t             mqttDisp = 0;
 
 static unsigned int wmLenBuf = 0;
 
@@ -299,23 +307,20 @@ static void wifiOff(bool force);
 static void checkForUpdate();
 
 static void saveParamsCallback(int);
-static void saveWiFiCallback(const char *ssid, const char *pass);
+static void saveWiFiCallback(const char *ssid, const char *pass, const char *bssid);
 static void preUpdateCallback();
 static void postUpdateCallback(bool);
-static void preSaveWiFiCallback();
-static int  menuOutLenCallback();
-static void menuOutCallback(String& page, unsigned int ssize);
 static bool preWiFiScanCallback();
 
 static void updateConfigPortalValues();
 
-static void setupStaticIP();
 static IPAddress stringToIp(char *str);
 
 static void getParam(String name, char *destBuf, size_t length, int defaultVal);
 static bool myisspace(char mychar);
 static char* strcpytrim(char* destination, const char* source, bool doFilter = false);
 static void mystrcpy(char *sv, WiFiManagerParameter *el);
+static void mystrcpyWiFiDelay(char *sv, WiFiManagerParameter *el);
 static void evalCB(char *sv, WiFiManagerParameter *el);
 static void setCBVal(WiFiManagerParameter *el, char *sv);
 
@@ -341,8 +346,7 @@ void wifi_setup()
       &custom_hostName,
 
       &custom_sectstart_wifi,
-      &custom_wifiConRetries, 
-      &custom_wifiConTimeout, 
+      &custom_wifiConRetries,
 
       &custom_sectstart_ap,
       &custom_sysID,
@@ -393,6 +397,7 @@ void wifi_setup()
       &custom_mqttServer,
       &custom_mqttVers,
       &custom_mqttUser,
+      &custom_mqttTopic,
 
       NULL
     };
@@ -413,15 +418,10 @@ void wifi_setup()
 
     wm.setHostname(settings.hostName);
 
-    wm.showUploadContainer(false, NULL, false);
-    
-    wm.setPreSaveWiFiCallback(preSaveWiFiCallback);
     wm.setSaveWiFiCallback(saveWiFiCallback);
     wm.setSaveParamsCallback(saveParamsCallback);
     wm.setPreOtaUpdateCallback(preUpdateCallback);
     wm.setPostOtaUpdateCallback(postUpdateCallback);
-    wm.setMenuOutLenCallback(menuOutLenCallback);
-    wm.setMenuOutCallback(menuOutCallback);
     wm.setPreWiFiScanCallback(preWiFiScanCallback);
 
     // Our style-overrides, the page title
@@ -433,44 +433,39 @@ void wifi_setup()
 
     temp = atoi(settings.apChnl);
     if(temp < 0) temp = 0;
-    if(temp > 11) temp = 11;
+    else if(temp > 11) temp = 11;
     if(!temp) temp = random(1, 11);
     wm.setWiFiAPChannel(temp);
 
-    temp = atoi(settings.wifiConTimeout);
-    if(temp < 7) temp = 7;
-    if(temp > 25) temp = 25;
-    wm.setConnectTimeout(temp);
-
     temp = atoi(settings.wifiConRetries);
     if(temp < 1) temp = 1;
-    if(temp > 10) temp = 10;
+    else if(temp > 10) temp = 10;
     wm.setConnectRetries(temp);
 
     wm.setMenu(wifiMenu, TC_MENUSIZE, false);
 
-    wm.allocParms((sizeof(parmArray) / sizeof(WiFiManagerParameter *)) - 1);
-
-    temp = 0;
-    while(parmArray[temp]) {
-        wm.addParameter(parmArray[temp]);
-        temp++;
-    }
-
-    wm.allocWiFiParms((sizeof(wifiParmArray) / sizeof(WiFiManagerParameter *)) - 1);
-
+    // WiFi Settings
+    wm.allocParms(WM_PARM_WIFI, (sizeof(wifiParmArray) / sizeof(WiFiManagerParameter *)) - 1);
     temp = 0;
     while(wifiParmArray[temp]) {
-        wm.addWiFiParameter(wifiParmArray[temp]);
+        wm.addParameter(WM_PARM_WIFI, wifiParmArray[temp]);
         temp++;
     }
 
-    #ifdef SID_HAVEMQTT
-    wm.allocParms2((sizeof(parm2Array) / sizeof(WiFiManagerParameter *)) - 1);
+    // Settings
+    wm.allocParms(WM_PARM_SETTINGS, (sizeof(parmArray) / sizeof(WiFiManagerParameter *)) - 1);
+    temp = 0;
+    while(parmArray[temp]) {
+        wm.addParameter(WM_PARM_SETTINGS, parmArray[temp]);
+        temp++;
+    }
 
+    // HA/MQTT
+    #ifdef SID_HAVEMQTT
+    wm.allocParms(WM_PARM_SETTINGS2, (sizeof(parm2Array) / sizeof(WiFiManagerParameter *)) - 1);
     temp = 0;
     while(parm2Array[temp]) {
-        wm.addParameter2(parm2Array[temp]);
+        wm.addParameter(WM_PARM_SETTINGS2, parm2Array[temp]);
         temp++;
     }
     #endif
@@ -515,7 +510,13 @@ void wifi_setup()
     
     // Configure static IP
     if(loadIpSettings()) {
-        setupStaticIP();
+        if(checkIPConfig()) {
+            IPAddress ip = stringToIp(ipsettings.ip);
+            IPAddress gw = stringToIp(ipsettings.gateway);
+            IPAddress sn = stringToIp(ipsettings.netmask);
+            IPAddress dns = stringToIp(ipsettings.dns);
+            wm.setSTAStaticIPConfig(ip, gw, sn, dns);
+        }
     }
 
     wifi_setup2();
@@ -545,13 +546,6 @@ void wifi_setup2()
         char *t;
         int tt;
 
-        // No WiFi power save if we're using MQTT
-        origWiFiOffDelay = wifiOffDelay = 0;
-
-        mqttClient.setBufferSize(MQTT_MAX_PACKET_SIZE);
-        mqttClient.setVersion(atoi(settings.mqttVers) > 0 ? 5 : 3);
-        mqttClient.setClientID(settings.hostName);
-
         if((t = strchr(settings.mqttServer, ':'))) {
             size_t ts = (t - settings.mqttServer) + 1;
             mqttServer = (char *)malloc(ts);
@@ -572,13 +566,33 @@ void wifi_setup2()
             if(WiFi.hostByName(mqttServer, remote_addr)) {
                 mqttClient.setServer(remote_addr, mqttPort);
             } else {
+                /*
                 mqttClient.setServer(mqttServer, mqttPort);
                 // Disable PING if we can't resolve domain
                 mqttDoPing = false;
+                */
+                useMQTT = false;
+                mqttReconnFails = 1; // Abuse for "resolv error"
                 Serial.printf("MQTT: Failed to resolve '%s'\n", mqttServer);
             }
         }
-        
+
+        #ifdef SID_DBG
+        Serial.printf("MQTT: server '%s' port %d\n", mqttServer, mqttPort);
+        #endif
+    }
+
+    if(useMQTT) {
+
+        char *t;
+
+        // No WiFi power save if we're using MQTT
+        origWiFiOffDelay = wifiOffDelay = 0;
+
+        mqttClient.setBufferSize(MQTT_MAX_PACKET_SIZE);
+        mqttClient.setVersion(atoi(settings.mqttVers) > 0 ? 5 : 3);
+        mqttClient.setClientID(settings.hostName);
+
         mqttClient.setCallback(mqttCallback);
         mqttClient.setLooper(mqttLooper);
 
@@ -595,7 +609,7 @@ void wifi_setup2()
         }
 
         #ifdef SID_DBG
-        Serial.printf("MQTT: server '%s' port %d user '%s' pass '%s'\n", mqttServer, mqttPort, mqttUser, mqttPass);
+        Serial.printf("MQTT: user '%s' pass '%s'\n", mqttUser, mqttPass);
         #endif
             
         mqttReconnect(true);
@@ -636,7 +650,7 @@ void wifi_loop()
                 if(mqttOldState || mqttRestartPing) {
                     // Disconnection first detected:
                     mqttPingDone = mqttDoPing ? false : true;
-                    mqttPingNow = mqttRestartPing ? millis() : 0;
+                    mqttPingNow = mqttRestartPing ? millisNonZero() : 0;
                     mqttOldState = false;
                     mqttRestartPing = false;
                     mqttSubAttempted = false;
@@ -659,31 +673,15 @@ void wifi_loop()
         }
         mqttClient.loop();
     }
-#endif    
-    
-    if(shouldSaveIPConfig) {
+#endif
 
-        #ifdef SID_DBG
-        Serial.println("WiFi: Saving IP config");
-        #endif
-
-        writeIpSettings();
-
-        shouldSaveIPConfig = false;
-
-    } else if(shouldDeleteIPConfig) {
-
-        #ifdef SID_DBG
-        Serial.println("WiFi: Deleting IP config");
-        #endif
-
-        deleteIpSettings();
-
-        shouldDeleteIPConfig = false;
-
+    if(millis() - lastUpdateCheck > 24*60*60*1000) {
+        if(!TTrunning && !IRLearning && !sidBusy) {
+            checkForUpdate();
+        }
     }
 
-    if(shouldSaveConfig) {
+    if(wifiLoopSaveAction & WLA_SET) {
 
         int temp;
 
@@ -693,13 +691,23 @@ void wifi_loop()
         Serial.println("Config Portal: Saving config");
         #endif
 
-        // Only read parms if the user actually clicked SAVE on the wifi config or params pages
-        if(shouldSaveConfig == 1) {
+        if(wifiLoopSaveAction & WLA_WIFI) {
 
             // Parameters on WiFi Config page
+            // Note: Parameters that need to be grabbed from the server directly
+            // through getParam() must be handled in saveWiFiCallback().
 
-            // Note: Parameters that need to grabbed from the server directly
-            // through getParam() must be handled in preSaveWiFiCallback().
+            if(wifiLoopSaveAction & WLA_IP) {
+                #ifdef SID_DBG
+                Serial.println("WiFi: Saving IP config");
+                #endif
+                writeIpSettings();
+            } else if(wifiLoopSaveAction & WLA_DEL_IP) {
+                #ifdef SID_DBG
+                Serial.println("WiFi: Deleting IP config");
+                #endif
+                deleteIpSettings();
+            }
 
             // ssid, pass copied to settings in saveWiFiCallback()
 
@@ -711,7 +719,6 @@ void wifi_loop()
                 for ( ; *s; ++s) *s = tolower(*s);
             }
             mystrcpy(settings.wifiConRetries, &custom_wifiConRetries);
-            mystrcpy(settings.wifiConTimeout, &custom_wifiConTimeout);
             
             strcpytrim(settings.systemID, custom_sysID.getValue(), true);
             strcpytrim(settings.appw, custom_appw.getValue(), true);
@@ -720,11 +727,13 @@ void wifi_loop()
                     settings.appw[0] = 0;
                 }
             }
-            mystrcpy(settings.wifiAPOffDelay, &custom_wifiAPOffDelay);
+            mystrcpyWiFiDelay(settings.wifiAPOffDelay, &custom_wifiAPOffDelay);
 
-        } else if(shouldSaveConfig == 2) { 
+        } else if(wifiLoopSaveAction & WLA_SET1) {
 
             // Parameters on Settings page
+            // Note: Parameters that need to be grabbed from the server directly
+            // through getParam() must be handled in saveParamsCallback()
 
             // Extract settings saved as secSettings
             evalCB(settings.strictMode, &custom_sStrict);
@@ -767,25 +776,22 @@ void wifi_loop()
                 moveSettings();
             }
 
-        } else {
+        } else if(wifiLoopSaveAction & WLA_SET2) {
 
             // Parameters on HA/MQTT Settings page
+            // Note: Parameters that need to be grabbed from the server directly
+            // through getParam() must be handled in saveParamsCallback()
 
             #ifdef SID_HAVEMQTT
             evalCB(settings.useMQTT, &custom_useMQTT);
             strcpytrim(settings.mqttServer, custom_mqttServer.getValue());
-            getParam("mprot", settings.mqttVers, 1, 0);
             strcpyutf8(settings.mqttUser, custom_mqttUser.getValue(), sizeof(settings.mqttUser));
+            strcpyutf8(settings.mqttTopic, custom_mqttTopic.getValue(), sizeof(settings.mqttTopic));
             #endif
 
         }
 
-        // Write settings if requested, or no settings file exists
-        if(shouldSaveConfig >= 1 || !checkConfigExists()) {
-            write_settings();
-        }
-
-        shouldSaveConfig = 0;
+        write_settings();
 
         // Reset esp32 to load new settings
 
@@ -811,12 +817,16 @@ void wifi_loop()
         // Disable WiFi in AP mode after a configurable delay (if > 0)
         if(wifiAPOffDelay > 0) {
             if(!wifiAPIsOff && (millis() - wifiAPModeNow >= wifiAPOffDelay)) {
-                wifiOff(false);
-                wifiAPIsOff = true;
-                wifiIsOff = false;
-                #ifdef SID_DBG
-                Serial.println("WiFi (AP-mode) switched off (power-save)");
-                #endif
+                if(!WiFi.softAPgetStationNum()) {
+                    wifiOff(false);
+                    wifiAPIsOff = true;
+                    wifiIsOff = false;
+                    #ifdef SID_DBG
+                    Serial.println("WiFi (AP-mode) switched off (power-save)");
+                    #endif
+                } else {
+                    wifiAPModeNow += (wifiAPOffDelay / 10);   // Check again later
+                }
             }
         }
     } else {
@@ -844,9 +854,9 @@ static void wifiConnect(bool deferConfigPortal)
         strcat(realAPName, settings.systemID);
     }
     
-    // Automatically connect using saved credentials if they exist
+    // Connect using saved credentials if they exist
     // If connection fails it starts an access point with the specified name
-    if(wm.autoConnect(settings.ssid, settings.pass, realAPName, settings.appw)) {
+    if(wm.wifiConnect(settings.ssid, settings.pass, settings.bssid, realAPName, settings.appw)) {
         #ifdef SID_DBG
         Serial.println("WiFi connected");
         #endif
@@ -1088,18 +1098,34 @@ void wifiStartCP()
 
 static void checkForUpdate()
 {
+    int cver = 0, crev = 0, uver = 0, urev = 0;
+    bool haveCVer = false;
+
     *newversion = 0;
-    if(!connectedToTCDAP && (WiFi.status() == WL_CONNECTED)) {
+
+    lastUpdateCheck = millis();
+
+    if(sscanf(CURRVERSION, "V%d.%d", &cver, &crev) != 2)
+        return;
+    
+    if(WiFi.status() == WL_CONNECTED) {
         IPAddress remote_addr;
         if(WiFi.hostByName(WEBHOME "v.out-a-ti.me", remote_addr)) {
-            int curr = 0, revision = 0;
-            if(sscanf(CURRVERSION, "V%d.%d", &curr, &revision) == 2) {
-                if(((remote_addr[0] << 8) | remote_addr[1]) > ((curr << 8) | revision)) {
-                    snprintf(newversion, sizeof(newversion), "%d.%d", remote_addr[0], remote_addr[1]);
-                }
-            }
+            uver = remote_addr[0]; urev = remote_addr[1];
+            if(uver) saveUpdVers(uver, urev);
+        }
+    } else {
+        loadUpdVers(uver, urev);
+    }
+
+    if(uver) {
+        haveCVer = true;
+        if(((uver << 8) | urev) > ((cver << 8) | crev)) {
+            snprintf(newversion, sizeof(newversion), "%d.%d", uver, urev);
         }
     }
+
+    wm.setDownloadLink(r_link, haveCVer, (*newversion) ? newversion : NULL);
 }
 
 bool updateAvailable()
@@ -1107,69 +1133,19 @@ bool updateAvailable()
     return (*newversion != 0);
 }
 
-// This is called when the WiFi config is to be saved. We set
-// a flag for the loop to read out and save the new WiFi config.
-// SSID and password are copied to settings here.
-static void saveWiFiCallback(const char *ssid, const char *pass)
+bool checkIPConfig()
 {
-    // ssid is the (new?) ssid to connect to, pass the password.
-    // (We don't need to compare to the old ones since the
-    // settings are saved in any case)
-    // This is also used to "forget" a saved WiFi network, in
-    // which case ssid and pass are empty strings.
-    memset(settings.ssid, 0, sizeof(settings.ssid));
-    memset(settings.pass, 0, sizeof(settings.pass));
-    if(*ssid) {
-        strncpy(settings.ssid, ssid, sizeof(settings.ssid) - 1);
-        strncpy(settings.pass, pass, sizeof(settings.pass) - 1);
-    }
-    
-    shouldSaveConfig = 1;
+    return (*ipsettings.ip            &&
+            isIp(ipsettings.ip)       &&
+            isIp(ipsettings.gateway)  &&
+            isIp(ipsettings.netmask)  &&
+            isIp(ipsettings.dns));
 }
 
-
-// This is the callback from the actual Params page. We read out
-// the WM "Settings" parameters and save them.
-// paramspage is 1 or 2
-static void saveParamsCallback(int paramspage)
-{
-    shouldSaveConfig = paramspage + 1;
-}
-
-// This is called before a firmware updated is initiated.
-static void preUpdateCallback()
-{
-    wifiAPOffDelay = 0;
-    origWiFiOffDelay = 0;
-
-    flushDelayedSave();
-
-    showWaitSequence(true);
-}
-
-// This is called after a firmware updated has finished.
-// parm = true of ok, false if error. WM reboots only 
-// if the update worked, ie when res is true.
-static void postUpdateCallback(bool res)
-{
-    Serial.flush();
-    prepareReboot();
-
-    // WM does not reboot on OTA update errors.
-    // However, don't bother for that really
-    // rare case to put code here to restore
-    // under all possible circumstances, like
-    // fake-off, time-travel going on, ss, ....
-    if(!res) {
-        delay(1000);
-        esp_restart();
-    }
-}
-
-// Grab static IP and other parameters from WiFiManager's server.
-// Since there is no public method for this, we steal the HTML
-// form parameters in this callback.
-static void preSaveWiFiCallback()
+// This is called when the WiFi config is to be saved. 
+// SSID, password and BSSID are copied to settings here.
+// Static IP and other parameters are taken from WiFiManager's server.
+static void saveWiFiCallback(const char *ssid, const char *pass, const char *bssid)
 {
     char ipBuf[20] = "";
     char gwBuf[20] = "";
@@ -1178,7 +1154,7 @@ static void preSaveWiFiCallback()
     bool invalConf = false;
 
     #ifdef SID_DBG
-    Serial.println("preSaveConfigCallback");
+    Serial.println("saveConfigCallback");
     #endif
 
     // clear as strncpy might leave us unterminated
@@ -1216,80 +1192,94 @@ static void preSaveWiFiCallback()
         Serial.println("All IPs valid");
         #endif
 
-        shouldSaveIPConfig = (strcmp(ipsettings.ip, ipBuf)      ||
-                              strcmp(ipsettings.gateway, gwBuf) ||
-                              strcmp(ipsettings.netmask, snBuf) ||
-                              strcmp(ipsettings.dns, dnsBuf));
+        wifiLoopSaveAction |= WLA_IP;
           
-        if(shouldSaveIPConfig) {
-            strcpy(ipsettings.ip, ipBuf);
-            strcpy(ipsettings.gateway, gwBuf);
-            strcpy(ipsettings.netmask, snBuf);
-            strcpy(ipsettings.dns, dnsBuf);
-        }
+        memset((void *)&ipsettings, 0, sizeof(ipsettings));
+        strcpy(ipsettings.ip, ipBuf);
+        strcpy(ipsettings.gateway, gwBuf);
+        strcpy(ipsettings.netmask, snBuf);
+        strcpy(ipsettings.dns, dnsBuf);
 
     } else {
 
         #ifdef SID_DBG
-        if(strlen(ipBuf) > 0) {
+        if(*ipBuf) {
             Serial.println("Invalid IP");
         }
         #endif
 
-        shouldDeleteIPConfig = true;
+        wifiLoopSaveAction |= WLA_DEL_IP;
 
+    }
+    
+    // ssid is the (new?) ssid to connect to, pass the password.
+    // (We don't need to compare to the old ones, the settings
+    // hash will decide on save/not save.)
+    // This is also used to "forget" a saved WiFi network, in
+    // which case ssid and pass are empty strings.
+    memset(settings.ssid, 0, sizeof(settings.ssid));
+    memset(settings.pass, 0, sizeof(settings.pass));
+    memset(settings.bssid, 0, sizeof(settings.bssid));
+    if(*ssid) {
+        strncpy(settings.ssid, ssid, sizeof(settings.ssid) - 1);
+        strncpy(settings.pass, pass, sizeof(settings.pass) - 1);
+        strncpy(settings.bssid, bssid, sizeof(settings.bssid) - 1);
     }
 
     // Other parameters on WiFi Config page that
     // need grabbing directly from the server
 
     getParam("apchnl", settings.apChnl, 2, DEF_AP_CHANNEL);
+    
+    wifiLoopSaveAction |= WLA_WIFI;
 }
 
-bool checkIPConfig()
+
+// This is the callback from the actual Params page. We read out
+// the WM "Settings" parameters and save them.
+// paramspage is 1 or 2
+static void saveParamsCallback(int paramspage)
 {
-    return (strlen(ipsettings.ip) > 0 &&
-            isIp(ipsettings.ip)       &&
-            isIp(ipsettings.gateway)  &&
-            isIp(ipsettings.netmask)  &&
-            isIp(ipsettings.dns));
-}
+    wifiLoopSaveAction |= (1 << (paramspage - 1 + WLA_SET1_B));
 
-static void setupStaticIP()
-{
-    IPAddress ip;
-    IPAddress gw;
-    IPAddress sn;
-    IPAddress dns;
-
-    if(checkIPConfig()) {
-
-        ip = stringToIp(ipsettings.ip);
-        gw = stringToIp(ipsettings.gateway);
-        sn = stringToIp(ipsettings.netmask);
-        dns = stringToIp(ipsettings.dns);
-
-        wm.setSTAStaticIPConfig(ip, gw, sn, dns);
+    switch(paramspage) {
+    case 1:
+        break;
+    case 2:
+        #ifdef SID_HAVEMQTT
+        getParam("mprot", settings.mqttVers, 1, 0);
+        #endif
+        break;
     }
 }
 
-static int menuOutLenCallback()
+// This is called before a firmware updated is initiated.
+static void preUpdateCallback()
 {
-    int mySize = 0;
+    wifiAPOffDelay = 0;
+    origWiFiOffDelay = 0;
 
-    if(*newversion) {
-        mySize += STRLEN(menu_UAI) + strlen(newversion) + STRLEN(menu_end);
-    }
+    flushDelayedSave();
 
-    return mySize;
+    showWaitSequence(true);
 }
 
-static void menuOutCallback(String& page, unsigned int ssize)
+// This is called after a firmware updated has finished.
+// parm = true of ok, false if error. WM reboots only 
+// if the update worked, ie when res is true.
+static void postUpdateCallback(bool res)
 {
-    if(*newversion) {
-        page += menu_UAI;
-        page += newversion;
-        page += menu_end;
+    Serial.flush();
+    prepareReboot();
+
+    // WM does not reboot on OTA update errors.
+    // However, don't bother for that really
+    // rare case to put code here to restore
+    // under all possible circumstances, like
+    // fake-off, time-travel going on, ss, ....
+    if(!res) {
+        delay(1000);
+        esp_restart();
     }
 }
 
@@ -1316,32 +1306,25 @@ static void updateConfigPortalValues()
 {
     // Make sure the settings form has the correct values
 
-    custom_hostName.setValue(settings.hostName, 31);
-    custom_wifiConTimeout.setValue(settings.wifiConTimeout, 2);
-    custom_wifiConRetries.setValue(settings.wifiConRetries, 2);
+    custom_hostName.setValue(settings.hostName);
+    custom_wifiConRetries.setValue(settings.wifiConRetries);
     
-    custom_sysID.setValue(settings.systemID, 7);
-    custom_appw.setValue(settings.appw, 8);
+    custom_sysID.setValue(settings.systemID);
+    custom_appw.setValue(settings.appw);
     // ap channel done on-the-fly
-    custom_wifiAPOffDelay.setValue(settings.wifiAPOffDelay, 2);
+    custom_wifiAPOffDelay.setValue(settings.wifiAPOffDelay);
 
     setCBVal(&custom_sTTANI, settings.skipTTAnim);
     setCBVal(&custom_SApeaks, settings.SApeaks);
-    custom_ssDelay.setValue(settings.ssTimer, 3);
+    custom_ssDelay.setValue(settings.ssTimer);
     
-    custom_tcdIP.setValue(settings.tcdIP, 31);
+    custom_tcdIP.setValue(settings.tcdIP);
     setCBVal(&custom_uGPS, settings.useGPSS);
     setCBVal(&custom_uNM, settings.useNM);
     setCBVal(&custom_uFPO, settings.useFPO);
     setCBVal(&custom_bttfnTT, settings.bttfnTT);
     setCBVal(&custom_ssClock, settings.ssClock);
     setCBVal(&custom_ssClockO, settings.ssClockOffNM);
-
-    #ifdef SID_HAVEMQTT
-    setCBVal(&custom_useMQTT, settings.useMQTT);
-    custom_mqttServer.setValue(settings.mqttServer, 79);
-    custom_mqttUser.setValue(settings.mqttUser, 63);
-    #endif
 
     setCBVal(&custom_TCDpresent, settings.TCDpresent);
     setCBVal(&custom_noETTOL, settings.noETTOLead);
@@ -1350,6 +1333,13 @@ static void updateConfigPortalValues()
     //setCBVal(&custom_sdFrq, settings.sdFreq);
 
     setCBVal(&custom_disDIR, settings.disDIR);
+
+    #ifdef SID_HAVEMQTT
+    setCBVal(&custom_useMQTT, settings.useMQTT);
+    custom_mqttServer.setValue(settings.mqttServer);
+    custom_mqttUser.setValue(settings.mqttUser);
+    custom_mqttTopic.setValue(settings.mqttTopic);
+    #endif
 }
 
 void updateConfigPortalStrictValue()
@@ -1425,8 +1415,32 @@ static void buildSelectMenu(char *target, const char **theHTML, int cnt, char *s
     }
 }
 
+static const char *wmBuildSelect(const char *dest, int op, const char **src, int count, char *setting, bool indent = false)
+{
+    if(op == WM_CP_DESTROY) {
+        if(dest) free((void *)dest);
+        return NULL;
+    }
+
+    unsigned int l = calcSelectMenu(src, count, setting, indent);
+
+    if(op == WM_CP_LEN) {
+        wmLenBuf = l;
+        return (const char *)&wmLenBuf;
+    }
+    
+    char *str = (char *)malloc(l);
+
+    buildSelectMenu(str, src, count, setting, indent);
+    
+    return str;
+}
+
 static const char *wmBuildApChnl(const char *dest, int op)
 {
+    return wmBuildSelect(dest, op, apChannelCustHTMLSrc, 14, settings.apChnl, false);
+
+    /*
     if(op == WM_CP_DESTROY) {
         if(dest) free((void *)dest);
         return NULL;
@@ -1444,6 +1458,7 @@ static const char *wmBuildApChnl(const char *dest, int op)
     buildSelectMenu(str, apChannelCustHTMLSrc, 14, settings.apChnl);
     
     return str;
+    */
 }
 
 static const char *wmBuildBestApChnl(const char *dest, int op)
@@ -1486,6 +1501,9 @@ static const char *wmBuildHaveSD(const char *dest, int op)
 #ifdef SID_HAVEMQTT
 static const char *wmBuildMQTTprot(const char *dest, int op)
 {
+    return wmBuildSelect(dest, op, mqttpCustHTMLSrc, 4, settings.mqttVers, false);
+
+    /*
     if(op == WM_CP_DESTROY) {
         if(dest) free((void *)dest);
         return NULL;
@@ -1503,7 +1521,9 @@ static const char *wmBuildMQTTprot(const char *dest, int op)
     buildSelectMenu(str, mqttpCustHTMLSrc, 4, settings.mqttVers);
     
     return str;
+    */
 }
+
 static const char *wmBuildMQTTstate(const char *dest, int op)
 {
     // Check original setting, not "useMQTT" which
@@ -1522,8 +1542,12 @@ static const char *wmBuildMQTTstate(const char *dest, int op)
     const char *cls = col_r;
 
     if(!useMQTT) {
-        msg = mqttMsgDisabled;
-        cls = col_gr;
+        if(mqttReconnFails) {
+            msg = mqttMsgResolvErr;
+        } else {
+            msg = mqttMsgDisabled;
+            cls = col_gr;
+        }
     } else {
         s = mqttClient.state();
         switch(s) {
@@ -1706,6 +1730,15 @@ static void mystrcpy(char *sv, WiFiManagerParameter *el)
     strcpy(sv, el->getValue());
 }
 
+static void mystrcpyWiFiDelay(char *sv, WiFiManagerParameter *el)
+{
+    int a = atoi(el->getValue());
+    if(a > 0 && a < 10) a = 10;
+    else if(a > 99)     a = 99;
+    else if(a < 0)      a = 0;
+    sprintf(sv, "%d", a);
+}
+
 static void evalCB(char *sv, WiFiManagerParameter *el)
 {
     *sv++ = (*(el->getValue()) == '0') ? '0' : '1';
@@ -1714,14 +1747,81 @@ static void evalCB(char *sv, WiFiManagerParameter *el)
 
 static void setCBVal(WiFiManagerParameter *el, char *sv)
 {
-    el->setValue((*sv == '0') ? "0" : "1", 1);
+    el->setValue((*sv == '0') ? "0" : "1");
 }
 
 #ifdef SID_HAVEMQTT
+// Filter out UTF8 and non-displayable characters
+static int16_t filterOutNonDisp(char *src, char *dst, int srcLen = 0, int maxChars = 99999)
+{
+    int i, j, slen = srcLen ? srcLen : strlen(src);
+    unsigned char c, e;
+
+    for(i = 0, j = 0; i < slen && j < maxChars; i++) {
+        c = (unsigned char)src[i];
+        if(c >= 32 && c <= 126) {     // skip 127 = DEL
+            if(c >= 'a' && c <= 'z') c &= ~0x20;
+            if( (c >= '0' && c <= '9') ||
+                (c >= 'A' && c <= 'Z') ) {
+                dst[j++] = c; 
+            }
+        } else {
+            e = 0;
+            if     (c >= 192 && c < 224)  e = 1;
+            else if(c >= 224 && c < 240)  e = 2;
+            else if(c >= 240 && c < 245)  e = 3;    // yes, 245 (otherwise bad UTF8)
+            if(e) {
+                if((i + e) < slen) {
+                    /*
+                    for(k = i + 1, d = 0; k <= i + 1 + e; k++) {
+                        d |= (unsigned char)src[k];
+                    }
+                    if(d > 127 && d < 192) i += e;
+                    */
+                    i += e;   // Why check? Just skip.
+                } else {
+                    break;
+                }
+            }
+        }
+    }
+    dst[j] = 0;
+
+    return j;
+}
+
+static void truncateUTF8(char *src)
+{
+    int i, slen = strlen(src);
+    unsigned char c, e;
+
+    for(i = 0; i < slen; i++) {
+        c = (unsigned char)src[i];
+        e = 0;
+        if     (c >= 192 && c < 224)  e = 1;
+        else if(c >= 224 && c < 240)  e = 2;
+        else if(c >= 240 && c < 248)  e = 3;  // Invalid UTF8 >= 245, but consider 4-byte char anyway
+        if(e) {
+            if((i + e) < slen) {
+                i += e;
+            } else {
+                src[i] = 0;
+                return;
+            }
+        }
+    }
+}
+
 static void strcpyutf8(char *dst, const char *src, unsigned int len)
 {
-    strncpy(dst, src, len - 1);
-    dst[len - 1] = 0;
+    char *dest = dst;
+    len--;  // leave room for 0
+    while(*src && len--) {
+        if(*src != '\'') *dst++ = *src;
+        src++;
+    }
+    *dst = 0;
+    truncateUTF8(dest);
 }
 
 static void mqttLooper()
@@ -1771,11 +1871,12 @@ static void mqttCallback(char *topic, byte *payload, unsigned int length)
 
     memcpy(tempBuf, (const char *)payload, ml);
     tempBuf[ml] = 0;
-    for(j = 0; j < ml; j++) {
-        if(tempBuf[j] >= 'a' && tempBuf[j] <= 'z') tempBuf[j] &= ~0x20;
-    }
 
     if(!strcmp(topic, "bttf/tcd/pub")) {
+
+        for(j = 0; j < ml; j++) {
+            if(tempBuf[j] >= 'a' && tempBuf[j] <= 'z') tempBuf[j] &= ~0x20;
+        }
 
         // Commands from TCD or other props
 
@@ -1841,6 +1942,10 @@ static void mqttCallback(char *topic, byte *payload, unsigned int length)
        
     } else if(!sidBusy && !strcmp(topic, "bttf/sid/cmd")) {
 
+        for(j = 0; j < ml; j++) {
+            if(tempBuf[j] >= 'a' && tempBuf[j] <= 'z') tempBuf[j] &= ~0x20;
+        }
+        
         // User commands
 
         while(cmdList[i]) {
@@ -1879,7 +1984,19 @@ static void mqttCallback(char *topic, byte *payload, unsigned int length)
             addCmdQueue(1000 + i);
         }
             
-    } 
+    } else if(*settings.mqttTopic && (!strcmp(topic, settings.mqttTopic))) {
+
+        if(filterOutNonDisp(tempBuf, mqttMsg, 0, 8)) {
+            mqttDisp = 1;
+            #ifdef SID_DBG
+            Serial.printf("MQTT: Message about [%s]: %s\n", topic, mqttMsg);
+            #endif
+        } else {
+            #ifdef SID_DBG
+            Serial.printf("MQTT: Message about [%s] contained no displayable characters\n", topic);
+            #endif
+        }
+    }
 }
 
 #ifdef SID_DBG
@@ -1894,7 +2011,7 @@ static void mqttPing()
     case PING_IDLE:
         if(WiFi.status() == WL_CONNECTED) {
             if(!mqttPingNow || (millis() - mqttPingNow > mqttPingInt)) {
-                mqttPingNow = millis();
+                mqttPingNow = millisNonZero();
                 if(!mqttClient.sendPing()) {
                     // Mostly fails for internal reasons;
                     // skip ping test in that case
@@ -1911,10 +2028,11 @@ static void mqttPing()
             mqttPingsExpired = 0;
             mqttPingInt = MQTT_SHORT_INT; // Overwritten on fail in reconnect
             // Delay re-connection for 5 seconds after first ping echo
-            mqttReconnectNow = millis() - (mqttReconnectInt - 5000);
+            if(!(mqttReconnectNow = millis() - (mqttReconnectInt - 5000)))
+                mqttReconnectNow--;
         } else if(millis() - mqttPingNow > 5000) {
             mqttClient.cancelPing();
-            mqttPingNow = millis();
+            mqttPingNow = millisNonZero();
             mqttPingsExpired++;
             mqttPingInt = MQTT_SHORT_INT * (1 << (mqttPingsExpired / MQTT_FAILCOUNT));
             mqttReconnFails = 0;
@@ -1943,7 +2061,7 @@ static bool mqttReconnect(bool force)
                     success = mqttClient.connect();
                 }
     
-                mqttReconnectNow = millis();
+                mqttReconnectNow = millisNonZero();
                 
                 if(!success) {
                     mqttRestartPing = true;  // Force PING check before reconnection attempt
@@ -1980,6 +2098,13 @@ static void mqttSubscribe()
             #ifdef SID_DBG
             Serial.println("MQTT: Failed to subscribe to command topics");
             #endif
+        }
+        if(*settings.mqttTopic) {
+            if(!mqttClient.subscribe(settings.mqttTopic)) {
+                #ifdef SID_DBG
+                Serial.printf("MQTT: Failed to subscribe to user topic '%s'\n", settings.mqttTopic);
+                #endif
+            }
         }
         mqttSubAttempted = true;
     }

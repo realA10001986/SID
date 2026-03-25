@@ -64,7 +64,6 @@ extern uint8_t musFolderNum;
 
 #define DEF_HOSTNAME        "sid"
 #define DEF_WIFI_RETRY      3     // 1-10; Default: 3 retries
-#define DEF_WIFI_TIMEOUT    7     // 7-25; Default: 7 seconds
 #define DEF_AP_CHANNEL      1     // 1-13; 0 = random(1-13)
 #define DEF_WIFI_APOFFDELAY 0
 
@@ -92,48 +91,49 @@ extern uint8_t musFolderNum;
 #define DEF_DISDIR          0     // 0: Do not disable default IR remote control; 1: do
 
 struct Settings {
-    char ssid[34]           = "";   // must be first
-    char pass[66]           = "";   // must be second
+    char ssid[34]           = "";
+    char pass[66]           = "";
+    char bssid[18]          = "";
 
     char hostName[32]       = DEF_HOSTNAME;
     char wifiConRetries[4]  = MS(DEF_WIFI_RETRY);
-    char wifiConTimeout[4]  = MS(DEF_WIFI_TIMEOUT);
     char systemID[8]        = "";
     char appw[10]           = "";
     char apChnl[4]          = MS(DEF_AP_CHANNEL);
     char wifiAPOffDelay[4]  = MS(DEF_WIFI_APOFFDELAY);
     
-    char skipTTAnim[4]      = MS(DEF_SKIP_TTANIM);
-    char ssTimer[6]         = MS(DEF_SS_TIMER);
+    char skipTTAnim[2]      = MS(DEF_SKIP_TTANIM);
+    char ssTimer[4]         = MS(DEF_SS_TIMER);
     
     char tcdIP[32]          = DEF_TCD_IP;
-    char useGPSS[4]         = MS(DEF_USE_GPSS);
-    char useNM[4]           = MS(DEF_USE_NM);
-    char useFPO[4]          = MS(DEF_USE_FPO);
-    char bttfnTT[4]         = MS(DEF_BTTFN_TT);
-    char ssClock[4]         = MS(DEF_SS_CLK);
-    char ssClockOffNM[4]    = MS(DEF_SS_CLK_NMOFF);    
+    char useGPSS[2]         = MS(DEF_USE_GPSS);
+    char useNM[2]           = MS(DEF_USE_NM);
+    char useFPO[2]          = MS(DEF_USE_FPO);
+    char bttfnTT[2]         = MS(DEF_BTTFN_TT);
+    char ssClock[2]         = MS(DEF_SS_CLK);
+    char ssClockOffNM[2]    = MS(DEF_SS_CLK_NMOFF);    
 
-    char TCDpresent[4]      = MS(DEF_TCD_PRES);
-    char noETTOLead[4]      = MS(DEF_NO_ETTO_LEAD);
+    char TCDpresent[2]      = MS(DEF_TCD_PRES);
+    char noETTOLead[2]      = MS(DEF_NO_ETTO_LEAD);
 
-    char CfgOnSD[4]         = MS(DEF_CFG_ON_SD);
-    char sdFreq[4]          = MS(DEF_SD_FREQ);
+    char CfgOnSD[2]         = MS(DEF_CFG_ON_SD);
+    char sdFreq[2]          = MS(DEF_SD_FREQ);
 
-    char disDIR[4]          = MS(DEF_DISDIR);
+    char disDIR[2]          = MS(DEF_DISDIR);
 
 #ifdef SID_HAVEMQTT  
-    char useMQTT[4]         = "0";
-    char mqttVers[4]        = "0"; // 0 = 3.1.1, 1 = 5.0
+    char useMQTT[2]         = "0";
+    char mqttVers[2]        = "0"; // 0 = 3.1.1, 1 = 5.0
     char mqttServer[80]     = "";  // ip or domain [:port]  
     char mqttUser[128]      = "";  // user[:pass] (UTF8)
+    char mqttTopic[128]     = "";  // topic (UTF8)       [limited to 127 bytes through WM]
 #endif 
 
     // Kludge for CP
-    char strictMode[4]      = MS(DEF_STRICT);
-    char SApeaks[4]         = MS(DEF_SA_PEAKS);
-    char PIRFB[4]           = MS(DEF_IRFB);
-    char PIRCFB[4]          = MS(DEF_IRCFB);
+    char strictMode[2]      = MS(DEF_STRICT);
+    char SApeaks[2]         = MS(DEF_SA_PEAKS);
+    char PIRFB[2]           = MS(DEF_IRFB);
+    char PIRCFB[2]          = MS(DEF_IRCFB);
 };
 
 struct IPSettings {
@@ -179,6 +179,9 @@ void loadIRCFB();
 void saveIRCFB();
 
 void saveUpdAvail();
+
+void loadUpdVers(int &v, int& r);
+void saveUpdVers(int v, int r);
 
 void saveAllSecCP();
 
