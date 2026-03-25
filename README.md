@@ -472,9 +472,9 @@ MQTT and BTTFN can co-exist. However, the TCD only sends out time travel and ala
 
 ### Display messages
 
-Your SID can subscribe to a user-configured topic and display messages received for this topic on its display. This can be used to display the status of other HA/MQTT devices, for instance alarm systems. 
+Your SID can subscribe to a user-configured topic and display short messages received for this topic on its display. This can be used to display the status of other HA/MQTT devices, for instance alarm systems. 
 
-Only ASCII messages are supported, the maximum length is - given the nature of the display - eight characters.
+Only characters a-z/A-Z/0-9 are supported, the maximum length is - given the nature of the display - eight characters.
 
 ### Setup
 
@@ -760,7 +760,7 @@ The username (and optionally the password) to be used when connecting to the bro
 
 ##### &#9193; Topic to display
 
-An optional MQTT topic the SID subscribes to in order to display messages on its display.
+An optional MQTT topic the SID subscribes to in order to display messages on its display. Only eight characters are shown, and only a-Z/A-Z and 0-9.
 
 ## Appendix B: LED signals
 
