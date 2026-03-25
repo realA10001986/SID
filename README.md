@@ -534,7 +534,7 @@ In order to reduce the number of write operations and thereby prolong the life o
 
 ## Firmware Installation / Firmware Update
 
-If a previous version of the SID firmware is installed on your device, you can update easily using the pre-compiled binary. Enter the [Config Portal](#the-config-portal), click on "Update", select the pre-compiled binary file ("**sid-A10001986.ino.nodemcu-32s.bin**" or "**SID_vX.YY.bin**") provided in the [Release package](https://github.com/realA10001986/SID/releases), and click on *Update*.
+If a previous version of the SID firmware is installed on your device, you can update easily using the pre-compiled binary. Enter the [Config Portal](#the-config-portal), click on "Update", select the pre-compiled binary file ("**sid-A10001986-Vx.xx.bin**" or "**SID_vX.YY.bin**") provided in the [Release package](https://github.com/realA10001986/SID/releases), and click on *Update*.
 
 <details>
 <summary>Installing on a fresh ESP32...</summary>
@@ -565,7 +565,7 @@ This leads to the [HomeAssistant/MQTT Settings page](#hamqtt-settings).
 
 This leads to the firmware update page.
 
-In order to upload a new firmware, such as published in the [Release packages](https://github.com/realA10001986/SID/releases), select the "**sid-A10001986.ino.nodemcu-32s.bin**" or "**SID_vX.YY.bin**" file as contained in the Release package in the file selector and click *Update*.
+In order to upload a new firmware, such as published in the [Release packages](https://github.com/realA10001986/SID/releases), select the "**sid-A10001986-Vx.xx.bin**" or "**SID_vX.YY.bin**" file as contained in the Release package in the file selector and click *Update*.
 
 See also [here](#firmware-installation--firmware-update).
 
