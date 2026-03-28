@@ -2,7 +2,7 @@
 
 This [repository](https://sid.out-a-ti.me) holds the most current firmware for CircuitSetup's magnificent [SID](https://circuitsetup.us/product/delorean-time-machine-status-indicator-display-sid/) kit. The SID, also known as "Field Containment System Display", is an important part of Doc Brown's Delorean Time Machine.
 
-The hardware is available [here](https://circuitsetup.us/product/delorean-time-machine-status-indicator-display-sid/). The SID replica can be used stand-alone, or in connection with CircuitSetup's [Time Circuits Display](https://tcd.out-a-ti.me). It's made of metal and perfectly fit for mounting in an actual Delorean. A testament to its build quality and accuracy is the fact that it is used in the **movie-based, official musicals on tour** (2024-2026).
+The hardware is available [here](https://circuitsetup.us/product/delorean-time-machine-status-indicator-display-sid/). The SID replica can be used stand-alone, or in connection with CircuitSetup's [Time Circuits Display](https://circuitsetup.us/product/complete-time-circuits-display-kit/). It's made of metal and perfectly fit for mounting in an actual Delorean. A testament to its build quality and accuracy is the fact that it is used in the **movie-based, official musicals on tour** (2024-2026).
 
 ![mysid](img/mysid.jpg)
 
@@ -78,7 +78,7 @@ If the SID fails to connect, it falls back to AP-mode. You can trigger another c
 
 #### Places without a WiFi network
 
-In this case and with no [Time Circuits Display](https://tcd.out-a-ti.me) at hand, keep your SID operating in AP-mode.
+In this case and with no [Time Circuits Display](https://circuitsetup.us/product/complete-time-circuits-display-kit/) at hand, keep your SID operating in AP-mode.
 
 If you have a TCD, you can connect your SID to the TCD's own WiFi network: 
 
@@ -538,7 +538,7 @@ If a previous version of the SID firmware is installed on your device, you can u
 
 <details>
 <summary>Installing on a fresh ESP32...</summary>
-If you are using a fresh ESP32, please go <a href="https://install.out-a-ti.me">here</a> and follow the instructions, or - if you are a nerd and want to deal with source code, compilers'n'stuff - see <a href="https://github.com/realA10001986/SID/blob/main/sid-A10001986/sid-A10001986.ino">sid-A10001986.ino</a> for detailed build and upload information.
+If you are using a fresh ESP32, please go <a href="https://install.out-a-ti.me">here</a> and follow the instructions, or - if you are a nerd and want to deal with source code, compilers'n'stuff - see _sid-A10001986.ino_ for detailed build and upload information.
 </details>
 
 *After a firmware update, a "wait" symbol (hourglass) might be shown for a short while after reboot. Do NOT unplug the device during this time.*
