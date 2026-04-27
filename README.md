@@ -267,6 +267,10 @@ In order to only disable the supplied IR remote control, check the option **_Dis
      <td align="left">*61&#9166;</td><td>6061</td>
     </tr>
     <tr>
+     <td align="left">Enable/disable "mirrored" Spectrum Analyzer</td>
+     <td align="left">*64&#9166;</td><td>6064</td>
+    </tr>
+    <tr>
      <td align="left">Enable/disable positive IR feedback</td>
      <td align="left">*62&#9166;</td><td>6062</td>
     </tr>
@@ -344,7 +348,7 @@ Other ways of triggering a time travel are available if a [Time Circuits Display
 
 The spectrum analyzer (or rather: frequency-separated vu meter) works through a built-in microphone. This microphone is located behind the right-hand side center hole of the enclosure.
 
-There are two variations of the Spectrum Analyzer: Traditional and "mirrored". The "Mirrored" option in the Config Portal selects between those two, as does typing *64ok on the remote.
+There are two variations of the Spectrum Analyzer: Traditional and "mirrored". The **Mirrored Spectrum Analyzer_** option in the Config Portal selects between those two, as does typing *64ok on the remote.
 
 Sticky peaks are optional, they can be switched on/off in the Config Portal and by typing *61ok on the remote.
 
