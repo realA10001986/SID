@@ -711,7 +711,7 @@ If you want to have your SID to communicate with a Time Circuits Display wireles
 
 ##### &#9193; Adapt pattern to TCD-provided speed
 
-If this option is checked and your TCD is equipped with a GPS receiver or a rotary encoder, the SID will adapt its display pattern to current GPS speed or the reading of the encoder, respectively.
+If this option is checked and your TCD is equipped with a GPS sensor or a rotary encoder, or a [Futaba Remote](https://remote.out-a-ti.me) is present, the SID will adapt its display pattern to current speed as transmitted by the TCD.
 
 ##### &#9193; Follow TCD night-mode
 
