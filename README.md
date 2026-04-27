@@ -303,11 +303,11 @@ In order to only disable the supplied IR remote control, check the option **_Dis
      <td align="left">*400&#9166; - *415&#9166;</td><td>6400-6415</td>
     </tr>
     <tr>
-     <td align="left">Disable car mode<sup>1</sup></td>
+     <td align="left">Disable <a href='#car-setup'>car mode</a><sup>1</sup></td>
      <td align="left">*990&#9166;</td><td>6990</td>
     </tr>
     <tr>
-     <td align="left">Enable car mode<sup>1</sup></td>
+     <td align="left">Enable <a href='#car-setup'>car mode</a><sup>1</sup></td>
      <td align="left">*991&#9166;</td><td>6991</td>
     </tr>
     <tr>
