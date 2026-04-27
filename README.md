@@ -74,7 +74,7 @@ Click on "WiFi Configuration" and either select a network from the top of the pa
 
 </details>
 
-If the SID fails to connect, it falls back to AP-mode. You can trigger another connection attempt by entering *77ok.
+If the SID fails to connect, it falls back to AP-mode. You can trigger another connection attempt by entering *77ok on the IR remote control.
 
 #### Places without a WiFi network
 
