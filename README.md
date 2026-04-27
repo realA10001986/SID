@@ -348,7 +348,7 @@ Other ways of triggering a time travel are available if a [Time Circuits Display
 
 The spectrum analyzer (or rather: frequency-separated vu meter) works through a built-in microphone. This microphone is located behind the right-hand side center hole of the enclosure.
 
-There are two variations of the Spectrum Analyzer: Traditional and "mirrored". The **Mirrored Spectrum Analyzer_** option in the Config Portal selects between those two, as does typing *64ok on the remote.
+There are two variations of the Spectrum Analyzer: Traditional and "mirrored". The **_Mirrored Spectrum Analyzer_** option in the Config Portal selects between those two, as does typing *64ok on the remote.
 
 Sticky peaks are optional, they can be switched on/off in the Config Portal and by typing *61ok on the remote.
 
