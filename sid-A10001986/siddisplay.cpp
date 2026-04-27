@@ -8,7 +8,7 @@
  * SIDDisplay Classes: Handles the SID LEDs
  *
  * -------------------------------------------------------------------
- * License: MIT NON-AI
+ * License: Modified MIT NON-AI
  * 
  * Permission is hereby granted, free of charge, to any person 
  * obtaining a copy of this software and associated documentation 
@@ -20,6 +20,9 @@
  *
  * The above copyright notice and this permission notice shall be 
  * included in all copies or substantial portions of the Software.
+ * 
+ * Links inside the Software pointing to the original source must not 
+ * be changed or removed.
  *
  * In addition, the following restrictions apply:
  * 
@@ -392,13 +395,13 @@ uint8_t sidDisplay::getBrightness()
 }
 
 // Draw bar into buffer, do NOT call show
-void sidDisplay::drawBarWithHeight(uint8_t bar, uint8_t height)
+void sidDisplay::drawBarWithHeight(int bar, int height)
 {
     // Clear bar
     // Draw bar with given height
 
-    if(height > 127) height = 0;
-    if(height > 20) height = 20;
+    if(height < 0)       height = 0;
+    else if(height > 20) height = 20;
 
     if(height < 20) {
         for(int i = 0; i < 20 - height; i++) {
@@ -413,13 +416,15 @@ void sidDisplay::drawBarWithHeight(uint8_t bar, uint8_t height)
 }
 
 // Draw bar into buffer, do NOT call show
-void sidDisplay::drawBar(uint8_t bar, uint8_t bottom, uint8_t top)
+void sidDisplay::drawBar(int bar, int bottom, int top)
 {
     // Clear bar
     // Draw bar from top to bottom (0-19, 0=bottom)
 
     if(top > 19) top = 19;
+    else if(top < 0) top = 0;
     if(bottom > 19) bottom = 19;
+    else if(bottom < 0) bottom = 0;
     if(bottom > top) bottom = top;
 
     if(top < 19) {
@@ -437,7 +442,7 @@ void sidDisplay::drawBar(uint8_t bar, uint8_t bottom, uint8_t top)
     }
 }
 
-void sidDisplay::clearBar(uint8_t bar)
+void sidDisplay::clearBar(int bar)
 {
     for(int i = 0; i <= 19; i++) {
         _displayBuffer[translator[bar][i][0]] &= ~(translator[bar][i][1]);
@@ -445,13 +450,139 @@ void sidDisplay::clearBar(uint8_t bar)
 }
 
 // Draw dot into buffer, do NOT call show
-void sidDisplay::drawDot(uint8_t bar, uint8_t dot_y)
+void sidDisplay::drawDot(int bar, int dot_y)
 {
     // Do not clear bar
     // Draw dot at dot_y (0 = bottom)
     if(dot_y > 19) dot_y = 19;
+    else if(dot_y < 0) dot_y = 0;
 
     _displayBuffer[translator[bar][19-dot_y][0]] |= translator[bar][19-dot_y][1];
+}
+
+//#define SA_W_LINE
+
+void sidDisplay::drawMirrorBarWithHeight(int bar, int height, int maxHeight)
+{
+    // Clear bar & draw mirror bar
+    int bheight;
+
+    #ifdef SA_W_LINE
+
+    // Draw bar mirrored around line 9 with given height
+
+    for(int i = 0; i < 20; i++) {
+        if(i == 10) {
+            _displayBuffer[translator[bar][i][0]] |= translator[bar][i][1];
+        } else {
+            _displayBuffer[translator[bar][i][0]] &= ~(translator[bar][i][1]);
+        }
+    }
+
+    if(height <= 1)      return;
+    else if(height > 20) height = 20;
+
+    maxHeight -= 10;
+
+    bheight = height;
+
+    // Top: 20=>10, 2=>1, >2=>0
+    height /= 2; 
+    if(height > maxHeight) height = maxHeight;
+    
+    for(int i = 1; i <= height; i++) {
+        _displayBuffer[translator[bar][10-i][0]] |= translator[bar][10-i][1];
+    }
+
+    // Bottom: 20=>9, 3=>1, >3=>0
+    bheight--;  
+    bheight /= 2;      
+    
+    for(int i = 1; i <= bheight; i++) {
+        _displayBuffer[translator[bar][10+i][0]] |= translator[bar][10+i][1];
+    }
+
+    #else  // -------------------------------
+
+    // Draw bar mirrored in two 10-blocks-high parts
+
+    for(int i = 0; i < 20; i++) {
+        _displayBuffer[translator[bar][i][0]] &= ~(translator[bar][i][1]);
+    }
+
+    if(height <= 1)      return;
+    else if(height > 20) height = 20;
+
+    height /= 2; 
+    
+    bheight = height;
+
+    maxHeight -= 10;
+
+    // Top & Bottom: 20=>10, 2=>1, >2=>0
+    
+    if(height > maxHeight) height = maxHeight;
+    for(int i = 1; i <= height; i++) {
+        _displayBuffer[translator[bar][10-i][0]] |= translator[bar][10-i][1];
+    }
+
+    for(int i = 1; i <= bheight; i++) {
+        _displayBuffer[translator[bar][9+i][0]] |= translator[bar][9+i][1];
+    }
+
+    #endif
+}
+
+void sidDisplay::drawMirrorDot(int bar, int dot_y, int maxHeight)
+{
+    int bdy;
+    
+    // Do not clear bar
+
+    maxHeight -= 10;
+
+    #ifdef SA_W_LINE
+    
+    // Draw dot at relative dot_y (0 = bottom) around line 9
+    
+    if(dot_y > 19) dot_y = 19;
+    else if(dot_y < 0) dot_y = 0;
+
+    bdy = dot_y;
+
+    dot_y++;
+    dot_y /= 2;
+
+    bdy /= 2;
+
+    if(dot_y) {
+        if(dot_y > maxHeight) dot_y = maxHeight;
+        _displayBuffer[translator[bar][10-dot_y][0]] |= translator[bar][10-dot_y][1];
+    }
+    if(bdy) {
+        _displayBuffer[translator[bar][10+bdy][0]] |= translator[bar][10+bdy][1];
+    }
+
+    #else
+
+    // Draw dot at relative dot_y (0 = bottom) into mirrored 2x10 area
+    
+    if(dot_y > 19) dot_y = 19;
+    else if(dot_y < 0) dot_y = 0;
+
+    dot_y++;
+    dot_y /= 2;
+    bdy = dot_y;
+
+    if(dot_y) {
+        if(dot_y > maxHeight) dot_y = maxHeight;
+        _displayBuffer[translator[bar][10-dot_y][0]] |= translator[bar][10-dot_y][1];
+    }
+    if(bdy) {
+        _displayBuffer[translator[bar][9+bdy][0]] |= translator[bar][9+bdy][1];
+    }
+
+    #endif
 }
 
 void sidDisplay::drawFieldAndShow(uint8_t *fieldData)

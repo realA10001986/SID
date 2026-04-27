@@ -8,7 +8,7 @@
  * Spectrum Analyzer
  *
  * -------------------------------------------------------------------
- * License: MIT NON-AI
+ * License: Modified MIT NON-AI
  * 
  * Permission is hereby granted, free of charge, to any person 
  * obtaining a copy of this software and associated documentation 
@@ -20,6 +20,9 @@
  *
  * The above copyright notice and this permission notice shall be 
  * included in all copies or substantial portions of the Software.
+ * 
+ * Links inside the Software pointing to the original source must not 
+ * be changed or removed.
  *
  * In addition, the following restrictions apply:
  * 
@@ -96,8 +99,8 @@ static const FTYPE minTreshold[NUMBANDS] = {
     0.0f, 5000.0f, 5000.0f, 5000.0f, 3000.0f, 1000.0f, 1000.0f, 1000.0f, 1000.0f, 1000.0f, 1000.0f
 };
 
-static const uint8_t maxTTHeight[10] = {
-    20, 20, 13, 20, 20, 20, 20, 10, 20, 17
+static const int maxTTHeight[10] = {
+    20, 20, 13, 20, 20, 19, 20, 10, 20, 17
 };
 
 static int oldHeight[DISPLAYBANDS]  = { 0 };
@@ -109,6 +112,7 @@ static unsigned long peakTimer[DISPLAYBANDS] = { 0 };
 bool        saActive = false;
 static bool sa_avail = false;
 bool        doPeaks  = false;
+bool        doMirror = false;
 static bool startFlag = false;
 static bool initFlag = false;
 static bool initDisplay = true;
@@ -359,7 +363,7 @@ void sa_loop()
                     peakTimer[i] = PEAK_HOLD;
                     oldHeight[i] = 1;
                     if(initDisplay) {
-                        sid.drawBarWithHeight(i, 1);
+                        doMirror ? sid.drawMirrorBarWithHeight(i, 1, LEDS_PER_BAR) : sid.drawBarWithHeight(i, 1);
                     }
                 }
                 if(initDisplay) {
@@ -382,15 +386,18 @@ void sa_loop()
         // Calculate bar heights
         for(int i = 0; i < DISPLAYBANDS; i++) {
             int height = (int)(freqBands[i+1] * (FTYPE)(LEDS_PER_BAR - 1));
+            int maxHeight;
     
             if(ampFact != 100) {
                 if(!height) height = 1;
                 height = height * ampFact / 100;
-                if(height > maxTTHeight[i]) height = maxTTHeight[i];
+                maxHeight = maxTTHeight[i];
+                if(!doMirror && (height > maxHeight)) height = maxHeight;
+            } else {
+                maxHeight = LEDS_PER_BAR;
+                if(height > LEDS_PER_BAR) height = LEDS_PER_BAR;
+                if(!height) height = 1;
             }
-    
-            if(height > LEDS_PER_BAR) height = LEDS_PER_BAR;
-            if(!height) height = 1;
       
             // Smoothen jumps in downward direction
             if(height < oldHeight[i]) {
@@ -408,9 +415,16 @@ void sa_loop()
             oldHeight[i] = height;
 
             // Draw bars & peaks
-            sid.drawBarWithHeight(i, oldHeight[i]);
-            if(doPeaks && peaks[i] > oldHeight[i] - 1) {
-                sid.drawDot(i, peaks[i]);
+            if(doMirror) {
+                sid.drawMirrorBarWithHeight(i, oldHeight[i], maxHeight);
+                if(doPeaks && peaks[i] > oldHeight[i] - 1) {
+                    sid.drawMirrorDot(i, peaks[i], maxHeight);
+                }
+            } else {
+                sid.drawBarWithHeight(i, oldHeight[i]);
+                if(doPeaks && peaks[i] > oldHeight[i] - 1) {
+                    sid.drawDot(i, peaks[i]);
+                }
             }
         }
 

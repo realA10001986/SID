@@ -15,8 +15,8 @@
  ***                          Version Strings                          ***
  *************************************************************************/
 
-#define SID_VERSION       "V1.71"           // Do NOT change format.
-#define SID_VERSION_EXTRA "MAR252026"
+#define SID_VERSION       "V1.72"           // Do NOT change format.
+#define SID_VERSION_EXTRA "APR272026"
 
 /*************************************************************************
  ***                           Miscellaneous                           ***

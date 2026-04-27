@@ -8,7 +8,7 @@
  * Spectrum Analyzer
  *
  * -------------------------------------------------------------------
- * License: MIT NON-AI
+ * License: Modified MIT NON-AI
  * 
  * Permission is hereby granted, free of charge, to any person 
  * obtaining a copy of this software and associated documentation 
@@ -20,6 +20,9 @@
  *
  * The above copyright notice and this permission notice shall be 
  * included in all copies or substantial portions of the Software.
+ * 
+ * Links inside the Software pointing to the original source must not 
+ * be changed or removed.
  *
  * In addition, the following restrictions apply:
  * 
@@ -51,9 +54,6 @@
 #ifndef _SID_SA_H
 #define _SID_SA_H
 
-extern bool saActive;   // Read only!
-extern bool doPeaks;
-
 #define SA_START_DELAY  1000   // Delay to skip the mic's startup noise
 
 void sa_activate(bool init = true, unsigned long start_Delay = SA_START_DELAY);
@@ -62,5 +62,9 @@ void sa_deactivate();
 int sa_setAmpFact(int newAmpFact);
 
 void sa_loop();
+
+extern bool saActive;   // Read only!
+extern bool doPeaks;
+extern bool doMirror;
 
 #endif

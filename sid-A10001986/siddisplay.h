@@ -8,7 +8,7 @@
  * SIDDisplay Class: Handles the SID LEDs
  *
  * -------------------------------------------------------------------
- * License: MIT NON-AI
+ * License: Modified MIT NON-AI
  * 
  * Permission is hereby granted, free of charge, to any person 
  * obtaining a copy of this software and associated documentation 
@@ -20,6 +20,9 @@
  *
  * The above copyright notice and this permission notice shall be 
  * included in all copies or substantial portions of the Software.
+ * 
+ * Links inside the Software pointing to the original source must not 
+ * be changed or removed.
  *
  * In addition, the following restrictions apply:
  * 
@@ -86,10 +89,12 @@ class sidDisplay {
 
         void clearDisplayDirect();
 
-        void drawBar(uint8_t bar, uint8_t bottom, uint8_t top);
-        void drawBarWithHeight(uint8_t bar, uint8_t height);
-        void clearBar(uint8_t bar);
-        void drawDot(uint8_t bar, uint8_t dot_y);
+        void drawBar(int bar, int bottom, int top);
+        void drawBarWithHeight(int bar, int height);
+        void clearBar(int bar);
+        void drawDot(int bar, int dot_y);
+        void drawMirrorBarWithHeight(int bar, int height, int maxHeight);
+        void drawMirrorDot(int bar, int dot_y, int maxHeight);
 
         void drawFieldAndShow(uint8_t *fieldData);
 

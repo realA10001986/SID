@@ -8,7 +8,7 @@
  * Siddly
  *
  * -------------------------------------------------------------------
- * License: MIT NON-AI
+ * License: Modified MIT NON-AI
  * 
  * Permission is hereby granted, free of charge, to any person 
  * obtaining a copy of this software and associated documentation 
@@ -20,6 +20,9 @@
  *
  * The above copyright notice and this permission notice shall be 
  * included in all copies or substantial portions of the Software.
+ * 
+ * Links inside the Software pointing to the original source must not 
+ * be changed or removed.
  *
  * In addition, the following restrictions apply:
  * 
@@ -52,8 +55,6 @@
 #ifndef _SID_SI_H
 #define _SID_SI_H
 
-extern bool siActive;    // read only!!!
-
 void si_init();          // start game
 void si_loop();          // game loop
 void si_end();           // end game (quit)
@@ -64,5 +65,7 @@ void si_moveLeft();      // user input: move left
 void si_rotate();        // user input: rotate (left)
 void si_moveDown();      // user input: move down
 void si_fallDown();      // user input: fall down
+
+extern bool siActive;    // read only!!!
 
 #endif

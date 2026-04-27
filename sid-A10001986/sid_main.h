@@ -8,7 +8,7 @@
  * Main controller
  *
  * -------------------------------------------------------------------
- * License: MIT NON-AI
+ * License: Modified MIT NON-AI
  * 
  * Permission is hereby granted, free of charge, to any person 
  * obtaining a copy of this software and associated documentation 
@@ -20,6 +20,9 @@
  *
  * The above copyright notice and this permission notice shall be 
  * included in all copies or substantial portions of the Software.
+ * 
+ * Links inside the Software pointing to the original source must not 
+ * be changed or removed.
  *
  * In addition, the following restrictions apply:
  * 
@@ -52,6 +55,34 @@
 #define _SID_MAIN_H
 
 #include "siddisplay.h"
+
+void main_boot();
+void main_setup();
+void main_loop();
+
+void flushDelayedSave();
+
+void showWaitSequence(bool force = false);
+void endWaitSequence();
+
+void allOff();
+void prepareReboot();
+
+void populateIRarray(uint32_t *irkeys, int index);
+void copyIRarray(uint32_t *irkeys, int index);
+
+void showWordSequence(const char *text, int speed = 3);
+
+void mydelay(unsigned long mydel, bool withIR);
+unsigned long millisNonZero();
+
+void prepareTT();
+void wakeup();
+
+void setIdleMode(int idleNo);
+
+void addCmdQueue(uint32_t command);
+void bttfn_loop();
 
 extern unsigned long powerupMillis;
 
@@ -102,32 +133,8 @@ extern bool sidBusy;
 
 extern bool showUpdAvail;
 
-void main_boot();
-void main_setup();
-void main_loop();
-
-void flushDelayedSave();
-
-void showWaitSequence(bool force = false);
-void endWaitSequence();
-
-void allOff();
-void prepareReboot();
-
-void populateIRarray(uint32_t *irkeys, int index);
-void copyIRarray(uint32_t *irkeys, int index);
-
-void showWordSequence(const char *text, int speed = 3);
-
-void mydelay(unsigned long mydel, bool withIR);
-unsigned long millisNonZero();
-
-void prepareTT();
-void wakeup();
-
-void setIdleMode(int idleNo);
-
-void addCmdQueue(uint32_t command);
-void bttfn_loop();
+extern int     bttfnHaveTCDSSID;
+extern char    TCDSSID[];
+extern uint8_t TCDpwMarker;
 
 #endif

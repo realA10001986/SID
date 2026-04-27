@@ -8,7 +8,7 @@
  * Settings handling
  *
  * -------------------------------------------------------------------
- * License: MIT NON-AI
+ * License: Modified MIT NON-AI
  * 
  * Permission is hereby granted, free of charge, to any person 
  * obtaining a copy of this software and associated documentation 
@@ -20,6 +20,9 @@
  *
  * The above copyright notice and this permission notice shall be 
  * included in all copies or substantial portions of the Software.
+ * 
+ * Links inside the Software pointing to the original source must not 
+ * be changed or removed.
  *
  * In addition, the following restrictions apply:
  * 
@@ -52,13 +55,66 @@
 #ifndef _SID_SETTINGS_H
 #define _SID_SETTINGS_H
 
-extern bool haveSD;
-extern bool FlashROMode;
-
-extern uint8_t musFolderNum;
-
 #define MS(s) XMS(s)
 #define XMS(s) #s
+
+void settings_setup();
+
+void unmount_fs();
+
+void write_settings();
+bool checkConfigExists();
+
+bool evalBool(char *s);
+
+void saveIRKeys();
+void deleteIRKeys();
+
+void loadBrightness();
+void storeBrightness();
+void saveBrightness();
+
+void loadIRLock();
+void storeIRLock();
+void saveIRLock();
+
+void loadStrict();
+void saveStrict();
+
+void loadSASettings();
+void saveSASettings();
+
+void loadPosIRFB();
+void savePosIRFB();
+
+void loadIRCFB();
+void saveIRCFB();
+
+void saveUpdAvail();
+
+void loadUpdVers(int &v, int& r);
+void saveUpdVers(int v, int r);
+
+void saveAllSecCP();
+
+void saveCarMode();
+
+void loadIdlePat();
+void storeIdlePat();
+void saveIdlePat();
+
+#define BOOTM_NORMAL 0
+#define BOOTM_IGNORE BOOTM_NORMAL
+#define BOOTM_SA     1
+uint8_t loadBootMode();
+void    storeBootMode(uint8_t bootMode);
+void    saveBootMode();
+
+bool loadIpSettings();
+void writeIpSettings();
+void deleteIpSettings();
+
+void moveSettings();
 
 // Default settings
 
@@ -70,11 +126,12 @@ extern uint8_t musFolderNum;
 #define DEF_STRICT          1     // 0: Allow random diviations from movie patterns; 1: no not
 #define DEF_SKIP_TTANIM     1     // 0: Don't skip tt anim; 1: do
 #define DEF_SA_PEAKS        0     // 1: Show peaks in SA, 0: don't
+#define DEF_SA_MIRROR       0     // 1: Show "mirrored" SA, 0: don't
 #define DEF_IRFB            1     // 0: Don't show positive IR feedback on display; 1: do
 #define DEF_IRCFB           1     // 0: Don't show command entry feedback; 1: do
 #define DEF_SS_TIMER        0     // "Screen saver" timeout in minutes; 0 = ss off
 
-#define DEF_TCD_IP          ""    // TCD ip address or hostname for BTTFN
+#define DEF_TCD_IP          ""    // TCD hostname (or ip address) for BTTFN
 #define DEF_USE_GPSS        0     // 0: Ignore GPS speed; 1: Use it for chase speed
 #define DEF_USE_NM          0     // 0: Ignore TCD night mode; 1: Follow TCD night mode
 #define DEF_USE_FPO         0     // 0: Ignore TCD fake power; 1: Follow TCD fake power
@@ -94,6 +151,10 @@ struct Settings {
     char ssid[34]           = "";
     char pass[66]           = "";
     char bssid[18]          = "";
+
+    char cm_ssid[14]        = "TCD-AP";
+    char cm_pass[10]        = "";
+    char cm_bssid[18]       = "";
 
     char hostName[32]       = DEF_HOSTNAME;
     char wifiConRetries[4]  = MS(DEF_WIFI_RETRY);
@@ -132,8 +193,10 @@ struct Settings {
     // Kludge for CP
     char strictMode[2]      = MS(DEF_STRICT);
     char SApeaks[2]         = MS(DEF_SA_PEAKS);
+    char SAmirror[2]        = MS(DEF_SA_MIRROR);
     char PIRFB[2]           = MS(DEF_IRFB);
     char PIRCFB[2]          = MS(DEF_IRCFB);
+    char ecmKludge[2]       = "0";  // MUST BE 0
 };
 
 struct IPSettings {
@@ -146,60 +209,7 @@ struct IPSettings {
 extern struct Settings settings;
 extern struct IPSettings ipsettings;
 
-void settings_setup();
-
-void unmount_fs();
-
-void write_settings();
-bool checkConfigExists();
-
-bool evalBool(char *s);
-
-void saveIRKeys();
-void deleteIRKeys();
-
-void loadBrightness();
-void storeBrightness();
-void saveBrightness();
-
-void loadIRLock();
-void storeIRLock();
-void saveIRLock();
-
-void loadStrict();
-void saveStrict();
-
-void loadSAPeaks();
-void saveSAPeaks();
-
-void loadPosIRFB();
-void savePosIRFB();
-
-void loadIRCFB();
-void saveIRCFB();
-
-void saveUpdAvail();
-
-void loadUpdVers(int &v, int& r);
-void saveUpdVers(int v, int r);
-
-void saveAllSecCP();
-
-void loadIdlePat();
-void storeIdlePat();
-void saveIdlePat();
-
-#define BOOTM_NORMAL 0
-#define BOOTM_IGNORE BOOTM_NORMAL
-#define BOOTM_SA     1
-uint8_t loadBootMode();
-void    storeBootMode(uint8_t bootMode);
-void    saveBootMode();
-
-bool loadIpSettings();
-void writeIpSettings();
-void deleteIpSettings();
-
-void moveSettings();
+extern bool   haveSD;
+extern bool   FlashROMode;
 
 #endif

@@ -5,7 +5,7 @@
  * https://github.com/realA10001986/SID
  * https://sid.out-a-ti.me
  *
- * License: MIT NON-AI
+ * License: Modified MIT NON-AI
  * 
  * Permission is hereby granted, free of charge, to any person 
  * obtaining a copy of this software and associated documentation 
@@ -17,6 +17,9 @@
  *
  * The above copyright notice and this permission notice shall be 
  * included in all copies or substantial portions of the Software.
+ * 
+ * Links inside the Software pointing to the original source must not 
+ * be changed or removed.
  *
  * In addition, the following restrictions apply:
  * 
@@ -104,6 +107,23 @@
 
 /*  Changelog
  *  
+ *  2026/04/27 (A10001986) [1.72]
+ *    *********************************************************************************
+ *    ** If updating from below 1.70, please install 1.70 first to have your         **
+ *    ** settings converted. If 1.70 is skipped, many of your settings (static IP,   **
+ *    ** brightness, movie mode, peaks in SA, IR lock) will be restored to default   **
+ *    ** values. It suffices to install 1.70 and boot once; you can then immediately **
+ *    ** update to a later version.                                                  **
+ *    ** https://github.com/realA10001986/SID/releases/tag/V1.70                     **
+ *    *********************************************************************************
+ *    - Add Car Mode: In addition to existing WiFi network connection settings, you 
+ *      can now pre-configure TCD-AP SSID and password in WiFi Settings and quickly
+ *      switch between normal (home, iPhone...) WiFi connection and Car WiFi connection 
+ *      (through TCD-AP) by commands *990 (normal) and *991 (Car) or through the
+ *      Config Portal.
+ *    - New "mirrored" Spectrum Analyzer mode (*64 toggles between legacy and mirrored)
+ *    - Fix race condition in Fake Power logic
+ *    - Code optimizations and fixes
  *  2026/03/25 (A10001986) [1.71]
  *    *********************************************************************************
  *    ** If updating from below 1.70, please install 1.70 first to have your         **
@@ -121,7 +141,7 @@
  *    - MQTT: Disable if server can't be resolved
  *    - WiFi: Do not power down AP long as a client is connected
  *    - Brush up Config Portal a bit
- *    - Code optimizations and fixes.
+ *    - Code optimizations and fixes
  *  2026/02/15 (A10001986) [1.70]
  *    - New file format for secondary and IP settings. This version of the firmware 
  *      converts old to new.

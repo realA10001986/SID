@@ -8,7 +8,7 @@
  * Main controller
  *
  * -------------------------------------------------------------------
- * License: MIT NON-AI
+ * License: Modified MIT NON-AI
  * 
  * Permission is hereby granted, free of charge, to any person 
  * obtaining a copy of this software and associated documentation 
@@ -20,6 +20,9 @@
  *
  * The above copyright notice and this permission notice shall be 
  * included in all copies or substantial portions of the Software.
+ * 
+ * Links inside the Software pointing to the original source must not 
+ * be changed or removed.
  *
  * In addition, the following restrictions apply:
  * 
@@ -303,13 +306,9 @@ static const int TTampFacts[TT_AMP_STEPS] = {
 bool         TCDconnected = false;
 static bool  noETTOLead = false;
 
-static bool          brichanged = false;
 static unsigned long brichgnow = 0;
-static bool          ipachanged = false;
 static unsigned long ipachgnow = 0;
-static bool          irlchanged = false;
 static unsigned long irlchgnow = 0;
-static bool          bmdchanged = false;
 static unsigned long bmdchgnow = 0;
 
 static unsigned long ssLastActivity = 0;
@@ -465,9 +464,13 @@ static IPAddress     bttfnTcdIP;
 static uint32_t      bttfnTCDSeqCnt = 0;
 static uint32_t      bttfnTCDDataSeqCnt = 0;
 static uint32_t      bttfnSessionID = 0;
+int                  bttfnHaveTCDSSID = 0;
+char                 TCDSSID[8] = { 0 };
+uint8_t              TCDpwMarker = 0;
 static uint8_t       bttfnReqStatus = 0x53; // Request capabilities, status, speed, date/time
 static bool          TCDSupportsRemKP = false;
 static bool          TCDSupportsNOTData = false;
+static bool          TCDSupportsSSID = false;
 static bool          bttfnDataNotEnabled = false;
 static uint32_t      tcdHostNameHash = 0;
 static byte          BTTFMCBuf[BTTF_PACKET_SIZE];
@@ -580,8 +583,8 @@ void main_setup()
     loadStrict();                     // load strictMode
     updateConfigPortalStrictValue();  // Update current CP value
     loadIRLock();
-    loadSAPeaks();
-    updateConfigPortalPeaksValue();
+    loadSASettings();
+    updateConfigPortalSAValues();
     loadPosIRFB();
     loadIRCFB();
     updateConfigPortalIRFBValues();
@@ -627,7 +630,7 @@ void main_setup()
         // If the TCD is connected, we can go more to the edge
         TTKey.setTiming(5, 50, 100000);
         // Long press ignored when TCD is connected
-        // IRLearning only possible if "TCD connected by wire" unset.
+        // IRLearning by TT button only possible if "TCD connected by wire" unset.
     }
     
     if(showUpdAvail && updateAvailable()) {
@@ -711,6 +714,7 @@ void main_loop()
 
     // Follow TCD fake power
     if(useFPO && (tcdFPO != fpoOld)) {
+        fpoOld = tcdFPO;
         if(tcdFPO) {
             // Power off:
             FPBUnitIsOn = false;
@@ -762,6 +766,7 @@ void main_loop()
             sid.setBrightness(255);
             sid.on();
 
+            TTKey.reset();
             isTTKeyHeld = isTTKeyPressed = false;
             networkTimeTravel = false;
 
@@ -785,7 +790,6 @@ void main_loop()
             }
  
         }
-        fpoOld = tcdFPO;
     }
 
     // Discard (incomplete) input from IR after 30 seconds of inactivity
@@ -910,6 +914,9 @@ void main_loop()
                 timeTravel(networkTCDTT, networkLead, networkP1);
             }
         }
+    } else {
+        isTTKeyHeld = isTTKeyPressed = false;
+        TTKey.reset();
     }
 
     now = millis();
@@ -1332,21 +1339,21 @@ void main_loop()
     }
 
     if(!TTrunning) {
-        if(brichanged && (now - brichgnow > 10000)) {
+        if(brichgnow && (now - brichgnow > 10000)) {
             // Save brightness 10 seconds after last change
-            brichanged = false;
+            brichgnow = 0;
             saveBrightness();
-        } else if(ipachanged && (now - ipachgnow > 10000)) {
+        } else if(ipachgnow && (now - ipachgnow > 10000)) {
             // Save idle pattern 10 seconds after last change
-            ipachanged = false;
+            ipachgnow = 0;
             saveIdlePat();
-        } else if(irlchanged && (now - irlchgnow > 10000)) {
+        } else if(irlchgnow && (now - irlchgnow > 10000)) {
             // Save irlock 10 seconds after last change
-            irlchanged = false;
+            irlchgnow = 0;
             saveIRLock();
-        } else if(bmdchanged && (now - bmdchgnow > 10000)) {
+        } else if(bmdchgnow && (now - bmdchgnow > 10000)) {
             // Save boot mode 10 seconds after last change
-            bmdchanged = false;
+            bmdchgnow = 0;
             saveBootMode();
         }
     }
@@ -1354,23 +1361,23 @@ void main_loop()
 
 void flushDelayedSave()
 {
-    if(brichanged) {
-        brichanged = false;
+    if(brichgnow) {
+        brichgnow = 0;
         saveBrightness();
     }
 
-    if(ipachanged) {
-        ipachanged = false;
+    if(ipachgnow) {
+        ipachgnow = 0;
         saveIdlePat();
     }
 
-    if(irlchanged) {
-        irlchanged = false;
+    if(irlchgnow) {
+        irlchgnow = 0;
         saveIRLock();
     }
 
-    if(bmdchanged) {
-        bmdchanged = false;
+    if(bmdchgnow) {
+        bmdchgnow = 0;
         saveBootMode();
     }
 }
@@ -1987,8 +1994,7 @@ void setIdleMode(int idleNo)
             id5idx = 0;
         }
     }
-    ipachanged = true;
-    ipachgnow = millis();
+    ipachgnow = millisNonZero();
     storeIdlePat();
 }
 
@@ -2002,8 +2008,7 @@ static void toggleStrictMode()
 static void changeBootMode(uint8_t bM)
 {
     storeBootMode(bM);
-    bmdchanged = true;
-    bmdchgnow = millis();
+    bmdchgnow = millisNonZero();
 }
 
 /*
@@ -2170,7 +2175,7 @@ static void handleIRKey(int key)
     int doInpReaction = 0;
     bool tempIRShowPosFBDisplay = irShowPosFBDisplay;
     bool tempIRShowCmdFBDisplay = irShowCmdFBDisplay;
-    unsigned long now = millis();
+    unsigned long now = millisNonZero();
 
     if(ssActive) {
         if(!irLocked || key == 11) {
@@ -2299,7 +2304,6 @@ static void handleIRKey(int key)
             // nothing
         } else {
             inc_bri();
-            brichanged = true;
             brichgnow = now;
             storeBrightness();
         }
@@ -2314,7 +2318,6 @@ static void handleIRKey(int key)
             // nothing
         } else {
             dec_bri();
-            brichanged = true;
             brichgnow = now;
             storeBrightness();
         }
@@ -2502,7 +2505,7 @@ static int execute(bool isIR, bool injected)
     int  inputReaction = 0;
     bool isIRLocked = (isIR && !injected) ? irLocked : false;
     uint16_t temp;
-    unsigned long now = millis();
+    unsigned long now = millisNonZero();
 
     switch(strlen(inputBuffer)) {
 
@@ -2581,8 +2584,8 @@ static int execute(bool isIR, bool injected)
                 if(!isIRLocked) {
                     if(!TTrunning) {
                         doPeaks = !doPeaks;
-                        saveSAPeaks();
-                        updateConfigPortalPeaksValue();
+                        saveSASettings();
+                        updateConfigPortalSAValues();
                         inputReaction = 1;
                     } else inputReaction = -1;
                 }
@@ -2607,6 +2610,16 @@ static int execute(bool isIR, bool injected)
                     } else inputReaction = -1;
                 }
                 break;
+            case 64:                              // *64  enable/disable "mirror mode" in Spectrum Analyzer
+                if(!isIRLocked) {
+                    if(!TTrunning) {
+                        doMirror = !doMirror;
+                        saveSASettings();
+                        updateConfigPortalSAValues();
+                        inputReaction = 1;
+                    } else inputReaction = -1;
+                }
+                break;
             case 70:                              // *70 taken by FC IR lock sequence
               // Stay silent
               break;
@@ -2618,7 +2631,6 @@ static int execute(bool isIR, bool injected)
                     bttfn_send_command(BTTFN_REMCMD_KP_BYE, 0, 0);
                 }
                 irLocked = !irLocked;
-                irlchanged = true;
                 irlchgnow = now;
                 storeIRLock();
                 if(!irLocked && isIR) {
@@ -2695,16 +2707,38 @@ static int execute(bool isIR, bool injected)
     case 3:
         if(!isIRLocked) {
             temp = atoi(inputBuffer);
-            if(temp >= 400 && temp <= 415) {
+            if(temp >= 400 && temp <= 415) {      // 400-415: Brightness
                 if(!TTrunning) {
                     sid.setBrightness(temp - 400);
-                    brichanged = true;
                     brichgnow = now;
                     storeBrightness();
                     inputReaction = 1;
                 } else inputReaction = -1;
             } else {
-                inputReaction = -1;
+                switch(temp) {
+                case 990:                         // 990/991: Disable/enable car mode
+                case 991:
+                    if(!injected) {
+                        if(!TTrunning) {
+                            bool ocm = carMode;          
+                            if(temp == 991) {
+                                if(*settings.cm_ssid) carMode = true;
+                            } else {
+                                carMode = false;
+                            }
+                            if(ocm != carMode) {
+                                saveCarMode();
+                                prepareReboot();
+                                delay(500);
+                                esp_restart();
+                            }
+                            inputReaction = 1;
+                        } else inputReaction = -1;
+                    }
+                    break;
+                default:
+                    inputReaction = -1;
+                }
             }
         }
         break;
@@ -3039,8 +3073,10 @@ static void ssEnd()
 
 static void ssUpdateClock()
 {
+    unsigned long now = millis();
+    
     if(ssIsClock) {
-        if(millis() - bttfnDateNow > 5000) {
+        if(now - bttfnDateNow > 5000) {
             // Lost contact - switch off clock
             ssIsClock = false;
             sid.off();
@@ -3049,7 +3085,7 @@ static void ssUpdateClock()
                 ssDoClock();
             }
         }
-    } else if(millis() - bttfnDateNow < 2000) {
+    } else if(now - bttfnDateNow < 2000) {
         // Regained contact, switch clock on again
         ssDoClock();
         ssIsClock = true;
@@ -3156,11 +3192,10 @@ static void bttfn_eval_response(uint8_t *buf, bool checkCaps)
         if(buf[31] & 0x01) {
             bttfnReqStatus &= ~0x02; // Do no longer poll speed, comes over multicast
         }
-        if(buf[31] & 0x08) {
-            TCDSupportsRemKP = true;
-        }
+        TCDSupportsRemKP = !!(buf[31] & 0x08);
         if(buf[31] & 0x10) {
             TCDSupportsNOTData = true;
+            TCDSupportsSSID = !!(buf[31] & 0x40);
         }
     }
 
@@ -3186,6 +3221,13 @@ static void bttfn_eval_response(uint8_t *buf, bool checkCaps)
         tcdFPO = false;
         remoteAllowed = remMode = remHoldKey = false;
     }
+
+    if(!bttfnHaveTCDSSID && !checkCaps && TCDSupportsSSID) {
+        bttfnHaveTCDSSID = 1;
+        memcpy((void *)TCDSSID, (void *)&buf[41], 6);
+        TCDSSID[6] = buf[18];
+        TCDpwMarker = buf[19] & 0x01;
+    }
 }
 
 static void handle_tcd_notification(uint8_t *buf)
@@ -3206,6 +3248,7 @@ static void handle_tcd_notification(uint8_t *buf)
             if(bttfnSessionID && (bttfnSessionID != seqCnt)) {
                 lastBTTFNKA = bttfnLastNotData - BTTFN_KA_INTERVAL + (BTTFN_KA_OFFSET*1000);
                 bttfnTCDDataSeqCnt = 1;
+                bttfnHaveTCDSSID = 0;
             }
             bttfnSessionID = seqCnt;
             seqCnt = GET32(buf, 6);
@@ -3631,9 +3674,9 @@ void bttfn_loop()
             bttfnDataNotEnabled = false;
             bttfnTCDDataSeqCnt = 1;
             // Re-do DISCOVER, TCD might have got new IP address
-            if(tcdHostNameHash) {
-                haveTCDIP = false;
-            }
+            if(tcdHostNameHash) haveTCDIP = false;
+            // Don't assume TCD comes back with same SSID/pwMarker
+            bttfnHaveTCDSSID = 0;
             // Avoid immediate return to stand-alone in main_loop()
             lastBTTFNpacket = now;
             #ifdef SID_DBG_NET

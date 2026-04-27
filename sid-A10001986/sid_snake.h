@@ -8,7 +8,7 @@
  * Snake
  *
  * -------------------------------------------------------------------
- * License: MIT NON-AI
+ * License: Modified MIT NON-AI
  * 
  * Permission is hereby granted, free of charge, to any person 
  * obtaining a copy of this software and associated documentation 
@@ -20,6 +20,9 @@
  *
  * The above copyright notice and this permission notice shall be 
  * included in all copies or substantial portions of the Software.
+ * 
+ * Links inside the Software pointing to the original source must not 
+ * be changed or removed.
  *
  * In addition, the following restrictions apply:
  * 
@@ -52,8 +55,6 @@
 #ifndef _SID_SN_H
 #define _SID_SN_H
 
-extern bool snActive;    // read only!!!
-
 void sn_init();          // start game
 void sn_loop();          // game loop
 void sn_end();           // end game (quit)
@@ -63,5 +64,7 @@ void sn_moveRight();     // user input: move right
 void sn_moveLeft();      // user input: move left
 void sn_moveDown();      // user input: move down
 void sn_moveUp();        // user input: move up
+
+extern bool snActive;    // read only!!!
 
 #endif
