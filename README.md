@@ -527,11 +527,11 @@ One-time configuration steps:
 - Enter the Config Portal on the SID, click on *Settings* and check that the hostname of the TCD (usually "timecircuits") is present in the  **_Hostname or IP address of TCD_** under *Wireless communication (BTTF-Network)* settings; do not use an IP address.
 - Furthermore, on the *WiFi Configuration* page, check that the TCD's WiFi network name (SSID; usually "TCD-AP") and password (if the TCD is configured with a password) are present under *Car mode settings*.
 
-If everthing is in place, you can enable *Car Mode* on the SID by typing *991ok on the remote. The SID will reboot and attempt to connect to the TCD's AP.
+If everthing is in place, you can enable Car mode on the SID by typing *991ok on the remote. The SID will reboot and attempt to connect to the TCD's AP.
 
-You can switch between your "normal" (home, iPhone, ..) WiFi connection and Car Mode by entering *990ok or *991ok, respectively.
+You can switch between your "normal" (home, iPhone, ..) WiFi connection and Car mode by entering *990ok or *991ok, respectively.
 
-In order to access the SID's Config Portal in *Car mode*, connect your handheld or computer to the TCD's WiFi network ("TCD-AP"), and direct your browser to http://sid.local.
+In order to access the SID's Config Portal in Car mode, connect your handheld or computer to the TCD's WiFi network ("TCD-AP"), and direct your browser to http://sid.local.
 
   ><details><summary>If that fails...</summary>
   >If connecting to http://sid.local fails due to a name resolution error, go to the TCD's keypad menu, navigate to "BTTFN CLIENTS", and look for the SID's IP address there; then direct your browser to that IP by using the URL http://a.b.c.d (a-d being the IP address displayed on the TCD display)</details>
@@ -609,7 +609,7 @@ Checking this box (and clicking SAVE) deletes the currently saved WiFi network (
 
 ##### &#9193; Car mode settings
 
-In *Car mode*, the device connects to the TCD-AP as configured here instead of the WiFi network configured above. 
+In Car mode, the device connects to the TCD-AP as configured here instead of the WiFi network configured above. 
 
 Enter your TCD's network name (usually "TCD-AP") in **_Network name (SSID) of TCD-AP_** and the TCD's AP password (if configured on the TCD) in **_Password for TCD-AP_**. 
 
