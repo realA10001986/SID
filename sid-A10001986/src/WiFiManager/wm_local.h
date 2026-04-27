@@ -1,5 +1,5 @@
 /**
- * WiFiManager.h
+ * wm_local.h - SID
  *
  * Based on:
  * WiFiManager, a library for the ESP32/Arduino platform
@@ -24,6 +24,8 @@
 #define WM_PARAM2_CAPTION "HA/MQTT Settings"
 #define WM_PARAM2_TITLE "HA/MQTT Settings"
 #endif
+
+#define WM_CCM
 
 // #define WM_AP_STATIC_IP
 // #define WM_APCALLBACK
