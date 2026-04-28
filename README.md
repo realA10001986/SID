@@ -364,7 +364,7 @@ Siddly is a simple game where puzzle pieces of various shapes fall down from the
 
 Snakes like apples (at least so I have heard). You control a snake that feels a profound urge to eat apples. After each eaten apple, the snake grows, and a new apple appears. Unfortunately, snakes don't like to hit their heads, so you need to watch out that the snake's head doesn't collide with its body.
 
-## SD card
+## SD Card
 
 >Preface note on SD cards: For unknown reasons, some SD cards simply do not work with this device. For instance, I had no luck with Sandisk Ultra 32GB and  "Intenso" cards. If your SD card is not recognized, check if it is formatted in FAT32 format (not exFAT!). Also, the size must not exceed 32GB (as larger cards cannot be formatted with FAT32). Transcend, Sandisk Industrial, Verbatim Premium and Samsung Pro Endurance SDHC cards work fine in my experience.
 
