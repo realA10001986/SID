@@ -131,7 +131,7 @@ For ways to trigger a time travel, see [here](#time-travel).
 
 The main control device is the supplied IR remote control. If a TCD is connected through [BTTF-Network](#bttf-network-bttfn), the SID can also be controlled through the TCD's keypad.
 
-### IR remote control
+### IR Remote Control
 
 Your SID comes with an IR remote control included. This remote works out-of-the-box and needs no setup. 
 
@@ -148,7 +148,7 @@ Apart from the feedback LED, your SID will also show some feedback signals on it
 
 See [here](#appendix-b-led-signals) for all supported signals.
 
-### IR learning
+### IR Learning
 
 Your SID can learn the codes of another IR remote control. Most remotes with a carrier signal of 38kHz (which most IR remotes use) will work. However, some remote controls, especially ones for TVs, send keys repeatedly and/or send different codes alternately. If you had the SID learn a remote and the keys are not (always) recognized afterwards or appear to the pressed repeatedly while held, that remote is of that type and cannot be used.
 
@@ -166,7 +166,7 @@ If no key is pressed for 10 seconds, the learning process aborts (as does briefl
 
 To make the SID forget a learned IR remote control, type *654321ok.
 
-### Locking IR control
+### Locking IR Control
 
 You can have your SID ignore IR commands from any IR remote control (be it the supplied standard one, be it one you had your SID learn) by entering *71ok. After this sequence, the SID will ignore all IR commands until *71ok is entered again. The purpose of this function is to enable you to use the same remote for your SID and other props.
 
@@ -174,7 +174,7 @@ The status of the IR lock is saved 10 seconds after its last change, and is pers
 
 In order to only disable the supplied IR remote control, check the option **_Disable supplied IR remote control_** in the [Config Portal](#-disable-supplied-ir-remote-control). In that case, any learned remote will still work.
 
-### Remote control reference
+### Remote Control Reference
 
 <table>
     <tr>
@@ -336,7 +336,7 @@ In order to only disable the supplied IR remote control, check the option **_Dis
 
 [Here](CheatSheet.pdf) is a cheat sheet for printing or screen-use. (Note that MacOS' preview application has a bug that scrambles the links in the document. Acrobat Reader does it correctly.)
 
-## Time travel
+## Time Travel
 
 To travel through time, type "0" on the remote control. The SID will play its time travel sequence.
 
