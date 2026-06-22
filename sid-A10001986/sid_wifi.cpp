@@ -175,7 +175,7 @@ WiFiManagerParameter custom_ssidcm("ssidcm", "Network name (SSID) of TCD-AP", se
 WiFiManagerParameter custom_passcm("passcm", "Password for TCD-AP", settings.cm_pass, 8, "minlength='8' pattern='[A-Za-z0-9\\-]+'");
 WiFiManagerParameter custom_tcdssid(wmBuildTCDSSID);
 WiFiManagerParameter custom_bssidcm("bsidcm", "TCD-AP BSSID (optional)", settings.cm_bssid, 17, "pattern='^([0-9A-Fa-f]{2}[:]){5}([0-9A-Fa-f]{2})$' placeholder='XX:XX:XX:XX:XX:XX'");
-WiFiManagerParameter custom_ecm("ecm", "Enable Car Mode", settings.ecmKludge, "", WFM_LABEL_AFTER|WFM_IS_CHKBOX);
+WiFiManagerParameter custom_ecm("ecm", "Enable Car Mode now", settings.ecmKludge, "", WFM_LABEL_AFTER|WFM_IS_CHKBOX);
 
 #if defined(SID_MDNS) || defined(WM_MDNS)
 #define HNTEXT "Hostname<br><span>The Config Portal is accessible at http://<i>hostname</i>.local<br>(Valid characters: a-z/0-9/-)</span>"
@@ -726,7 +726,7 @@ void wifi_loop()
             saveCarMode();
             if(!(wifiLoopSaveAction & WLA_SET)) {
                 prepareReboot();
-                delay(500);
+                delay(1000);
                 esp_restart();
             }
         }
@@ -1154,7 +1154,8 @@ bool wifiOnWillBlock()
             }
         }
     } else {            // We are in STA mode
-        if(!wifiIsOff) return false;
+        if(!wifiIsOff && (WiFi.status() == WL_CONNECTED)) 
+            return false;
     }
 
     return true;
@@ -1968,11 +1969,11 @@ static void mqttCallback(char *topic, byte *payload, unsigned int length)
     int i = 0, j, ml = (length <= 255) ? length : 255;
     char tempBuf[256];
     static const char *cmdList[] = {
-      "TIMETRAVEL",       // 0
-      "IDLE_",            // 1
-      "IDLE",             // 2
-      "SA",               // 3
-      "INJECT_",          // 4
+      "\x01" "TIMETRAVEL",       // 0
+      "\x01" "IDLE_",            // 1
+      "\x41" "IDLE",             // 2
+      "\x01" "SA",               // 3
+      "\x01" "INJECT_",          // 4
       NULL
     };
     static const char *cmdList2[] = {
@@ -2064,8 +2065,11 @@ static void mqttCallback(char *topic, byte *payload, unsigned int length)
             break;
         }
        
-    } else if(!sidBusy && !strcmp(topic, "bttf/sid/cmd")) {
+    } else if(!strcmp(topic, "bttf/sid/cmd")) {
 
+        int tblen = 0;
+        uint8_t k = 0;
+        
         for(j = 0; j < ml; j++) {
             if(tempBuf[j] >= 'a' && tempBuf[j] <= 'z') tempBuf[j] &= ~0x20;
         }
@@ -2073,8 +2077,9 @@ static void mqttCallback(char *topic, byte *payload, unsigned int length)
         // User commands
 
         while(cmdList[i]) {
-            j = strlen(cmdList[i]);
-            if((length >= j) && !strncmp((const char *)tempBuf, cmdList[i], j)) {
+            k = (uint8_t)*cmdList[i];
+            j = strlen(cmdList[i] + 1);
+            if((length >= j) && !strncmp((const char *)tempBuf, cmdList[i] + 1, j)) {
                 break;
             }
             i++;          
@@ -2082,14 +2087,22 @@ static void mqttCallback(char *topic, byte *payload, unsigned int length)
 
         if(!cmdList[i]) return;
 
+        if(!FPBUnitIsOn && (!(k & 0x80)))
+            return;
+
+        if(sidBusy && (!(k & 0x40)))
+            return;
+
         // What needs to be handled here:
         // - complete command parsing
         // - stuff to execute when fake power is off
         // All other stuff translated into command and queued
 
+        tblen = strlen(tempBuf);
+
         switch(i) {
         case 1:
-            if(strlen(tempBuf) > j && tempBuf[j] >= '0' && tempBuf[j] <= '5') {
+            if(tblen > j && tempBuf[j] >= '0' && tempBuf[j] <= '5') {
                 addCmdQueue(10 + (uint32_t)(tempBuf[j] - '0'));
             }
             break;
@@ -2100,7 +2113,7 @@ static void mqttCallback(char *topic, byte *payload, unsigned int length)
             addCmdQueue(21);
             break;
         case 4:
-            if(strlen(tempBuf) > j) {
+            if(tblen > j) {
                 addCmdQueue(atoi(tempBuf+j) | 0x80000000);
             }
             break;

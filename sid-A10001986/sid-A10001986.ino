@@ -107,6 +107,17 @@
 
 /*  Changelog
  *  
+ *  2026/06/22 (A10001986) [1.73]
+ *    *********************************************************************************
+ *    ** If updating from below 1.70, please install 1.70 first to have your         **
+ *    ** settings converted. If 1.70 is skipped, many of your settings (static IP,   **
+ *    ** brightness, movie mode, peaks in SA, IR lock) will be restored to default   **
+ *    ** values. It suffices to install 1.70 and boot once; you can then immediately **
+ *    ** update to a later version.                                                  **
+ *    ** https://github.com/realA10001986/SID/releases/tag/V1.70                     **
+ *    *********************************************************************************
+ *    - IR learning timeout increased to 20 seconds
+ *    - MQTT: Don't queue and instead ignore (most) commands while fake-off or busy
  *  2026/04/27 (A10001986) [1.72]
  *    *********************************************************************************
  *    ** If updating from below 1.70, please install 1.70 first to have your         **

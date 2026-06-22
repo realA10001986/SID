@@ -714,8 +714,7 @@ void main_loop()
 
     // Follow TCD fake power
     if(useFPO && (tcdFPO != fpoOld)) {
-        fpoOld = tcdFPO;
-        if(tcdFPO) {
+        if((fpoOld = tcdFPO)) {
             // Power off:
             FPBUnitIsOn = false;
             
@@ -835,7 +834,7 @@ void main_loop()
             IRLearnBlink ? endIRfeedback() : startIRfeedback();
             IRFBLearnNow = now;
         }
-        if(now - IRLearnNow > 10000) {
+        if(now - IRLearnNow > 20000) {
             endIRLearn(true);
             #ifdef SID_DBG
             Serial.println("main_loop: IR learning timed out");
@@ -2729,7 +2728,7 @@ static int execute(bool isIR, bool injected)
                             if(ocm != carMode) {
                                 saveCarMode();
                                 prepareReboot();
-                                delay(500);
+                                delay(1000);
                                 esp_restart();
                             }
                             inputReaction = 1;
@@ -2774,7 +2773,7 @@ static int execute(bool isIR, bool injected)
             case 64738:
                 if(!injected) {
                     prepareReboot();
-                    delay(500);
+                    delay(1000);
                     esp_restart();
                 }
                 // fall through

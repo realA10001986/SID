@@ -15,8 +15,8 @@
  ***                          Version Strings                          ***
  *************************************************************************/
 
-#define SID_VERSION       "V1.72"           // Do NOT change format.
-#define SID_VERSION_EXTRA "APR272026"
+#define SID_VERSION       "V1.73"           // Do NOT change format.
+#define SID_VERSION_EXTRA "JUN222026"
 
 /*************************************************************************
  ***                           Miscellaneous                           ***
@@ -30,9 +30,6 @@
 // without 5s lead" is set on the TCD, the SID option "TCD signals without
 // lead" must be set, too.
 #define ETTO_LEAD 5000
-
-// Use SPIFFS (if defined) or LittleFS (if undefined; esp32-arduino 2.x)
-//#define USE_SPIFFS
 
 /*************************************************************************
  ***                               Debug                               ***

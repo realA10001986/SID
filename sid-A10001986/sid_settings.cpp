@@ -65,13 +65,8 @@
 #include <SD.h>
 #include <SPI.h>
 #include <FS.h>
-#ifdef USE_SPIFFS
-#define MYNVS SPIFFS
-#include <SPIFFS.h>
-#else
 #define MYNVS LittleFS
 #include <LittleFS.h>
-#endif
 #include <Update.h>
 
 #include "sid_settings.h"
