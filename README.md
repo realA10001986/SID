@@ -463,6 +463,10 @@ Next, head to the Config Portal and set the option **_TCD connected by wire_**. 
 
 ## Home Assistant / MQTT
 
+By means of MQTT, your SID can
+- display messages on a configured topic on its display, and
+- be remote controlled through commands sent to **bttf/sid/cmd**.
+
 The SID supports MQTT protocol versions 3.1.1 and 5.0.
 
 ### Control the SID via MQTT
