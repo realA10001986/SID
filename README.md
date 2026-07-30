@@ -296,7 +296,7 @@ In order to only disable the supplied IR remote control, check the option **_Dis
     </tr>
     <tr>
      <td align="left">Quit <a href="#remote-controlling-the-tcds-keypad">TCD keypad remote control mode</a></td>
-     <td align="left">-</td><td>6097</td>
+     <td align="left">#</td><td>6097</td>
     </tr>
    <tr>
      <td align="left">Set brightness level (00-15)</td>
