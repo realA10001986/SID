@@ -24,7 +24,7 @@ Features include
 
 >This [repository](https://sid.out-a-ti.me) is the upstream source for CircuitSetup's releases. The only difference is that both code and documentation [here](https://sid.out-a-ti.me) might be ahead in development.
 
-For information on updating the firmware on your SID, see [here](#firmware-installation--firmware-update).
+For information on updating the firmware of your SID, see [here](#firmware-installation--firmware-update).
 
 ## Initial Configuration
 
