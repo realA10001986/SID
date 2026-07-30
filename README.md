@@ -366,7 +366,7 @@ Snakes like apples (at least so I have heard). You control a snake that feels a 
 
 ## SD Card
 
->Preface note on SD cards: Only SD/SDHC/SDXC cards up to 32GB are supported. Card needs to be FAT32-formatted (not exFAT). Transcend, Sandisk Ultra (as of firmware version 1.74) and Industrial, Verbatim Premium and Samsung Pro Endurance SDHC cards usually work fine. Some SD cards might not be recognized due to off-specs initialization quirks. SDUC cards are not supported.
+>Only SD/SDHC/SDXC cards up to 32GB are supported. Card needs to be FAT32-formatted (not exFAT). Transcend, Sandisk Ultra (as of firmware version 1.74) and Industrial, Verbatim Premium and Samsung Pro Endurance SDHC cards usually work fine. Some SD cards might not be recognized due to off-specs initialization quirks. SDUC cards are not supported.
 
 The SD card is used for saving [secondary settings](#-save-secondary-settings-on-sd), to avoid [Flash Wear](#flash-wear) on the SID's CPU. For instance, the chosen idle pattern (*1x), and the running state of the Spectrum Analyzer, is only stored on SD, so for your selection to be persistent across reboots, an SD card is required.
 
