@@ -32,7 +32,7 @@ For information on updating the firmware on your SID, see [here](#firmware-insta
 
 The first step is to establish access to the SID's configuration website ("Config Portal") in order to configure your SID:
 
-- Power up your SID and wait until the startup sequence has completed.
+- Power up your SID and wait a few seconds.
 - Connect your computer or handheld device to the WiFi network "SID-AP".
 - Navigate your browser to http://sid.local or http://192.168.4.1 to enter the Config Portal.
 
