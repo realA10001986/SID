@@ -470,21 +470,21 @@ The SID supports MQTT protocol versions 3.1.1 and 5.0.
 ### Control the SID via MQTT
 
 The SID can be controlled through messages sent to topic **bttf/sid/cmd**. Supported commands are
-- TIMETRAVEL: Start a [time travel](#time-travel)
-- IDLE: Switch to idle mode
-- SA: Start spectrum analyzer
-- IDLE_0, IDLE_1, IDLE_2, IDLE_3, IDLE_4: Select idle pattern
-- INJECT_x: See immediately below.
+- ```TIMETRAVEL```: Start a [time travel](#time-travel)
+- ```IDLE```: Switch to idle mode
+- ```SA```: Start spectrum analyzer
+- ```IDLE_0```, ```IDLE_1```, ```IDLE_2```, ```IDLE_3```, ```IDLE_4```: Select idle pattern
+- ```INJECT_x```: See immediately below.
 
 #### The INJECT_x command
 
 This command allows remote control of your SID through HA/MQTT in the same way as through the TCD keypad by injecting commands in the SID's command queue (hence the name). Commands are listed [here](#special_key_sequences); nearly all are supported. For example:
 
-To set idle pattern #4 (6014), issue the following command: **INJECT_6014**
+To set idle pattern #4 (6014), issue the following command: ```INJECT_6014```
 
-To start the Spectrum Analyzer (6021), issue **INJECT_6021**
+To start the Spectrum Analyzer (6021), issue ```INJECT_6021```
 
-To set the brightness level to 15 (6415), issue **INJECT_6415**
+To set the brightness level to 15 (6415), issue ```INJECT_6415```
 
 ### Display messages
 
