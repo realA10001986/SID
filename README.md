@@ -467,6 +467,12 @@ By means of MQTT, your SID can
 
 The SID supports MQTT protocol versions 3.1.1 and 5.0.
 
+### Display messages
+
+Your SID can subscribe to a user-configured topic and display short messages received for this topic on its display. This can be used to display the status of other HA/MQTT devices, for instance alarm systems. 
+
+Only characters a-z/A-Z/0-9 are supported, the maximum length is - given the nature of the display - eight characters.
+
 ### Control the SID via MQTT
 
 The SID can be controlled through messages sent to topic **bttf/sid/cmd**. Supported commands are
@@ -485,12 +491,6 @@ To set idle pattern #4 (6014), issue the following command: ```INJECT_6014```
 To start the Spectrum Analyzer (6021), issue ```INJECT_6021```
 
 To set the brightness level to 15 (6415), issue ```INJECT_6415```
-
-### Display messages
-
-Your SID can subscribe to a user-configured topic and display short messages received for this topic on its display. This can be used to display the status of other HA/MQTT devices, for instance alarm systems. 
-
-Only characters a-z/A-Z/0-9 are supported, the maximum length is - given the nature of the display - eight characters.
 
 ### Setup
 
