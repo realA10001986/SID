@@ -186,7 +186,7 @@ In order to only disable the supplied IR remote control, check the option **_Dis
      <td align="center"><code>3</code><br>-</a></td>
     </tr>
     <tr>
-     <td align="center"<code>>4</code><br>-</td>
+     <td align="center"><code>4</code><br>-</td>
      <td align="center"><code>5</code><br>Games: Pause</td>
      <td align="center"><code>6</code><br>-</td>
     </tr>
