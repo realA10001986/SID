@@ -123,7 +123,7 @@ A full reference of the Config Portal is [here](#appendix-a-the-config-portal).
 
 ## Basic Operation
 
-When the SID is idle, it shows an idle pattern. There are various idle patterns to choose from, selected by entering *10ok through *14ok on the IR remote. If an SD card is present, the chosen setting will be persistent across reboots.
+When the SID is idle, it shows an idle pattern. There are various idle patterns to choose from, selected by entering ```*10ok``` through ```*14ok``` on the IR remote. If an SD card is present, the chosen setting will be persistent across reboots.
 
 If the option **_Adhere strictly to movie patterns_** is set (which is the default), idle patterns #0 through #3 will only show patterns extracted from the movies (plus some interpolations); this also applies when the pattern follows [TCD-provided speed](#bttf-network-bttfn). If this option is unset, random variations are shown, which is less boring, but also less accurate.
 
