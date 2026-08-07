@@ -70,11 +70,11 @@ Click on "WiFi Configuration" and either select a network from the top of the pa
   
 >If there are several APs with identical SSID nearby, you can select a specific AP by its BSSID (AP's MAC address). You can either manually find out your AP's BSSID and enter it or have it filled out automatically: Click "Scan for networks", then "Show all". If you click on an AP, its BSSID will be copied into BSSID field in the form below. To see which AP is which, hover over the name to see its BSSID as a tooltip.
 
->Your SID requests an IP address via DHCP, unless you entered valid data in the fields for static IP addresses (IP, gateway, netmask, DNS). If the device is inaccessible as a result of incorrect static IPs, wait until it has completed its startup sequence, then type \*123456ok on the IR remote; static IP data will be deleted and the device will return to DHCP after a reboot.
+>Your SID requests an IP address via DHCP, unless you entered valid data in the fields for static IP addresses (IP, gateway, netmask, DNS). If the device is inaccessible as a result of incorrect static IPs, wait until it has completed its startup sequence, then type ```*123456ok``` on the IR remote; static IP data will be deleted and the device will return to DHCP after a reboot.
 
 </details>
 
-If the SID fails to connect, it falls back to AP-mode. You can trigger another connection attempt by entering *77ok on the IR remote control.
+If the SID fails to connect, it falls back to AP-mode. You can trigger another connection attempt by entering ```*77ok``` on the IR remote control.
 
 #### Places without a WiFi network
 
@@ -111,7 +111,7 @@ It can be accessed as follows:
 
   >Accessing the Config Portal through this address requires the operating system of your handheld/computer to support Bonjour/mDNS: Windows 10 version TH2     (1511) [other sources say 1703] and later, Android 13 and later; MacOS and iOS since the dawn of time.
 
-  >If connecting to http://sid.local fails due to a name resolution error, you need to find out the SID's IP address: Type *90ok on the remote control; the IP address will be shown on the display. Then, on your handheld or computer, navigate to http://a.b.c.d (a.b.c.d being the IP address as shown on the SID's display) in order to enter the Config Portal.</details>
+  >If connecting to http://sid.local fails due to a name resolution error, you need to find out the SID's IP address: Type ```*90ok``` on the remote control; the IP address will be shown on the display. Then, on your handheld or computer, navigate to http://a.b.c.d (a.b.c.d being the IP address as shown on the SID's display) in order to enter the Config Portal.</details>
 
 In the main menu, click on "Settings" to configure your SID. 
 
@@ -142,8 +142,8 @@ Your SID comes with an IR remote control included. This remote works out-of-the-
 Each time you press a (recognized) key on the remote, an IR feedback LED will briefly light up. This LED is located at the bottom of the board.
 
 Apart from the feedback LED, your SID will also show some feedback signals on its main display:
-- By default, when initiating a command sequence by pressing \*, SID will start to show each key pressed afterwards by lighting up another red LED. This kind of feedback can be disabled using command sequence *63ok or in the Config Portal;
-- By default, after executing a command, SID will show a "success" signal. This kind of feedback can be disabled using command sequence *62ok or in the Config Portal;
+- By default, when initiating a command sequence by pressing ```*```, SID will start to show each key pressed afterwards by lighting up another red LED. This kind of feedback can be disabled using command sequence ```*63ok``` or in the Config Portal;
+- By default, after executing a command, SID will show a "success" signal. This kind of feedback can be disabled using command sequence ```*62ok``` or in the Config Portal;
 - If a command was unsuccessful or not recognized, a "bad input" signal will be shown.
 
 See [here](#appendix-b-led-signals) for all supported signals.
@@ -152,23 +152,23 @@ See [here](#appendix-b-led-signals) for all supported signals.
 
 Your SID can learn the codes of another IR remote control. Most remotes with a carrier signal of 38kHz (which most IR remotes use) will work. However, some remote controls, especially ones for TVs, send keys repeatedly and/or send different codes alternately. If you had the SID learn a remote and the keys are not (always) recognized afterwards or appear to be pressed repeatedly while held, that remote is of that type and cannot be used.
 
-IR learning can be initiated by entering *987654ok on the standard IR remote.
+IR learning can be initiated by entering ```*987654ok``` on the standard IR remote.
 
 >Alternatively, IR learning can be started by pressing and holding a connected [Time Travel](#time-travel) button for a few seconds (while the option **_TCD connected by wire_** in the Config Portal is unchecked).
 
-When IR learning is started, the display first shows "GO", immediately followed by "0". Press "0" on your remote, which the SID will visually acknowledge by displaying the next key to press. Then press "1", wait for the acknowledgement, and so on. Enter your keys in the following order:
+When IR learning is started, the display first shows "GO", immediately followed by "0". Press ```0``` on your remote, which the SID will visually acknowledge by displaying the next key to press. Then press ```1```, wait for the acknowledgement, and so on. Enter your keys in the following order:
 
-```0 - 1 - 2 - 3 - 4 - 5 - 6 - 7 - 8 - 9 - * - # - Arrow up - Arrow down - Arrow left - Arrow right - OK``` 
+```0``` - ```1``` - ```2``` - ```3``` - ```4``` - ```5``` - ```6``` - ```7``` - ```8``` - ```9``` - ```*``` - ```#``` - ```Arrow up``` - ```Arrow down``` - ```Arrow left``` - ```Arrow right``` - ```OK``` 
 
-If your remote control lacks the \* (starts command sequence) and \# (aborts command sequence) keys, you can use any other key, of course. \* could be eg. "menu" or "setup", \# could be "exit" or "return".
+If your remote control lacks the ```*``` (starts command sequence) and ```#``` (aborts command sequence) keys, you can use any other key, of course. ```*``` could be eg. "menu" or "setup", ```#``` could be "exit" or "return".
 
 If no key is pressed for 20 seconds, the learning process aborts (as does briefly pressing the Time Travel button): The keys already learned are forgotten and nothing is saved.
 
-To make the SID forget a learned IR remote control, type *654321ok.
+To make the SID forget a learned IR remote control, type ```*654321ok```.
 
 ### Locking IR Control
 
-You can have your SID ignore IR commands from any IR remote control (be it the supplied standard one, be it one you had your SID learn) by entering *71ok. After this sequence, the SID will ignore all IR commands until *71ok is entered again. The purpose of this function is to enable you to use the same remote for your SID and other props.
+You can have your SID ignore IR commands from any IR remote control (be it the supplied standard one, be it one you had your SID learn) by entering ```*71ok```. After this sequence, the SID will ignore all IR commands until ```*71ok``` is entered again. The purpose of this function is to enable you to use the same remote for your SID and other props.
 
 The status of the IR lock is saved 10 seconds after its last change, and is persistent across reboots.
 
@@ -181,154 +181,154 @@ In order to only disable the supplied IR remote control, check the option **_Dis
      <td align="center" colspan="3">Single key actions</td>
     </tr>
     <tr>
-     <td align="center">1<br>Games: New game</td>
-     <td align="center">2<br>-</td>
-     <td align="center">3<br>-</a></td>
+     <td align="center"><code>1</code><br>Games: New game</td>
+     <td align="center"><code>2</code><br>-</td>
+     <td align="center"><code>3</code><br>-</a></td>
     </tr>
     <tr>
-     <td align="center">4<br>-</td>
-     <td align="center">5<br>Games: Pause</td>
-     <td align="center">6<br>-</td>
+     <td align="center"<code>>4</code><br>-</td>
+     <td align="center"><code>5</code><br>Games: Pause</td>
+     <td align="center"><code>6</code><br>-</td>
     </tr>
     <tr>
-     <td align="center">7<br>-</td>
-     <td align="center">8<br>-</td>
-     <td align="center">9<br>Games: Quit</td>
+     <td align="center"><code>7</code><br>-</td>
+     <td align="center"><code>8</code><br>-</td>
+     <td align="center"><code>9</code><br>Games: Quit</td>
     </tr>
     <tr>
-     <td align="center">*<br>Start command sequence</td>
-     <td align="center">0<br><a href="#time-travel">Time Travel</a><br>Siddly: Fall down</td>
-     <td align="center">#<br>Abort command sequence</td>
-    </tr>
-    <tr>
-     <td align="center"></td>
-     <td align="center">&#8593;<br>Increase Brightness<br>Siddly: Rotate<br>Snake: Up</td>
-     <td align="center"></td>
-    </tr>
-    <tr>
-     <td align="center">&#8592;<br>Games: Left</td>
-     <td align="center">OK<br>Execute command</td>
-     <td align="center">&#8594;<br>Games: Right</td>
+     <td align="center"><code>*</code><br>Start command sequence</td>
+     <td align="center"><code>0</code><br><a href="#time-travel">Time Travel</a><br>Siddly: Fall down</td>
+     <td align="center"><code>#</code><br>Abort command sequence</td>
     </tr>
     <tr>
      <td align="center"></td>
-     <td align="center">&#8595;<br>Decrease Brightness<br>Games: Down</td>
+     <td align="center"><code>&#8593;</code><br>Increase Brightness<br>Siddly: Rotate<br>Snake: Up</td>
+     <td align="center"></td>
+    </tr>
+    <tr>
+     <td align="center"><code>&#8592;</code><br>Games: Left</td>
+     <td align="center"><code>ok</code><br>Execute command</td>
+     <td align="center"><code>&#8594;</code><br>Games: Right</td>
+    </tr>
+    <tr>
+     <td align="center"></td>
+     <td align="center"><code>&#8595;</code><br>Decrease Brightness<br>Games: Down</td>
      <td align="center"></td>
     </tr>
 </table>
 
 <table id='special_key_sequences'>
     <tr>
-     <td align="center" colspan="3">Command sequences<br>(&#9166; = OK key)</td>
+     <td align="center" colspan="3">Command sequences</td>
     </tr>
     <tr><td>Function</td><td>Code on remote</td><td>Code on TCD</td></tr>
     <tr>
      <td align="left">Default idle pattern</td>
-     <td align="left">*10&#9166;</td><td>6010</td>
+     <td align="left"><code>*10ok</code></td><td><code>6010</code></td>
     </tr>
     <tr>
      <td align="left">Idle pattern 1</td>
-     <td align="left">*11&#9166;</td><td>6011</td>
+     <td align="left"><code>*11ok</code></td><td><code>6011</code></td>
     </tr>
     <tr>
      <td align="left">Idle pattern 2</td>
-     <td align="left">*12&#9166;</td><td>6012</td>
+     <td align="left"><code>*12ok</code></td><td><code>6012</code></td>
     </tr>
     <tr>
      <td align="left">Idle pattern 3</td>
-     <td align="left">*13&#9166;</td><td>6013</td>
+     <td align="left"><code>*13ok</code></td><td><code>6013</code></td>
     </tr>
      <tr>
      <td align="left">Idle pattern 4</td>
-     <td align="left">*14&#9166;</td><td>6014</td>
+     <td align="left"><code>*14ok</code></td><td><code>6014</code></td>
     </tr>
     <tr>
      <td align="left">Switch to idle mode</td>
-     <td align="left">*20&#9166;</td><td>6020</td>
+     <td align="left"><code>*20ok</code></td><td><code>6020</code></td>
     </tr>
     <tr>
      <td align="left">Start Spectrum Analyzer</td>
-     <td align="left">*21&#9166;</td><td>6021</td>
+     <td align="left"><code>*21ok</code></td><td><code>6021</code></td>
     </tr>
     <tr>
      <td align="left">Start Siddly game</td>
-     <td align="left">*22&#9166;</td><td>6022</td>
+     <td align="left"><code>*22ok</code></td><td><code>6022</code></td>
     </tr>
     <tr>
      <td align="left">Start Snake game</td>
-     <td align="left">*23&#9166;</td><td>6023</td>
+     <td align="left"><code>*23ok</code></td><td><code>6023</code></td>
     </tr>
     <tr>
      <td align="left">Enable/disable "<a href="#-adhere-strictly-to-movie-patterns">strictly movie patterns</a>"</td>
-     <td align="left">*60&#9166;</td><td>6060</td>
+     <td align="left"><code>*60ok</code></td><td><code>6060</code></td>
     </tr>
     <tr>
      <td align="left">Enable/disable peaks in Spectrum Analyzer</td>
-     <td align="left">*61&#9166;</td><td>6061</td>
+     <td align="left"><code>*61ok</code></td><td><code>6061</code></td>
     </tr>
     <tr>
      <td align="left">Enable/disable "mirrored" Spectrum Analyzer</td>
-     <td align="left">*64&#9166;</td><td>6064</td>
+     <td align="left"><code>*64ok</code></td><td><code>6064</code></td>
     </tr>
     <tr>
      <td align="left">Enable/disable positive IR feedback</td>
-     <td align="left">*62&#9166;</td><td>6062</td>
+     <td align="left"><code>*62ok</code></td><td><code>6062</code></td>
     </tr>
     <tr>
      <td align="left">Enable/disable IR command entry feedback</td>
-     <td align="left">*63&#9166;</td><td>6063</td>
+     <td align="left"><code>*63ok</code></td><td><code>6063</code></td>
     </tr>
     <tr>
      <td align="left"><a href="#locking-ir-control">Disable/Enable</a> IR remote commands</td>
-     <td align="left">*71&#9166;</td><td>6071</td>
+     <td align="left"><code>*71ok</code></td><td><code>6071</code></td>
     </tr>
     <tr>
      <td align="left"><a href="#wifi-power-saving-features">Re-enable WiFi</a> or re-try to <a href="#home-setup-with-a-pre-existing-local-wifi-network">connect to WiFi</a><sup>1</sup></td>
-     <td align="left">*77&#9166;</td><td>-</td>
+     <td align="left"><code>*77ok</code></td><td>-</td>
     </tr>
     <tr>
      <td align="left">Display current IP address</td>
-     <td align="left">*90&#9166;</td><td>6090</td>
+     <td align="left"><code>*90ok</code></td><td><code>6090</code></td>
     </tr>
     <tr>
      <td align="left">Enter <a href="#remote-controlling-the-tcds-keypad">TCD keypad remote control mode</a><sup>1</sup></td>
-     <td align="left">*96&#9166;</td><td>6096</td>
+     <td align="left"><code>*96ok</code></td><td><code>6096</code></td>
     </tr>
     <tr>
      <td align="left">Quit <a href="#remote-controlling-the-tcds-keypad">TCD keypad remote control mode</a></td>
-     <td align="left">#</td><td>6097</td>
+     <td align="left"><code>#</td><td><code>6097</code></td>
     </tr>
    <tr>
      <td align="left">Set brightness level (00-15)</td>
-     <td align="left">*400&#9166; - *415&#9166;</td><td>6400-6415</td>
+     <td align="left"><code>*400ok</code> - <code>*415ok</code></td><td><code>6400</code> - <code>6415</code></td>
     </tr>
     <tr>
      <td align="left">Disable <a href='#car-setup'>car mode</a><sup>1</sup></td>
-     <td align="left">*990&#9166;</td><td>6990</td>
+     <td align="left"><code>*990ok</code></td><td><code>6990</code></td>
     </tr>
     <tr>
      <td align="left">Enable <a href='#car-setup'>car mode</a><sup>1</sup></td>
-     <td align="left">*991&#9166;</td><td>6991</td>
+     <td align="left"><code>*991ok</code></td><td><code>6991</code></td>
     </tr>
     <tr>
      <td align="left">Reboot the device<sup>1</sup></td>
-     <td align="left">*64738&#9166;</td><td>6064738</td>
+     <td align="left"><code>*64738ok</code></td><td><code>6064738</code></td>
     </tr>
     <tr>
      <td align="left">Toggle firmware update signals at power-up</td>
-     <td align="left">*53281&#9166;</td><td>6053281</td>
+     <td align="left"><code>*53281ok</code></td><td><code>6053281</code></td>
     </tr>
     <tr>
      <td align="left">Delete static IP address<br>and WiFi-AP password<sup>1</sup></td>
-     <td align="left">*123456&#9166;</td><td>6123456</td>
+     <td align="left"><code>*123456ok</code></td><td><code>6123456</code></td>
     </tr>
     <tr>
      <td align="left">Start IR remote <a href="#ir-learning">learning process</a><sup>1</sup></td>
-     <td align="left">*987654&#9166;</td><td>6987654</td>
+     <td align="left"><code>*987654ok</code></td><td><code>6987654</code></td>
     </tr>
     <tr>
      <td align="left">Delete learned IR remote control<sup>1</sup></td>
-     <td align="left">*654321&#9166;</td><td>6654321</td>
+     <td align="left"><code>*654321ok</code></td><td><code>6654321</code></td>
     </tr>
 </table>
 
@@ -338,7 +338,7 @@ In order to only disable the supplied IR remote control, check the option **_Dis
 
 ## Time Travel
 
-To travel through time, type "0" on the remote control. The SID will play its time travel sequence.
+To travel through time, type ```0``` on the remote control. The SID will play its time travel sequence.
 
 You can also connect an external Time Travel button to your SID; the button must connect "TT" to "3.3V" on the "Time Travel" connector. Pressing this button briefly will trigger a time travel.
 
@@ -348,9 +348,9 @@ Other ways of triggering a time travel are available if a [Time Circuits Display
 
 The spectrum analyzer (or rather: frequency-separated vu meter) works through a built-in microphone. This microphone is located behind the right-hand side center hole of the enclosure.
 
-There are two variations of the Spectrum Analyzer: Traditional and "mirrored". The **_Mirrored Spectrum Analyzer_** option in the Config Portal selects between those two, as does typing *64ok on the remote.
+There are two variations of the Spectrum Analyzer: Traditional and "mirrored". The **_Mirrored Spectrum Analyzer_** option in the Config Portal selects between those two, as does typing ```*64ok``` on the remote.
 
-Sticky peaks are optional, they can be switched on/off in the Config Portal and by typing *61ok on the remote.
+Sticky peaks are optional, they can be switched on/off in the Config Portal and by typing ```*61ok``` on the remote.
 
 If an SD card is present, your SID will start the spectrum analyzer upon power-up if it was on for at least 15 seconds before power-down.
 
@@ -402,25 +402,25 @@ To connect your SID to the TCD, just enter the TCD's hostname - usually "timecir
 Afterwards, the SID and the TCD can communicate wirelessly and 
 - play time travel sequences in sync,
 - both play an alarm-sequence when the TCD's alarm occurs,
-- the SID can be remote controlled through the TCD's keypad (command codes 6xxx),
+- the SID can be remote controlled through the TCD's keypad (command codes ```6xxx```),
 - the SID can remote control the TCD's keypad (see [below](#remote-controlling-the-tcds-keypad))
 - the SID queries the TCD for speed (GPS, rotary encoder, Remote), if desired, to adapt its idle pattern to speed,
 - the SID queries the TCD for fake power and night mode, in order to react accordingly if so configured,
-- pressing "0" on the IR remote control or the SID's Time Travel button can trigger a synchronized Time Travel on all BTTFN-connected devices, just like if that Time Travel was triggered through the TCD.
+- pressing ```0``` on the IR remote control or the SID's Time Travel button can trigger a synchronized Time Travel on all BTTFN-connected devices, just like if that Time Travel was triggered through the TCD.
 
 #### Remote controlling the TCD's keypad
 
 The SID can, through its IR remote control, remote control the TCD keypad. The TCD will react to pressing a key on the IR remote as if that key was pressed on the TCD keypad.
 
-As a prerequisite, the TCD must be set to permit remote control. This is done on the TCD through keypad command 995.
+As a prerequisite, the TCD must be set to permit remote control. This is done on the TCD through keypad command ```995```.
 
-To start TCD keypad remote control, type *96ok on the SID's IR remote control or issue keypad command 6096 on the TCD.
+To start TCD keypad remote control, type ```*96ok``` on the SID's IR remote control or issue keypad command ```6096``` on the TCD.
 
-Keys 0-9 as well as OK (=ENTER) on your IR remote control will now be registered by the TCD as key presses.
+Keys ```0```-```9``` as well as ```ok``` (= ```ENTER``` on the TCD) on your IR remote control will now be registered by the TCD as key presses.
 
-"Holding" a key on the TCD keypad is emulated by pressing \* followed by the key, for instance *1 (to toggle the TCD alarm). Holding "OK" is only accepted by the TCD to stop the alarm, but not for entering the keypad menu.
+"Holding" a key on the TCD keypad is emulated by pressing ```*``` followed by the key, for instance ```*1``` (to toggle the TCD alarm). Holding ```ok``` (= ```ENTER```) is only accepted by the TCD to stop the alarm, but not for entering the keypad menu.
 
-Pressing \# quits TCD keypad remote control mode, as does issuing command 6097 on the TCD or through HA/MQTT.
+Pressing ```#``` quits TCD keypad remote control mode, as does issuing command ```6097``` on the TCD or through HA/MQTT.
 
 >Since the TCD itself can remote control every other compatible prop (3xxx = Flux Capacitor, 6xxx = SID, 7xxx = Futaba Remote Control, 8xxx = VSR, 9xxx = Dash Gauges), and the IR remote can emulate the TCD keypad, it can essentially remote control every other prop.
 
@@ -486,11 +486,11 @@ The SID can be controlled through messages sent to topic **bttf/sid/cmd**. Suppo
 
 This command allows remote control of your SID through HA/MQTT in the same way as through the TCD keypad by injecting commands in the SID's command queue (hence the name). Commands are listed [here](#special_key_sequences); nearly all are supported. For example:
 
-To set idle pattern #4 (6014), issue the following command: ```INJECT_6014```
+To set idle pattern #4 (```6014```), issue the following command: ```INJECT_6014```
 
-To start the Spectrum Analyzer (6021), issue ```INJECT_6021```
+To start the Spectrum Analyzer (```6021```), issue ```INJECT_6021```
 
-To set the brightness level to 15 (6415), issue ```INJECT_6415```
+To set the brightness level to 15 (```6415```), issue ```INJECT_6415```
 
 ### Setup
 
@@ -517,7 +517,7 @@ This configuration can easily be achieved by putting both the TCD and the SID in
 #### TCD
 
 - Set **_Power save timer_** to 0 (zero) in the "AP-mode settings" section on the *WiFi Configuration* page
-- Put your TCD in [*Car Mode*](https://tcd.out-a-ti.me/#car-mode) by issuing keypad command 991.
+- Put your TCD in [*Car Mode*](https://tcd.out-a-ti.me/#car-mode) by issuing keypad command ```991```.
 
 #### SID
 
@@ -525,9 +525,9 @@ One-time configuration steps:
 - Enter the Config Portal on the SID, click on *Settings* and check that the hostname of the TCD (usually "timecircuits") is present in the  **_Hostname or IP address of TCD_** under *Wireless communication (BTTF-Network)* settings; do not use an IP address.
 - Furthermore, on the *WiFi Configuration* page, check that the TCD's WiFi network name (SSID; usually "TCD-AP") and password (if the TCD is configured with a password) are present under *Car mode settings*.
 
-If everything is in place, you can enable Car mode on the SID by typing *991ok on the remote. The SID will reboot and attempt to connect to the TCD's AP.
+If everything is in place, you can enable Car mode on the SID by typing ```*991ok``` on the remote. The SID will reboot and attempt to connect to the TCD's AP.
 
-You can switch between your "normal" (home, iPhone, ..) WiFi connection and Car mode by entering *990ok or *991ok, respectively.
+You can switch between your "normal" (home, iPhone, ..) WiFi connection and Car mode by entering ```*990ok``` or ```*991ok```, respectively.
 
 To access the SID's Config Portal in Car mode, connect your handheld or computer to the TCD's WiFi network ("TCD-AP"), and direct your browser to http://sid.local.
 
@@ -613,7 +613,7 @@ Enter your TCD's network name (usually "TCD-AP") in **_Network name (SSID) of TC
 
 >In the unlikely case that multiple TCD's are in range, you can single out your TCD by its BSSID. The TCD displays its BSSID on its *WiFi Configuration* page (starting version 3.23).
 
-If you want to enter Car mode immediately, check **_Enable car mode_**. You can also later enable Car mode by typing *991ok on the remote. *990ok disables Car mode.
+If you want to enter Car mode immediately, check **_Enable car mode_**. You can also later enable Car mode by typing ```*991ok``` on the remote. ```*990ok``` disables Car mode.
 
 ##### &#9193; Hostname
 
@@ -637,7 +637,7 @@ By default, when your SID creates a WiFi network of its own ("AP-mode"), this ne
 
 By default, and if this field is empty, the SID's own WiFi network ("SID-AP") will be unprotected. If you want to protect your SID access point, enter your password here. It needs to be 8 characters in length and only characters A-Z, a-z, 0-9 and - are allowed.
 
-If you forget this password and are thereby locked out of your SID, enter *123456ok on the IR remote control; this deletes the WiFi password. Then power-down and power-up your SID and the access point will start unprotected.
+If you forget this password and are thereby locked out of your SID, enter ```*123456ok``` on the IR remote control; this deletes the WiFi password. Then power-down and power-up your SID and the access point will start unprotected.
 
 ##### &#9193; WiFi channel
 
@@ -664,7 +664,7 @@ See [here](#wifi-power-saving-features).
 
 ##### &#9193; Adhere strictly to movie patterns
 
-If this option is checked, in idle modes 0-3 as well as when using TCD-provided speed, only patterns which were extracted from the movies (plus some interpolations) are shown. If this option is unchecked, random variations will be shown, which is less accurate, but also less monotonous. Purists will want this option to be set, which is also the default. This option can also be changed by typing *60ok on the IR remote control.
+If this option is checked, in idle modes 0-3 as well as when using TCD-provided speed, only patterns which were extracted from the movies (plus some interpolations) are shown. If this option is unchecked, random variations will be shown, which is less accurate, but also less monotonous. Purists will want this option to be set, which is also the default. This option can also be changed by typing ```*60ok``` on the IR remote control.
 
 This option setting, along with the current idle pattern, is only saved if there is an SD card present. Without an SD card, this setting is always reset to "checked" upon power-up.
 
@@ -674,30 +674,30 @@ When set, the time travel sequence will not be animated (no flicker, no "moving 
 
 ##### &#9193; Show peaks in Spectrum Analyzer
 
-This selects the boot-up setting for showing or not showing the peaks in the Spectrum Analyzer. Can be changed anytime by typing *61ok on the IR remote control.
+This selects the boot-up setting for showing or not showing the peaks in the Spectrum Analyzer. Can be changed anytime by typing ```*61ok``` on the IR remote control.
 
 ##### &#9193; Mirrored Spectrum Analyzer
 
-This enables an alternative flavor of the Spectrum Analyzer: The bars are mirrored around a center axis. This flavor can also be toggled by typing *64ok on the IR remote control.
+This enables an alternative flavor of the Spectrum Analyzer: The bars are mirrored around a center axis. This flavor can also be toggled by typing ```*64ok``` on the IR remote control.
 
 ##### &#9193; Show positive IR feedback on display
 
 If this option is checked, your SID will show a signal on its display upon a successful command sequence. 
 
-This setting can also be toggled by *62ok. This option has no impact on the small IR feedback LED at the bottom of the SID.
+This setting can also be toggled by ```*62ok```. This option has no impact on the small IR feedback LED at the bottom of the SID.
 
 See [here](#appendix-b-led-signals) for all supported signals.
 
 ##### &#9193; Show IR command entry feedback on display
 
-If this option is checked, your SID will, upon pressing * on the IR remote control, show command sequence entry progress by lighting up another red LED on each key pressed. This setting can also be toggled by *63ok.
+If this option is checked, your SID will, upon pressing * on the IR remote control, show command sequence entry progress by lighting up another red LED on each key pressed. This setting can also be toggled by ```*63ok```.
 
 ##### &#9193; Screen saver timer
 
 Enter the number of minutes until the Screen Saver should become active when the SID is idle.
 
 The Screen Saver, when active, disables all LEDs, until 
-- a key on the IR remote control is pressed; if IR is [locked](#locking-ir-control), only the # key deactivates the Screen Saver;
+- a key on the IR remote control is pressed; if IR is [locked](#locking-ir-control), only the ```#``` key deactivates the Screen Saver;
 - the time travel button is briefly pressed (the first press when the screen saver is active will not trigger a time travel),
 - on a connected TCD, a destination date is entered (only if TCD is wirelessly connected) or a time travel event is triggered (also when wired).
 
@@ -721,11 +721,15 @@ If this option is checked, and your TCD is equipped with a fake power switch, th
 
 ##### &#9193; '0' and button trigger BTTFN-wide TT
 
-If the SID is connected to a TCD through BTTFN, this option allows to trigger a synchronized time travel on all BTTFN-connected devices when pressing "0" on the IR remote control or pressing the external Time Travel button, just as if the Time Travel was triggered by the TCD. If this option is unchecked, pressing "0" or the Time Travel button only triggers a Time Travel sequence on the SID.
+If the SID is connected to a TCD through BTTFN, this option allows to trigger a synchronized time travel on all BTTFN-connected devices when pressing ```0``` on the IR remote control or pressing the external Time Travel button, just as if the Time Travel was triggered by the TCD. If this option is unchecked, pressing ```0``` or the Time Travel button only triggers a Time Travel sequence on the SID.
 
 ##### &#9193; Show clock when Screen Saver is active
 
 If this option is checked, the SID will show current local time - as queried from the TCD - when the Screen Saver is active.
+
+##### &#9193; Clock off in Night Mode
+
+This option selects whether the clock should be switched off in night mode, or not.
 
 #### <ins>Settings for wired connections</ins>
 
