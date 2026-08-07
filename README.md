@@ -794,7 +794,7 @@ The username (and optionally the password) to be used when connecting to the bro
 
 ##### &#9193; Topic to display
 
-An optional MQTT topic the SID subscribes to in order to display messages on its display. Only eight characters are shown, and only a-Z/A-Z and 0-9.
+An optional MQTT topic the SID subscribes to in order to display messages on its display. Only eight characters are shown, and only a-z/A-Z and 0-9.
 
 ## Appendix B: LED signals
 
