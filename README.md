@@ -21,6 +21,7 @@ Features include
 - [*Siddly*](#siddly) and [*Snake*](#snake) games
 - [SD card](#sd-card) support
 - built-in OTA installer for firmware updates
+- &#128007; &#129370;
 
 >This [repository](https://sid.out-a-ti.me) is the upstream source for CircuitSetup's releases. The only difference is that both code and documentation [here](https://sid.out-a-ti.me) might be ahead in development.
 
