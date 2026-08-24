@@ -11,7 +11,7 @@ The hardware is available [here](https://circuitsetup.us/product/delorean-time-m
 | Click to watch the video |
 
 Features include
-- various idle patterns
+- movie accurate idle patterns
 - [Time Travel](#time-travel) function, triggered by button, [Time Circuits Display](https://circuitsetup.us/product/complete-time-circuits-display-kit/) or via [Home Assistant](#home-assistant--mqtt)
 - [IR remote controlled](#ir-remote-control); can learn keys from third-party remote
 - [Spectrum Analyzer](#spectrum-analyzer) mode via built-in microphone
