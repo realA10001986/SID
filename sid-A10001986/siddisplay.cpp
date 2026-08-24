@@ -287,24 +287,27 @@ static const uint16_t translator[10][20][2] =
 
 #define SID_SIG_DURATION     2000
 #define SID_SIG_DURATION_CMD 5000
+#define SID_SIG_DURATION_IRL 30000
 
-static const uint16_t sigMaps[SID_SS_MAX] = { // [left=right, right=left]
-    0b1000000000,   // TCD-keypad remote control mode start
-    0b1100000000,   // TCD-keypad remote control mode end
-    0b1000000001,   // Bad IR input, or input unsuccessful
-    0b0000110000,   // IR input OK and successful
-    0b0101010101,   // Update available
-    0b0000000000,   // Start of Command entry feedback block (must be at end)
-    0b0000000001,
-    0b0000000011,
-    0b0000000111,
-    0b0000001111,
-    0b0000011111,
-    0b0000111111,
-    0b0001111111,
-    0b0011111111,
-    0b0111111111,
-    0b1111111111
+static const uint16_t sigMaps[SID_SS_MAX][2] = { // [left=right, right=left]
+    { 0b1000000000, SID_SIG_DURATION },   // TCD-keypad remote control mode start
+    { 0b1100000000, SID_SIG_DURATION },   // TCD-keypad remote control mode end
+    { 0b1000000001, SID_SIG_DURATION },   // Bad IR input, or input unsuccessful
+    { 0b0000110000, SID_SIG_DURATION },   // IR input OK and successful
+    { 0b0101010101, SID_SIG_DURATION },   // Update available
+    { 0b0000011111, SID_SIG_DURATION_IRL },   // Start of Command entry feedback block (must be at end)
+    { 0b1111100000, SID_SIG_DURATION_IRL },
+    { 0b0000000000, SID_SIG_DURATION_CMD },   // Start of Command entry feedback block (must be at end)
+    { 0b0000000001, SID_SIG_DURATION_CMD },
+    { 0b0000000011, SID_SIG_DURATION_CMD },
+    { 0b0000000111, SID_SIG_DURATION_CMD },
+    { 0b0000001111, SID_SIG_DURATION_CMD },
+    { 0b0000011111, SID_SIG_DURATION_CMD },
+    { 0b0000111111, SID_SIG_DURATION_CMD },
+    { 0b0001111111, SID_SIG_DURATION_CMD },
+    { 0b0011111111, SID_SIG_DURATION_CMD },
+    { 0b0111111111, SID_SIG_DURATION_CMD },
+    { 0b1111111111, SID_SIG_DURATION_CMD }
 };
 
 // Store i2c address and display ID
@@ -788,7 +791,7 @@ void sidDisplay::drawClockAndShow(uint8_t *dateBuf, int dx, int dy)
 
 void sidDisplay::superImposeSpecSig()
 {
-    uint16_t sigMap = sigMaps[_specialSig - 1];
+    uint16_t sigMap = sigMaps[_specialSig - 1][0];
     
     for(int i = 0; i < 10; i++) {
         if(sigMap & (1 << i)) {
@@ -837,7 +840,7 @@ void sidDisplay::specialSig(uint8_t sig)
     if((_specialSig = sig)) {
         _specialSigNow = millis();
         _specialTrigger = true;
-        _specialDuration = (sig < SIS_SS_CMDSTRT) ? SID_SIG_DURATION : SID_SIG_DURATION_CMD;
+        _specialDuration = sigMaps[_specialSig - 1][1];
     } else
         _specialTrigger = false;
 }

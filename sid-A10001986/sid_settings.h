@@ -58,14 +58,13 @@
 #define MS(s) XMS(s)
 #define XMS(s) #s
 
-void settings_setup();
-
 void unmount_fs();
 
-void write_settings();
-bool checkConfigExists();
-
 bool evalBool(char *s);
+
+void write_settings();
+
+void settings_setup();
 
 void saveIRKeys();
 void deleteIRKeys();
@@ -132,7 +131,7 @@ void moveSettings();
 #define DEF_SS_TIMER        0     // "Screen saver" timeout in minutes; 0 = ss off
 
 #define DEF_TCD_IP          ""    // TCD hostname (or ip address) for BTTFN
-#define DEF_USE_GPSS        0     // 0: Ignore GPS speed; 1: Use it for chase speed
+#define DEF_USE_TCDS        0     // 0: Ignore TCD-provided speed; 1: Use it for chase speed
 #define DEF_USE_NM          0     // 0: Ignore TCD night mode; 1: Follow TCD night mode
 #define DEF_USE_FPO         0     // 0: Ignore TCD fake power; 1: Follow TCD fake power
 #define DEF_BTTFN_TT        1     // 0: '0' on IR remote and TT button trigger stand-alone TT; 1: They trigger BTTFN-wide TT
@@ -167,7 +166,7 @@ struct Settings {
     char ssTimer[4]         = MS(DEF_SS_TIMER);
     
     char tcdIP[32]          = DEF_TCD_IP;
-    char useGPSS[2]         = MS(DEF_USE_GPSS);
+    char useTCDS[2]         = MS(DEF_USE_TCDS);
     char useNM[2]           = MS(DEF_USE_NM);
     char useFPO[2]          = MS(DEF_USE_FPO);
     char bttfnTT[2]         = MS(DEF_BTTFN_TT);
@@ -178,7 +177,6 @@ struct Settings {
     char noETTOLead[2]      = MS(DEF_NO_ETTO_LEAD);
 
     char CfgOnSD[2]         = MS(DEF_CFG_ON_SD);
-    char sdFreq[2]          = MS(DEF_SD_FREQ);
 
     char disDIR[2]          = MS(DEF_DISDIR);
 

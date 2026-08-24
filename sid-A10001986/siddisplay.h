@@ -61,9 +61,11 @@
 #define SID_SS_REMEND      2
 #define SID_SS_IRBADINP    3
 #define SID_SS_IROK        4
-#define SIS_SS_UPDAVAIL    5
-#define SIS_SS_CMDSTRT     6
-#define SID_SS_MAX         (SIS_SS_CMDSTRT+10)
+#define SID_SS_UPDAVAIL    5
+#define SID_SS_IRL1        6
+#define SID_SS_IRL2        7
+#define SID_SS_CMDSTRT     8
+#define SID_SS_MAX         (SID_SS_CMDSTRT+10)
 
 #define SD_BUF_SIZE   16  // Buffer size in words (16bit)
 

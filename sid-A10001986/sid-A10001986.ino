@@ -107,6 +107,18 @@
 
 /*  Changelog
  *  
+ *  2026/08/23 (A10001986) [1.75]
+ *    **********************************************************************************
+ *    ** If updating from below 1.70, please see boxed note at version 1.71 below     **
+ *    **********************************************************************************
+ *    - IR Learning: Remove "GO" word sequence.
+ *    - IR Learning: Each key now needs to pressed twice to sort out unsuitable remotes
+ *      sending alternate codes on consecutive key presses.
+ *    - TCD-provided speed now only overrules idle patterns 0-3, the "Universal Backlot" 
+ *      idle pattern (#4) is unaffected (and has a smoother tt sequence now).
+ *    - More robust error handling in case of malformed config files
+ *    - SD: More compatibility fixes
+ *    - Code maintenance
  *  2026/07/17 (A10001986) [1.74]
  *    *********************************************************************************
  *    ** If updating from below 1.70, please see boxed note at version 1.71 below    **

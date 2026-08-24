@@ -99,9 +99,9 @@ uint16_t networkLead   = ETTO_LEAD;
 uint16_t networkP1     = 6600;
 
 static bool tcdIsBusy  = false;
-bool        sidBusy    = false;
+int         sidBusy    = 0;
 
-#define SID_IDLE_0    0
+#define SID_IDLE_0    0   // Do not change order
 #define SID_IDLE_1    1
 #define SID_IDLE_2    2
 #define SID_IDLE_3    3
@@ -116,6 +116,7 @@ bool        sidBusy    = false;
 #define SBLF_NOBL     32
 #define SBLF_ANIM     64
 #define SBLF_STRICT   128
+#define SBLF_BLMD     256
 uint16_t              idleMode = 0;
 bool                  strictMode = true;
 static int            sidBaseLine = 0;
@@ -153,12 +154,12 @@ static const uint8_t idle5[ID5_STEPS][10] = {
     { 10, 10, 10, 11, 11, 11, 11, 11, 12, 12 }  // 14
 };
 
-static bool useGPSS     = false;
-static bool usingGPSS   = false;
-static int16_t gpsSpeed = -1;
-static int16_t prevGPSSpeed = -2;
-static int16_t oldGpsSpeed = -2;
-static bool spdIsRotEnc = false;
+static bool useTCDS     = false;
+static bool usingTCDS   = false;
+static bool spdIsNonGPS = false;
+static int16_t tcdSpeed = -1;
+static int16_t prevTCDSpeed = -2;
+static int16_t oldTCDSpeed  = -2;
 
 static bool useNM = false;
 static bool tcdNM = false;
@@ -325,7 +326,7 @@ static bool          ssClockOffinNM = false;
 static bool          nmOld = false;
 static bool          fpoOld = false;
 bool                 FPBUnitIsOn = true;
-bool                 blockScan = false;
+int                  blockScan = 0;
 
 /*
  * Leave first two columns at 0 here, those will be filled
@@ -360,6 +361,9 @@ static int           inputIndex = 0;
 static bool          inputRecord = false;
 static unsigned long lastKeyPressed = 0;
 static int           maxIRctrls = NUM_REM_TYPES;
+static char          lastIRkey = 0;
+static unsigned long lastIRnow = 0;
+static int           hashTri = 0, hashCnt = 0;
 
 #define IR_FEEDBACK_DUR 300
 static bool          irFeedBack = false;
@@ -375,7 +379,7 @@ bool                 irLocked = false;
 
 bool                 IRLearning = false;
 static uint32_t      backupIRcodes[NUM_IR_KEYS];
-static int           IRLearnIndex = 0;
+static int           IRLearnIndex = 0, IRLearnCount = 0;
 static unsigned long IRLearnNow;
 static unsigned long IRFBLearnNow;
 static bool          IRLearnBlink = false;
@@ -426,6 +430,7 @@ static bool          remHoldKey = false;
 #define BTTFN_REMCMD_KP_BYE     6
 #define BTTFN_REM_MAX_COMMAND   BTTFN_REMCMD_KP_BYE
 #define BTTFN_REMCMD_KEEPALIVE 101
+#define BTTFN_REMCMD_PS        102
 #define BTTFN_SSRC_NONE         0
 #define BTTFN_SSRC_GPS          1
 #define BTTFN_SSRC_ROTENC       2
@@ -440,6 +445,7 @@ static bool          remHoldKey = false;
 #define BTTFN_TCDI1_NM        0x0010
 #define BTTFN_TCDI2_BUSY      0x0001
 #define BTTFN_TCDI2_TIMEINFO  0x8000
+#define BTTFN_TS_SG           735
 static const uint8_t BTTFUDPHD[4] = { 'B', 'T', 'T', 'F' };
 static bool          useBTTFN = false;
 static WiFiUDP       bttfUDP;
@@ -472,6 +478,7 @@ static uint8_t       bttfnReqStatus = 0x53; // Request capabilities, status, spe
 static bool          TCDSupportsRemKP = false;
 static bool          TCDSupportsNOTData = false;
 static bool          TCDSupportsSSID = false;
+static bool          TCDhasTS = false;
 static bool          bttfnDataNotEnabled = false;
 static uint32_t      tcdHostNameHash = 0;
 static byte          BTTFMCBuf[BTTF_PACKET_SIZE];
@@ -530,8 +537,10 @@ static void endIRfeedback();
 static void showBaseLine(int variation = 20, uint16_t flags = 0);
 static bool showIdle(bool freezeBaseLine = false);
 static void play_startup();
+static void show_ts();
 static void timeTravel(bool TCDtriggered, uint16_t P0Dur, uint16_t P1Dur = 0);
 
+static void fadeOut();
 static void showChar(const char text);
 static void fadeOutChar();
 
@@ -558,7 +567,7 @@ static void setTTOUT(uint8_t stat);
 
 static bool bttfn_connected();
 static bool bttfn_trigger_tt();
-static bool bttfn_send_command(uint8_t cmd, uint8_t p1, uint8_t p2);
+static bool bttfn_send_command(uint8_t cmd, uint8_t p1, uint8_t p2, uint8_t p3 = 0, uint8_t p4 = 0, uint8_t p5 = 0);
 static void bttfn_setup();
 static void bttfn_loop_quick();
 
@@ -593,7 +602,7 @@ void main_setup()
     // Other options
     bootMode = loadBootMode();
     ssDelay = ssOrigDelay = atoi(settings.ssTimer) * 60 * 1000;
-    useGPSS = evalBool(settings.useGPSS);
+    useTCDS = evalBool(settings.useTCDS);
     useNM = evalBool(settings.useNM);
     useFPO = evalBool(settings.useFPO);
     bttfnTT = evalBool(settings.bttfnTT);
@@ -605,8 +614,6 @@ void main_setup()
     if(evalBool(settings.disDIR))
         maxIRctrls--;
     
-    // [formerly started CP here]
-
     // Determine if Time Circuits Display is connected
     // via wire, and is source of GPIO tt trigger
     TCDconnected = evalBool(settings.TCDpresent);
@@ -637,7 +644,7 @@ void main_setup()
     if(showUpdAvail && updateAvailable()) {
         //sid.clearBuf();   // aleady clear at this point
         //sid.clearDisplayDirect();
-        sid.specialSig(SIS_SS_UPDAVAIL);
+        sid.specialSig(SID_SS_UPDAVAIL);
         sid.show();
         delay(500);
         sid.specialSig(SID_SS_STOP);
@@ -652,6 +659,9 @@ void main_setup()
     ir_remote.begin();
 
     memset(bttfnDateBuf, 0xff, sizeof(bttfnDateBuf));
+
+    // Set busy to avoid premature bttfn messages
+    sidBusy++;
 
     // Initialize BTTF network
     bttfn_setup();
@@ -673,11 +683,11 @@ void main_setup()
         sid.off();
 
         // Light up IR feedback for 500ms
-        blockScan = true;
+        blockScan++;
         startIRfeedback();
         mydelay(500, false);
         endIRfeedback();
-        blockScan = false;
+        blockScan--;
 
         Serial.println("Waiting for TCD fake power on");
     
@@ -701,6 +711,9 @@ void main_setup()
     #ifdef SID_DBG
     Serial.println("main_setup() done");
     #endif
+
+    // Unset busy
+    sidBusy--;
 
     // Delete previous IR input, start fresh
     ir_remote.resume();  
@@ -750,9 +763,6 @@ void main_loop()
             snake_stop();
 
             flushDelayedSave();
-
-            doPrepareTT = false;
-            doWakeup = false;
             
             // anything else?
             
@@ -766,10 +776,6 @@ void main_loop()
             sid.setBrightness(255);
             sid.on();
 
-            TTKey.reset();
-            isTTKeyHeld = isTTKeyPressed = false;
-            networkTimeTravel = false;
-
             // Play startup sequence
             play_startup();
 
@@ -778,6 +784,10 @@ void main_loop()
 
             sidBaseLine = strictBaseLine = 0;
             LMState = LMIdx = id5idx = 0;
+
+            networkTimeTravel = false;
+            doPrepareTT = false;
+            doWakeup = false;
 
             ir_remote.loop();
 
@@ -799,16 +809,16 @@ void main_loop()
 
     // Eval flags set in handle_tcd_notification
     if(doPrepareTT) {
+        doPrepareTT = false;
         if(FPBUnitIsOn && !IRLearning && !TTrunning) {
             prepareTT();
         }
-        doPrepareTT = false;
     }
     if(doWakeup) {
+        doWakeup = false;
         if(FPBUnitIsOn && !IRLearning && !TTrunning) {
             wakeup();
         }
-        doWakeup = false;
     }
 
     // IR feedback
@@ -864,6 +874,7 @@ void main_loop()
     }
     
     // IR learning triggered by IR?
+    // (Timed delay for showing command entry feedback for a bit)
     if(triggerIRLN && (now - triggerIRLNNow > 1000)) {
         triggerIRLN = false;
         if(!TTrunning) {
@@ -872,11 +883,11 @@ void main_loop()
     }
 
     // TT button evaluation
-    if(FPBUnitIsOn && !TTrunning) {
-        ttkeyScan();
-        if(isTTKeyHeld) {
+    ttkeyScan();
+    if(isTTKeyHeld) {
+        isTTKeyHeld = isTTKeyPressed = false;
+        if(FPBUnitIsOn && !TTrunning) {
             ssEnd();
-            isTTKeyHeld = isTTKeyPressed = false;
             if(!IRLearning) {
                 span_stop();
                 siddly_stop();
@@ -886,8 +897,10 @@ void main_loop()
                 Serial.println("main_loop: IR learning started");
                 #endif
             }
-        } else if(isTTKeyPressed) {
-            isTTKeyPressed = false;
+        }
+    } else if(isTTKeyPressed) {
+        isTTKeyPressed = false;
+        if(FPBUnitIsOn && !TTrunning) {
             if(!TCDconnected && ssActive) {
                 // First button press when ss is active only deactivates SS
                 ssEnd();
@@ -905,18 +918,17 @@ void main_loop()
                 }
             }
         }
-    
-        // Check for BTTFN/MQTT-induced TT
-        if(networkTimeTravel) {
-            networkTimeTravel = false;
+    }
+
+    // Check for BTTFN/MQTT-induced TT
+    if(networkTimeTravel) {
+        networkTimeTravel = false;
+        if(FPBUnitIsOn && !TTrunning) {
             if(!networkAbort) {
                 ssEnd();
                 timeTravel(networkTCDTT, networkLead, networkP1);
             }
         }
-    } else {
-        isTTKeyHeld = isTTKeyPressed = false;
-        TTKey.reset();
     }
 
     now = millis();
@@ -938,7 +950,7 @@ void main_loop()
                         if(TTFDelay) {
                             TTFDelay = 0;
                             TTfUpdNow = now;
-                        } else if(TTFInt && (now - TTfUpdNow >= TTFInt)) {                          
+                        } else if(TTFInt && (now - TTfUpdNow >= TTFInt)) {                         
                             if(saActive) {
                                 if(TTcnt > 0) {
                                     TTcnt--;
@@ -949,13 +961,18 @@ void main_loop()
                                     TTcnt--;
                                     if(TTsbFlags & SBLF_STRICT) {
                                         TTsidBaseLineIdx = TT_SQF_LN - 1 - TTcnt;
-                                        for(int i = 0; i < 10; i++) {
-                                            sid.drawBarWithHeight(i, ttledseqfull[TT_SQF_LN - 1 - TTcnt][i]);
+                                        for(int i = 0, j; i < 10; i++) {
+                                            j = ttledseqfull[TT_SQF_LN - 1 - TTcnt][i];
+                                            if((TTsbFlags & SBLF_BLMD) && (j < oldIdleHeight[i])) j = oldIdleHeight[i];
+                                            sid.drawBarWithHeight(i, j);
                                         }
                                     } else {
                                         TTsidBaseLineIdx = TT_SQ_LN - 1 - TTcnt;
-                                        for(int i = 0; i < 10; i++) {
-                                            sid.drawBarWithHeight(i, ttledseq[TT_SQ_LN - 1 - TTcnt][i]);
+                                        for(int i = 0, j; i < 10; i++) {
+                                            j = ttledseq[TT_SQ_LN - 1 - TTcnt][i];
+                                            if((TTsbFlags & SBLF_BLMD) && (j < oldIdleHeight[i])) j = oldIdleHeight[i];
+                                            else if((TTsbFlags & SBLF_LMTT) && (j < 9)) j = 9;
+                                            sid.drawBarWithHeight(i, j);
                                         }
                                     }
                                     sid.show();
@@ -1085,10 +1102,10 @@ void main_loop()
                 } else {
                     TTP2 = false;
                     TTrunning = false;
-                    isTTKeyHeld = isTTKeyPressed = false;
                     ssRestartTimer();
                     sa_setAmpFact(100);
-                    LMState = LMIdx = id5idx = 0;
+                    LMState = LMIdx = 0;
+                    id5idx = 8;
                 }
 
             }
@@ -1116,12 +1133,18 @@ void main_loop()
                                 if(TTcnt > 0) {
                                     TTcnt--;
                                     if(TTsbFlags & SBLF_STRICT) {
-                                        for(int i = 0; i < 10; i++) {
-                                            sid.drawBarWithHeight(i, ttledseqfull[TT_SQF_LN - 1 - TTcnt][i]);
+                                        for(int i = 0, j; i < 10; i++) {
+                                            j = ttledseqfull[TT_SQF_LN - 1 - TTcnt][i];
+                                            if((TTsbFlags & SBLF_BLMD) && (j < oldIdleHeight[i])) j = oldIdleHeight[i];
+                                            sid.drawBarWithHeight(i, j);
                                         }
+                                        
                                     } else {
-                                        for(int i = 0; i < 10; i++) {
-                                            sid.drawBarWithHeight(i, ttledseq[TT_SQ_LN - 1 - TTcnt][i]);
+                                        for(int i = 0, j; i < 10; i++) {
+                                            j = ttledseq[TT_SQ_LN - 1 - TTcnt][i];
+                                            if((TTsbFlags & SBLF_BLMD) && (j < oldIdleHeight[i])) j = oldIdleHeight[i];
+                                            else if((TTsbFlags & SBLF_LMTT) && (j < 9)) j = 9;
+                                            sid.drawBarWithHeight(i, j);
                                         }
                                     }
                                     sid.show();
@@ -1226,10 +1249,10 @@ void main_loop()
                 } else {
                     TTP2 = false;
                     TTrunning = false;
-                    isTTKeyHeld = isTTKeyPressed = false;
                     ssRestartTimer();
                     sa_setAmpFact(100);
-                    LMState = LMIdx = id5idx = 0;
+                    LMState = LMIdx = 0;
+                    id5idx = 8;
                 }
 
             }
@@ -1240,7 +1263,7 @@ void main_loop()
 
         if(!IRLearning) {
 
-            if(networkAlarm || mqttDisp) {
+            if(networkAlarm || mqttDisp || hashTri) {
             
                 ssEnd();
                 
@@ -1252,9 +1275,12 @@ void main_loop()
                     // play alarm sequence
                     showWordSequence("ALARM", 4);
                     networkAlarm = false;
-                } else {
+                } else if(mqttDisp) {
                     showWordSequence(mqttMsg, 4);
                     mqttDisp = 0;
+                } else {
+                    hashTri = hashCnt = 0;
+                    show_ts();
                 }
                 
                 if(!FPBUnitIsOn) {
@@ -1264,11 +1290,11 @@ void main_loop()
             } else {
 
                 // Wake up on RotEnc/Remote speed changes; on GPS only if old speed was <=0
-                if(gpsSpeed != oldGpsSpeed) {
-                    if(FPBUnitIsOn && (spdIsRotEnc || oldGpsSpeed <= 0) && gpsSpeed >= 0) {
+                if(tcdSpeed != oldTCDSpeed) {
+                    if(FPBUnitIsOn && (spdIsNonGPS || oldTCDSpeed <= 0) && tcdSpeed >= 0) {
                         wakeup();
                     }
-                    oldGpsSpeed = gpsSpeed;
+                    oldTCDSpeed = tcdSpeed;
                 }
     
                 now = millis();
@@ -1332,7 +1358,7 @@ void main_loop()
             tcdNM = false;
             tcdFPO = false;
             remoteAllowed = remMode = remHoldKey = false;
-            gpsSpeed = -1;
+            tcdSpeed = -1;
             lastBTTFNpacket = 0;
             BTTFNBootTO = true;
         }
@@ -1384,7 +1410,7 @@ void flushDelayedSave()
 
 static void showBaseLine(int variation, uint16_t flags)
 {
-    const int mods[21][10] = {
+    static const int mods[21][10] = {
         { 130, 90, 10,  80,  10, 110, 100,  15, 120,  90 }, // g 0
         { 130, 90, 10,  80,  10, 110, 100,  15, 100,  90 }, // g 1
         { 130, 90, 20,  80,  15, 110, 100,  15, 120, 100 }, // g 2
@@ -1407,7 +1433,7 @@ static void showBaseLine(int variation, uint16_t flags)
         {  90, 60, 25,  60,  15,  80,  60,  40,  90,  60 }, // r 19
         {  90, 90, 70, 100,  90, 110,  90,  60,  95,  80 }  // extra for TT
     };
-    const uint8_t maxTTHeight[10] = {
+    static const uint8_t maxTTHeight[10] = {
         19, 19, 12, 19, 19, 18, 19,  9, 19, 16
     };
 
@@ -1473,12 +1499,12 @@ static void showBaseLine(int variation, uint16_t flags)
                         if(TTBarCnt > 0) TTBri = true;
                     }
                 }
-            }
-            if(TTBri || (flags & SBLF_LMTT)) {
-                int temp1 = sid.getBrightness(), temp2 = 3;
-                if(temp1 >= 4) temp1 -= 2;
-                else { temp1 = 2; temp2 = 0; }
-                sid.setBrightnessDirect((esp_random() % temp1) + temp2); //       13) + 3);
+                if(TTBri || (flags & SBLF_LMTT)) {
+                    int temp1 = sid.getBrightness(), temp2 = 3;
+                    if(temp1 >= 4) temp1 -= 2;
+                    else { temp1 = 2; temp2 = 0; }
+                    sid.setBrightnessDirect((esp_random() % temp1) + temp2);
+                }
             }
             if(flags & SBLF_LMTT) {
                 if(LMTT[TTLMIdx]) {
@@ -1508,20 +1534,21 @@ static bool showIdle(bool freezeBaseLine)
 
     idleDelay2 = 800 + ((int)(esp_random() % 200) - 100);
 
-    if(useGPSS && gpsSpeed >= 0) {
+    // Speed only overrules patterns 0-3, not the others
+    if((idleMode <= SID_IDLE_3) && useTCDS && (tcdSpeed >= 0)) {
 
         if(!bttfnTCDSeqCnt) {
             bttfnSIDPollInt = BTTFN_POLL_INT_FAST;
         }
 
-        usingGPSS = true;
+        usingTCDS = true;
        
         if(!strictMode) {
             if(now - lastChange < 500)
                 return false;
 
             if(!freezeBaseLine) {
-                sidBaseLine = (max(10, (int)gpsSpeed) * 20 / 88) - 1;
+                sidBaseLine = (max(10, (int)tcdSpeed) * 20 / 88) - 1;
                 if(sidBaseLine > 19) sidBaseLine = 19;
                 if(abs(oldBaseLine - sidBaseLine) > 3) {
                     sidBaseLine = (sidBaseLine + oldBaseLine) / 2;
@@ -1530,12 +1557,12 @@ static bool showIdle(bool freezeBaseLine)
             
         } else {
           
-            if((gpsSpeed == prevGPSSpeed) && (now - lastChange < 500))
+            if((tcdSpeed == prevTCDSpeed) && (now - lastChange < 500))
                 return false;
             
             if(!freezeBaseLine) {
-                strictBaseLine = gpsSpeed * 100 / (88 * 100 / (TT_SQF_LN - 1));
-                if(gpsSpeed == prevGPSSpeed) {
+                strictBaseLine = tcdSpeed * 100 / (88 * 100 / (TT_SQF_LN - 1));
+                if(tcdSpeed == prevTCDSpeed) {
                     if(strictBaseLine < 5) {
                         strictBaseLine += (esp_random() % 5);
                     } else if(strictBaseLine > TT_SQF_LN - 4) {
@@ -1556,7 +1583,7 @@ static bool showIdle(bool freezeBaseLine)
         }
         
         lastChange = now;
-        prevGPSSpeed = gpsSpeed;
+        prevTCDSpeed = tcdSpeed;
 
     } else if(idleMode == SID_IDLE_BL) {     // "backlot mode"
 
@@ -1569,10 +1596,11 @@ static bool showIdle(bool freezeBaseLine)
 
         for(int i = 0; i < 10; i++) {
             sid.drawBarWithHeight(i, idle5[id5idx][i]);
+            oldIdleHeight[i] = idle5[id5idx][i];
         }
         id5idx++;
         if(id5idx >= ID5_STEPS) id5idx = 0;
-        
+
         sidBaseLine = strictBaseLine = 0;
         sblFlags |= SBLF_NOBL;
 
@@ -1743,7 +1771,7 @@ static bool showIdle(bool freezeBaseLine)
         }
         
         if(!freezeBaseLine) {
-            if(usingGPSS) {
+            if(usingTCDS) {
                 // Smoothen
                 if(!(sblFlags & SBLF_STRICT)) {
                     if(abs(oldBaseLine - sidBaseLine) > 3) {
@@ -1754,7 +1782,7 @@ static bool showIdle(bool freezeBaseLine)
                         strictBaseLine = (strictBaseLine + oldSBaseLine) / 2;
                     }
                 }
-                usingGPSS = false;
+                usingTCDS = false;
             }
         }
     }
@@ -1847,7 +1875,7 @@ static void timeTravel(bool TCDtriggered, uint16_t P0Dur, uint16_t P1Dur)
 
     if(saActive) {
         TTcnt = TT_AMP_STEPS;
-    } else if(usingGPSS) {
+    } else if(usingTCDS) {
         if(strictMode) TTsbFlags |= SBLF_STRICT;
         if(TTsbFlags & SBLF_STRICT) {
             TTcnt = TT_SQF_LN - strictBaseLine;
@@ -1855,6 +1883,7 @@ static void timeTravel(bool TCDtriggered, uint16_t P0Dur, uint16_t P1Dur)
             TTcnt = TT_SQ_LN - seqEntry[sidBaseLine];
         }
     } else {
+        if(idleMode == SID_IDLE_BL) TTsbFlags |= SBLF_BLMD;
         if(idleMode == SID_IDLE_IDC) {
             TTsbFlags |= SBLF_LMTT;
         } else if(strictMode) {
@@ -1926,7 +1955,7 @@ static void play_startup()
     uint8_t w[10];
     uint8_t oldBri = sid.getBrightness();
 
-    blockScan = true;
+    blockScan++;
     // Not long enough to justify sidBusy
 
     sid.clearBuf();
@@ -1979,7 +2008,109 @@ static void play_startup()
         mydelay(30 + (i*5), false);
     }
 
-    blockScan = false;
+    blockScan--;
+}
+
+static void show_ts()
+{
+    #define LOBRI 3
+    #define HIBRI 15
+    static const uint16_t ts_ct[7] { 
+        060, 0x078, 1023, 0x34b, 01513, 843, 0x34b
+    };
+    static const uint16_t ts[4][15] = {
+      { 1023, 8, 8, 8, 16, 16, 8, 8, 16, 32, 16, 16, 32, 64, 32 },
+      { 1023, 80, 32, 64, 64, 32, 16, 16, 32, 64, 48, 8, 16, 32, 32 },
+      { 1023, 392, 112, 16, 8, 16, 8, 8, 4, 8, 16, 32, 32, 16, 16 },
+      { 1023, 1023, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
+    };
+    static const uint8_t tss[][2] = {
+      { 0, 200 },  { 0,  50 },  { 1,  35 }, { 0, 100 },  { 1,  20 },
+      { 0,  30 },  { 1,  30 },  { 0,  80 }, { 1,  20 },  { 0,  10 },
+      { 1,  40 },  { 0, 100 },  { 2, 250 }, { 0,  50 },  { 2, 250 },
+      { 0, 250 },  { 3,   0 },  { 0, 200 }, { 0,   0 }
+    };
+    uint8_t pf[10 * 20];
+    const uint16_t *tsp;
+    unsigned long now;
+    int i = 0, mn;
+    uint8_t bri;
+    bool x;
+    
+    blockScan++;
+    sidBusy++;
+
+    if(TCDhasTS) {
+        bttfn_send_command(BTTFN_REMCMD_PS, 1, (uint8_t)(BTTFN_TS_SG & 0xff), (uint8_t)(BTTFN_TS_SG >> 8));
+    }
+
+    memset((void *)pf, 0, (10*20));
+    for(int j = 13; j < 20; j++) {
+        for(int k = 0, l = j * 10; k < 10; k++) {
+            pf[l + (9-k)] = (ts_ct[j - 13] >> k) & 1;
+        }
+    }
+    sid.drawFieldAndShow((uint8_t *)pf);
+    sid.setBrightnessDirect(LOBRI);
+
+    while(tss[i][0] || tss[i][1]) {
+        switch(tss[i][0]) {
+        case 1:
+        case 2:
+            now = millis();
+            x = true;
+            do {
+                if(x) {
+                    uint16_t t;
+                    tsp = (tss[i][0] == 2) ? &ts[esp_random() % 3][0] : &ts[3][0];
+                    for(int j = 0; j < 15; j++) {
+                        t = (j >= 13) ? ts_ct[j - 13] : 0; 
+                        for(int k = 0, l = j * 10; k < 10; k++) {
+                            pf[l + (9-k)] = ((tsp[j] | t) >> k) & 1;
+                        }
+                    }
+                    bri = HIBRI;
+                    mn = 10;
+                } else {
+                    memset((void *)pf, 0, (10*15));
+                    for(int j = 13; j < 15; j++) {
+                        for(int k = 0, l = j * 10; k < 10; k++) {
+                            pf[l + (9-k)] = (ts_ct[j - 13] >> k) & 1;
+                        }
+                    }
+                    bri = LOBRI;
+                    mn = 30;
+                }
+                x = !x;
+                sid.drawFieldAndShow((uint8_t *)pf);
+                sid.setBrightnessDirect(bri);
+                mydelay(mn + (esp_random() % 6) * 10, false);
+            } while(!x || (millis() - now < tss[i][1] * 10));
+            break;
+        case 3:
+            for(int i = LOBRI; i >= 0 ; i--) {
+                sid.setBrightnessDirect(i);
+                mydelay(20, false);
+            }
+            sid.clearDisplayDirect();
+            break;
+        default:
+            mydelay(tss[i][1] * 10, false);
+            break;
+        }
+
+        i++;
+    }
+
+    sid.setBrightness(255);
+    
+    blockScan--;
+    sidBusy--;
+
+    ir_remote.loop();
+
+    #undef LOBRI
+    #undef HIBRI
 }
 
 void setIdleMode(int idleNo)
@@ -2052,21 +2183,20 @@ static void restoreIRbackup()
 
 static void startIRLearn()
 {
-    // Play LEARN START sequence
-    showWordSequence("GO", 4);
     IRLearning = true;
-    IRLearnIndex = 0;
+    IRLearnIndex = IRLearnCount = 0;
     IRLearnNow = IRFBLearnNow = millis();
     IRLearnBlink = false;
     backupIR();
+    sid.specialSig(SID_SS_IRL1);
     showChar(IRLearnKeys[IRLearnIndex]);
     ir_remote.loop();     // Ignore IR received in the meantime
 }
 
 static void endIRLearn(bool restore)
 {
-    // TODO Restore display
     IRLearning = false;
+    sid.specialSig(SID_SS_STOP);
     endIRfeedback();
     if(restore) {
         restoreIRbackup();
@@ -2079,30 +2209,35 @@ static void handleIRinput()
     uint32_t myHash = ir_remote.readHash();
     uint16_t i, j;
     bool done = false;
-    
+
+    #ifdef SID_DBG
     Serial.printf("handleIRinput: Received IR code 0x%x\n", myHash);
+    #endif
 
     if(IRLearning) {
         endIRfeedback();
-        remote_codes[IRLearnIndex++][REM_KEYS_LEARNED] = myHash;
-        if(IRLearnIndex == NUM_IR_KEYS) {
-            // Play LEARN DONE sequence
-            fadeOutChar();
-            showWordSequence("DONE", 2);
-            IRLearning = false;
-            saveIRKeys();
-            #ifdef SID_DBG
-            Serial.println("handleIRinput: All IR keys learned, and saved");
-            #endif
+        if(!IRLearnCount++) {
+            remote_codes[IRLearnIndex][REM_KEYS_LEARNED] = myHash;
+        } else if(remote_codes[IRLearnIndex][REM_KEYS_LEARNED] == myHash) {
+            IRLearnIndex++;
+            IRLearnCount = 0;
+            if(IRLearnIndex == NUM_IR_KEYS) {
+                fadeOutChar();
+                sid.specialSig(SID_SS_STOP);
+                showWordSequence("DONE", 2);
+                IRLearning = false;
+                saveIRKeys();
+            }
         } else {
-            // Play LEARN NEXT sequence
             fadeOutChar();
-            showChar(IRLearnKeys[IRLearnIndex]);
-            #ifdef SID_DBG
-            Serial.println("handleIRinput: IR key learned");
-            #endif
+            sid.specialSig(SID_SS_STOP);
+            showWordSequence("ERROR", 2);
+            IRLearning = false;
         }
         if(IRLearning) {
+            fadeOutChar();
+            sid.specialSig(SID_SS_IRL1+IRLearnCount);
+            showChar(IRLearnKeys[IRLearnIndex]);
             IRLearnNow = millis();
         } else {
             endIRLearn(false);
@@ -2200,7 +2335,7 @@ static void handleIRKey(int key)
             if(!TTrunning && !siActive && !snActive) {
                 uint8_t t = strlen(inputBuffer);
                 if(t > 10) t = 10;
-                sid.specialSig(SIS_SS_CMDSTRT+t);
+                sid.specialSig(SID_SS_CMDSTRT+t);
             }
         }
         return;
@@ -2284,14 +2419,23 @@ static void handleIRKey(int key)
         inputRecord = true;
         if(!irLocked && tempIRShowCmdFBDisplay) {
             if(!TTrunning && !siActive && !snActive) {
-                sid.specialSig(SIS_SS_CMDSTRT);
+                sid.specialSig(SID_SS_CMDSTRT);
             }
         }
         break;
     case 11:                          // # - abort code input
         clearInpBuf();
-        if(!irLocked && tempIRShowCmdFBDisplay) {
-            sid.specialSig(SID_SS_STOP);
+        if(!irLocked) {
+            if(tempIRShowCmdFBDisplay) {
+                sid.specialSig(SID_SS_STOP);
+            }
+            if(!TTrunning && !siActive && !snActive && !saActive) {
+                if((lastIRkey == key) && lastIRnow && (lastKeyPressed - lastIRnow < 3000)) {
+                    if(++hashCnt > 2) hashTri = 1;
+                } else {
+                    hashCnt = 1;
+                }
+            }
         }
         break;
     case 12:                          // arrow up: inc brightness     si: rotate sn: move up
@@ -2355,6 +2499,11 @@ static void handleIRKey(int key)
         if(!irLocked) {
             doInpReaction = -1;
         }
+    }
+
+    if(!irLocked && !TTrunning && !siActive && !snActive && !saActive) {
+        lastIRkey = key;
+        lastIRnow = lastKeyPressed;
     }
 
     if(doInpReaction < 0) {
@@ -2802,7 +2951,7 @@ static int execute(bool isIR, bool injected)
                     }
                     inputReaction = 1;
                 } else if(!strcmp(inputBuffer, "987654") && !injected) {
-                    triggerIRLN = true;               // *987654OK initates IR learning
+                    triggerIRLN = true;               // *987654OK initates IR learning. Timer for showing command feedback a bit.
                     triggerIRLNNow = millis();
                     inputReaction = 1;
                 } else {
@@ -2929,7 +3078,8 @@ void showWordSequence(const char *text, int speed)
     if(speed < 0) speed = 0;
     else if(speed > 5) speed = 5;
 
-    blockScan = sidBusy = true;
+    blockScan++;
+    sidBusy++;
     
     sid.clearDisplayDirect();
     for(int i = 0; i < strlen(text); i++) {
@@ -2943,7 +3093,8 @@ void showWordSequence(const char *text, int speed)
     sid.setBrightness(255);
     LMState = LMIdx = id5idx = 0;
     
-    blockScan = sidBusy = false;
+    blockScan--;
+    sidBusy--;
     
     ir_remote.loop();     // Ignore IR received in the meantime
 }
@@ -3197,6 +3348,9 @@ static void bttfn_eval_response(uint8_t *buf, bool checkCaps)
             TCDSupportsNOTData = true;
             TCDSupportsSSID = !!(buf[31] & 0x40);
         }
+        if(buf[31] & 0x80) {
+            TCDhasTS = ((buf[32] & 0x01) && (buf[33] >= 2));
+        }
     }
 
     if(buf[5] & 0x01) {
@@ -3205,9 +3359,9 @@ static void bttfn_eval_response(uint8_t *buf, bool checkCaps)
     }
 
     if(buf[5] & 0x02) {
-        gpsSpeed = (int16_t)(buf[18] | (buf[19] << 8));
-        if(gpsSpeed > 88) gpsSpeed = 88;
-        spdIsRotEnc = !!(buf[26] & (0x80|0x20));    // Speed is from RotEnc or Remote
+        tcdSpeed = (int16_t)(buf[18] | (buf[19] << 8));
+        if(tcdSpeed > 88) tcdSpeed = 88;
+        spdIsNonGPS = !!(buf[26] & (0x80|0x20));    // Speed is from RotEnc or Remote
     }
 
     if(buf[5] & 0x10) {
@@ -3273,20 +3427,20 @@ static void handle_tcd_notification(uint8_t *buf)
         if(seqCnt > bttfnTCDSeqCnt || seqCnt == 1 ) {
             switch(buf[8] | (buf[9] << 8)) {
             case BTTFN_SSRC_GPS:
-                spdIsRotEnc = false;
+                spdIsNonGPS = false;
                 break;
             case BTTFN_SSRC_P1:
                 // If packets come out-of-order, we might
                 // get this one before TTrunning, and we
                 // don't want the loop to switch to
-                // usingGPSS only because of P1 speed
+                // usingTCDS only because of P1 speed
                 if(!TTrunning) return;
                 // fall through
             default:
-                spdIsRotEnc = true;
+                spdIsNonGPS = true;
             }
-            gpsSpeed = (int16_t)(buf[6] | (buf[7] << 8));
-            if(gpsSpeed > 88) gpsSpeed = 88;
+            tcdSpeed = (int16_t)(buf[6] | (buf[7] << 8));
+            if(tcdSpeed > 88) tcdSpeed = 88;
         } 
         bttfnTCDSeqCnt = seqCnt;
         break;
@@ -3313,8 +3467,9 @@ static void handle_tcd_notification(uint8_t *buf)
     case BTTFN_NOT_REENTRY:
         // Start re-entry (if TT currently running)
         // Ignore command if TCD is connected by wire
-        if(!TCDconnected && (TTrunning || networkTimeTravel) && networkTCDTT) {
-            networkReentry = true;
+        if(!TCDconnected && networkTCDTT) {
+            if(TTrunning) networkReentry = true;
+            else networkTimeTravel = false;
         }
         break;
     case BTTFN_NOT_ABORT_TT:
@@ -3588,7 +3743,7 @@ static bool bttfn_trigger_tt()
     return true;
 }
 
-static bool bttfn_send_command(uint8_t cmd, uint8_t p1, uint8_t p2)
+static bool bttfn_send_command(uint8_t cmd, uint8_t p1, uint8_t p2, uint8_t p3, uint8_t p4, uint8_t p5)
 {
     if(!remoteAllowed && (cmd <= BTTFN_REM_MAX_COMMAND))
         return false;
@@ -3609,6 +3764,9 @@ static bool bttfn_send_command(uint8_t cmd, uint8_t p1, uint8_t p2)
     BTTFUDPBuf[25] = cmd;
     BTTFUDPBuf[26] = p1;
     BTTFUDPBuf[27] = p2;
+    BTTFUDPBuf[28] = p3;
+    BTTFUDPBuf[29] = p4;
+    BTTFUDPBuf[30] = p5;
 
     BTTFNDispatch();
 

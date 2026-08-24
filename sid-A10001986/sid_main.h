@@ -106,7 +106,7 @@ extern bool TCDconnected;
 
 extern bool FPBUnitIsOn;
 extern bool sidNM;
-extern bool blockScan;
+extern int  blockScan;
 
 extern bool TTrunning;
 extern bool IRLearning;
@@ -129,7 +129,7 @@ extern uint32_t myRemID;
 extern bool doPrepareTT;
 extern bool doWakeup;
 
-extern bool sidBusy;
+extern int  sidBusy;
 
 extern bool showUpdAvail;
 
