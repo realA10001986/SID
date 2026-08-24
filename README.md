@@ -157,7 +157,7 @@ IR learning can be initiated by entering ```*987654ok``` on the standard IR remo
 
 >Alternatively, IR learning can be started by pressing and holding a connected [Time Travel](#time-travel) button for a few seconds (while the option **_TCD connected by wire_** in the Config Portal is unchecked).
 
-When IR learning is started, the SID stops what is currently doing and the display guides you through the learning process by showing the key to press next. Each key is prompted twice to sort out unsuitable remote controls. The process starts by showing "0" (and the left half of the red LED row). At this point, press ```0``` on your IR remote control. Next, the SID will show "0" again, this time with the right half of the red LED row. Now press ```0``` again. If the IR signals match, the SID will proceed to the next key. If a key fails verification, ie if the signals sent on first and second key press don't match, the SID will abort and show "ERROR".
+When IR learning is started, the SID stops what is currently doing and the display guides you through the learning process by showing the key to press next. Each key is prompted twice to sort out unsuitable remote controls. The process starts by showing "0" (and the left half of the red LED row). At this point, press ```0``` on your IR remote control. Next, the SID will show "0" again, this time with the right half of the red LED row. Now press ```0``` again. If the received IR codes match, the SID will proceed to the next key. If a key fails verification, ie if the codes sent on first and second key press don't match, the SID will abort and show "ERROR".
 
 The keys are prompted in the following order:
 
