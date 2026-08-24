@@ -126,7 +126,7 @@ A full reference of the Config Portal is [here](#appendix-a-the-config-portal).
 
 When the SID is idle, it shows an idle pattern. There are various idle patterns to choose from, selected by entering ```*10ok``` through ```*14ok``` on the IR remote. If an SD card is present, the chosen setting will be persistent across reboots.
 
-If the option **_Adhere strictly to movie patterns_** is set (which is the default), idle patterns #0 through #3 will only show patterns extracted from the movies (plus some interpolations); this also applies when the pattern follows [TCD-provided speed](#bttf-network-bttfn). If this option is unset, random variations are shown, which is less boring, but also less accurate.
+If the option **_Adhere strictly to movie patterns_** is set (which is the default), idle patterns #0 through #3 (```*10ok``` - ```*13ok```) will only show patterns extracted from the movies (plus some interpolations); this also applies when the pattern follows [TCD-provided speed](#bttf-network-bttfn). If this option is unset, random variations are shown, which is less boring, but also less accurate.
 
 For ways to trigger a time travel, see [here](#time-travel).
 
@@ -157,7 +157,9 @@ IR learning can be initiated by entering ```*987654ok``` on the standard IR remo
 
 >Alternatively, IR learning can be started by pressing and holding a connected [Time Travel](#time-travel) button for a few seconds (while the option **_TCD connected by wire_** in the Config Portal is unchecked).
 
-When IR learning is started, the display first shows "GO", immediately followed by "0". Press ```0``` on your remote, which the SID will visually acknowledge by displaying the next key to press. Then press ```1```, wait for the acknowledgement, and so on. Enter your keys in the following order:
+When IR learning is started, the SID stops what is currently doing and the display guides you through the learning process by showing the key to press next. Each key is prompted twice to sort out unsuitable remote controls. The process starts by showing "0" (and the left half of the red LED row). At this point, press ```0``` on your IR remote control. Next, the SID will show "0" again, this time with the right half of the red LED row. Now press ```0``` again. If the IR signals match, the SID will proceed to the next key. If a key fails verification, ie if the signals sent on first and second key press don't match, the SID will abort and show "ERROR".
+
+The keys are prompted in the following order:
 
 ```0``` - ```1``` - ```2``` - ```3``` - ```4``` - ```5``` - ```6``` - ```7``` - ```8``` - ```9``` - ```*``` - ```#``` - ```Arrow up``` - ```Arrow down``` - ```Arrow left``` - ```Arrow right``` - ```OK``` 
 
@@ -665,9 +667,9 @@ See [here](#wifi-power-saving-features).
 
 ##### &#9193; Adhere strictly to movie patterns
 
-If this option is checked, in idle modes 0-3 as well as when using TCD-provided speed, only patterns which were extracted from the movies (plus some interpolations) are shown. If this option is unchecked, random variations will be shown, which is less accurate, but also less monotonous. Purists will want this option to be set, which is also the default. This option can also be changed by typing ```*60ok``` on the IR remote control.
+If this option is checked, idle patterns 0-3 (with or without adaption to TCD-provided speed) will only consist of patterns extracted from the movies (plus some interpolations). If this option is unchecked, random variations will be shown, which is less accurate, but also less monotonous. Purists will want this option to be set, which is also the default. This option can also be changed by typing ```*60ok``` on the IR remote control.
 
-This option setting, along with the current idle pattern, is only saved if there is an SD card present. Without an SD card, this setting is always reset to "checked" upon power-up.
+This option setting, along with the current idle pattern number, is only saved if there is an SD card present. Without an SD card, this setting is always reset to "checked" upon power-up.
 
 ##### &#9193; Skip time tunnel animation
 
@@ -708,9 +710,9 @@ The Screen Saver, when active, disables all LEDs, until
 
 If you want to have your SID to communicate with a Time Circuits Display wirelessly ("BTTF-Network"), enter the TCD's hostname - usually 'timecircuits' - or IP address here. Hostname is preferred because it makes the setup independent of the network environment.
 
-##### &#9193; Adapt pattern to TCD-provided speed
+##### &#9193; Adapt patterns 0-3 to TCD-provided speed
 
-If this option is checked and your TCD is equipped with a GPS sensor or a rotary encoder, or a [Futaba Remote](https://remote.out-a-ti.me) is present, the SID will adapt its display pattern to current speed as transmitted by the TCD.
+If this option is checked and your TCD is equipped with a GPS receiver or a rotary encoder, or a [Futaba Remote](https://remote.out-a-ti.me) is present, the SID will adapt its [idle patterns](#basic-operation) 0 through 3 to current speed as transmitted by the TCD.
 
 ##### &#9193; Follow TCD night-mode
 
