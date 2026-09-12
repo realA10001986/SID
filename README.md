@@ -700,7 +700,7 @@ See [here](#appendix-b-led-signals) for all supported signals.
 
 ##### &#9193; Show IR command entry feedback on display
 
-If this option is checked, your SID will, upon pressing * on the IR remote control, show command sequence entry progress by lighting up another red LED on each key pressed. This setting can also be toggled by ```*63ok```.
+If this option is checked, your SID will, upon pressing ```*``` on the IR remote control, show command sequence entry progress by lighting up another red LED on each key pressed. This setting can also be toggled by ```*63ok```.
 
 ##### &#9193; Screen saver timer
 
