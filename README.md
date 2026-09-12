@@ -813,7 +813,7 @@ Signals are shown in the top two rows of the display.
 <table>
     <tr>
      <td align="left"><!--&#9679; &#9679; &#9679; &#9679; &#9675; &#9675; &#9679; &#9679; &#9679; &#9679;<br>-->
-                      <img src="img/pir.png>
+                      <img src="img/pir.png">
                       <!--&#9675; &#9675; &#9675; &#9675; &#9675; &#9675; &#9675; &#9675; &#9675; &#9675;--></td>
      <td align="left">Successful input from IR (optional)</td>
     </tr>
