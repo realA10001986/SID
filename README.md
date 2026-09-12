@@ -812,29 +812,23 @@ Signals are shown in the top two rows of the display.
 
 <table>
     <tr>
-     <td align="left"><!--&#9679; &#9679; &#9679; &#9679; &#9675; &#9675; &#9679; &#9679; &#9679; &#9679;<br>-->
-                      <img src="img/s_pir.png" width=200>
-                      <!--&#9675; &#9675; &#9675; &#9675; &#9675; &#9675; &#9675; &#9675; &#9675; &#9675;--></td>
+     <td align="left"><img src="img/s_pir.png" width=200></td>
      <td align="left">Successful input from IR (optional)</td>
     </tr>
     <tr>
-     <td align="left">&#9675; &#9679; &#9679; &#9679; &#9679; &#9679; &#9679; &#9679; &#9679; &#9675;<br>
-                      &#9675; &#9675; &#9675; &#9675; &#9675; &#9675; &#9675; &#9675; &#9675; &#9675;</td>
+     <td align="left"><img src="img/s_bir.png" width=200></td>
      <td align="left">Bad/unsuccessful input from IR</td>
     </tr>
     <tr>
-     <td align="left">&#9679; &#9679; &#9679; &#9679; &#9679; &#9679; &#9679; &#9679; &#9679; &#9675;<br>
-                      &#9675; &#9675; &#9675; &#9675; &#9675; &#9675; &#9675; &#9675; &#9675; &#9675;</td>
+     <td align="left"><img src="img/s_kprs.png" width=200></td>
      <td align="left"><a href='#remote-controlling-the-tcds-keypad'>TCD-keypad remote control mode</a> started</td>
     </tr>
     <tr>
-     <td align="left">&#9679; &#9679; &#9679; &#9679; &#9679; &#9679; &#9679; &#9679; &#9675; &#9675;<br>
-                      &#9675; &#9675; &#9675; &#9675; &#9675; &#9675; &#9675; &#9675; &#9675; &#9675;</td>
+     <td align="left"><img src="img/s_kpre.png" width=200></td>
      <td align="left"><a href='#remote-controlling-the-tcds-keypad'>TCD-keypad remote control mode</a> ended</td>
     </tr>
     <tr>
-     <td align="left">&#9675; &#9679; &#9675; &#9679; &#9675; &#9679; &#9675; &#9679; &#9675; &#9679;<br>
-                      &#9675; &#9675; &#9675; &#9675; &#9675; &#9675; &#9675; &#9675; &#9675; &#9675;</td>
+     <td align="left"><img src="img/s_upd.png" width=200></td>
      <td align="left">Firmware update available; shown briefly at power-up (optional)</td>
     </tr>
 </table>
