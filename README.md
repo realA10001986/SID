@@ -829,7 +829,7 @@ Signals are shown in the top two rows of the display.
     </tr>
     <tr>
      <td align="left"><img src="img/s_upd.png" width=200></td>
-     <td align="left">Firmware update available; shown briefly at power-up</td>
+     <td align="left">Firmware update available. Shown briefly at power-up.</td>
     </tr>
 </table>
 
