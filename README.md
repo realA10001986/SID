@@ -813,11 +813,11 @@ Signals are shown in the top two rows of the display.
 <table>
     <tr>
      <td align="left"><img src="img/s_pir.png" width=200></td>
-     <td align="left">Successful input from IR (optional)</td>
+     <td align="left">IR command sequence execution successful</td>
     </tr>
     <tr>
      <td align="left"><img src="img/s_bir.png" width=200></td>
-     <td align="left">Bad/unsuccessful input from IR</td>
+     <td align="left">Bad/unsuccessful IR command sequence</td>
     </tr>
     <tr>
      <td align="left"><img src="img/s_kprs.png" width=200></td>
@@ -829,7 +829,7 @@ Signals are shown in the top two rows of the display.
     </tr>
     <tr>
      <td align="left"><img src="img/s_upd.png" width=200></td>
-     <td align="left">Firmware update available; shown briefly at power-up (optional)</td>
+     <td align="left">Firmware update available; shown briefly at power-up</td>
     </tr>
 </table>
 
