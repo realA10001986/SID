@@ -817,7 +817,7 @@ Signals are shown in the top two rows of the display.
     </tr>
     <tr>
      <td align="left"><img src="img/s_bir.png" width=200></td>
-     <td align="left">Bad/unsuccessful IR command sequence</td>
+     <td align="left">Bad/unsuccessful command sequence</td>
     </tr>
     <tr>
      <td align="left"><img src="img/s_kprs.png" width=200></td>
