@@ -713,23 +713,23 @@ The Screen Saver, when active, disables all LEDs, until
 
 #### <ins>Settings for BTTFN communication</ins>
 
-##### &#9193; Hostname or IP address of TCD
+##### &#9193; Hostname of TCD
 
-If you want to have your SID to communicate with a Time Circuits Display wirelessly ("BTTF-Network"), enter the TCD's hostname - usually 'timecircuits' - or IP address here. Hostname is preferred because it makes the setup independent of the network environment.
+If you want to have your SID to communicate with a Time Circuits Display wirelessly ("BTTF-Network"), enter the TCD's hostname - usually 'timecircuits' - here. Although specifying the TCD's IP address is supported as well, the hostname is preferred because it makes your setup independent of the network environment.
 
 ##### &#9193; Adapt patterns 0-3 to TCD-provided speed
 
 If this option is checked and your TCD is equipped with a GPS receiver or a rotary encoder, or a [Futaba Remote](https://remote.out-a-ti.me) is present, the SID will adapt its [idle patterns](#basic-operation) 0 through 3 to current speed as transmitted by the TCD.
 
-##### &#9193; Follow TCD night-mode
-
-If this option is checked, and your TCD goes into night mode, the SID will activate the Screen Saver with a very short timeout. 
-
 ##### &#9193; Follow TCD fake power
 
 If this option is checked, and your TCD is equipped with a fake power switch, the SID will also fake-power up/down. If fake power is off, no LED is active and the SID will ignore all input from buttons, knobs and the IR control.
 
-##### &#9193; '0' and button trigger BTTFN-wide TT
+##### &#9193; Follow TCD night-mode
+
+If this option is checked, and your TCD goes into night mode, the SID will activate the Screen Saver with a very short timeout. 
+
+##### &#9193; '0' and button trigger BTTFN-wide Time Travel
 
 If the SID is connected to a TCD through BTTFN, this option allows to trigger a synchronized time travel on all BTTFN-connected devices when pressing ```0``` on the IR remote control or pressing the external Time Travel button, just as if the Time Travel was triggered by the TCD. If this option is unchecked, pressing ```0``` or the Time Travel button only triggers a Time Travel sequence on the SID.
 
