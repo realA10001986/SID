@@ -141,7 +141,7 @@ Your SID comes with an IR remote control included. This remote works out-of-the-
 | *The SID's standard IR remote control* |
 
 Control through the IR remote works through single-key presses and command sequences.
-- Single key actions are triggered by pressing key ```0```-```9```, ```Arrow up```, ```Arrow down```, ```Arrow left``` or ```Arrow right```.
+- Single key actions are triggered by pressing keys ```0```-```9```, ```Arrow up```, ```Arrow down```, ```Arrow left``` or ```Arrow right```.
 - Command sequences are started by pressing ```*``` followed by a numerical code, and concluded by ```ok```. ```#``` aborts command sequence entry (for example, in case of mistyping).
 
 Each time you press a key on the remote, an IR feedback LED will briefly light up. This LED is located at the bottom of the circuit board.
