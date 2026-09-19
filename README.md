@@ -745,7 +745,7 @@ This option selects whether the clock should be switched off in night mode, or n
 
 ##### &#9193; TCD connected by wire
 
-Check this if you have a Time Circuits Display connected by wire. Note that a wired connection only allows for synchronized time travel sequences, no other communication takes place.
+Check this if you have a Time Circuits Display connected to the SID by wire. Note that a wired connection only allows for synchronized time travel sequences, no other communication takes place.
 
 While you can connect both a button and the TCD to the "time travel" connector on the SID, the button should not be pressed when this option is set, as it might yield unwanted effects.
 
