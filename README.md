@@ -147,7 +147,7 @@ Control through the IR remote works through single-key presses and command seque
 Each time you press a key on the remote, an IR feedback LED will briefly light up. This LED is located at the bottom of the circuit board.
 
 Apart from the feedback LED, your SID will also show some feedback signals on its main display:
-- By default, when initiating a command sequence by pressing ```*```, SID will start to show each key pressed afterwards by lighting up another red LED. This kind of feedback can be disabled using command sequence ```*63ok``` or in the Config Portal.
+- By default, when initiating a command sequence by pressing ```*```, SID will clear the top-most row of red LEDs and acknowledge each key pressed afterwards by lighting up another red LED. This kind of feedback can be disabled using command sequence ```*63ok``` or in the Config Portal.
 - By default, after executing a command, SID will show a "success" signal. This kind of feedback can be disabled using command sequence ```*62ok``` or in the Config Portal.
 - If a command was unsuccessful or not recognized, a "bad input" signal will be shown.
 
