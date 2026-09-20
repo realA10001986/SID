@@ -622,7 +622,7 @@ In Car mode, the device connects to the TCD-AP as configured here instead of the
 
 Enter your TCD's network name (usually "TCD-AP") in **_Network name (SSID) of TCD-AP_** and the TCD's AP password (if configured on the TCD) in **_Password for TCD-AP_**. 
 
-The BSSID field is optional for you to fill out. The TCD displays its BSSID on its *WiFi Configuration* page, so you could copy it into this field on your SID. If the BSSID field is left empty, it will be filled out automatically upon the first successful connection to your TCD in Car Mode. This pairs your SID to your TCD and avoids connecting to other people's TCDs at meet-ups with other cars nearby.
+The **_TCD-AP BSSID_** field is optional for you to fill out. The TCD displays its BSSID (unique access point identifier) on its *WiFi Configuration* page, so you could copy it into this field on your SID. If the _TCD-AP BSSID_ field is left empty, it will be filled out automatically upon the first successful connection to your TCD in Car Mode. This pairs your SID to your TCD and avoids connecting to other people's TCDs at meet-ups with other cars nearby.
 > If you ever need to connect your SID to a different TCD (or, for instance, swap out your TCD's circuit board), this field needs to be cleared in order to pair your SID to the new TCD. Note that if the SID fails to connect to a BSSID-identified TCD, it will boot into [AP-Mode](#connecting-to-a-wifi-network) ("SID-AP").
 
 If you want to enter Car mode immediately after saving your settings, check **_Enable car mode now_**. You can also later enable Car mode by typing ```*991ok``` on the remote. ```*990ok``` disables Car mode.
