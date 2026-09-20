@@ -191,7 +191,7 @@ In order to only disable the supplied IR remote control, check the option **_Dis
      <td align="center" colspan="3">Single key actions</td>
     </tr>
     <tr>
-     <td align="center"><code>1</code><br>Games: New game<br>br></td>
+     <td align="center"><code>1</code><br>Games: New game<br<>br></td>
      <td align="center"><code>2</code><br>-<br><br></td>
      <td align="center"><code>3</code><br>-<br><br></a></td>
     </tr>
@@ -206,9 +206,9 @@ In order to only disable the supplied IR remote control, check the option **_Dis
      <td align="center"><code>9</code><br>Refill Plutonium<sup>2</sup><br>Games: Quit</td>
     </tr>
     <tr>
-     <td align="center"><code>*</code><br>Start command sequence</td>
+     <td align="center"><code>*</code><br>Start command sequence<br><br></td>
      <td align="center"><code>0</code><br><a href="#time-travel">Time Travel</a><br>Siddly: Fall down</td>
-     <td align="center"><code>#</code><br>Abort command sequence</td>
+     <td align="center"><code>#</code><br>Abort command sequence<br><br></td>
     </tr>
     <tr>
      <td align="center"></td>
