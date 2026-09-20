@@ -610,7 +610,7 @@ To connect your SID to your WiFi network, all you need to do is either to click 
 
 >By default, the SID requests an IP address via DHCP. However, you can also configure a static IP for the SID by entering the IP, netmask, gateway and DNS server. All four fields must be filled for a valid static IP configuration. If you want to stick to DHCP, leave those four fields empty. 
 
-If there are several APs with identical SSID nearby, the SID will connect to the first one it finds, which might not be the one with the strongest signal. It is therefore recommended to select the nearest/strongest AP by its BSSID (AP's MAC address). You can either manually find out your AP's BSSID and enter it or have it filled out automatically: Click "Scan for Networks", then "Show all". If you click on an AP, its BSSID will be copied into BSSID field in the form below. To see which AP is which, hover over the name to see its BSSID as a tooltip.
+If there are several APs with identical SSID nearby, the SID will connect to the first one it finds, which might not be the one with the strongest signal. It is therefore recommended to select the nearest/strongest AP by its BSSID (AP's MAC address, a unique identifier for a specific AP). You can either manually find out your AP's BSSID and enter it or have it filled out automatically: Click "Scan for Networks", then "Show all". If you click on an AP, its BSSID will be copied into BSSID field in the form below. To see which AP is which, hover over the name to see its BSSID as a tooltip.
 
 ##### &#9193; Forget Saved WiFi Network
 
@@ -622,7 +622,8 @@ In Car mode, the device connects to the TCD-AP as configured here instead of the
 
 Enter your TCD's network name (usually "TCD-AP") in **_Network name (SSID) of TCD-AP_** and the TCD's AP password (if configured on the TCD) in **_Password for TCD-AP_**. 
 
->In the unlikely case that multiple TCD's are in range, you can single out your TCD by its BSSID. The TCD displays its BSSID on its *WiFi Configuration* page.
+The BSSID field is optional for you to fill out. The TCD displays its BSSID on its *WiFi Configuration* page, so you could copy it into this field on your SID. If the BSSID field is left empty, it will be filled out automatically upon the first successful connection to your TCD in Car Mode. This pairs your SID to your TCD and avoids connecting to other people's TCDs at meet-ups with other cars nearby.
+> If you ever need to connect your SID to a different TCD (or, for instance, swap out your TCD's circuit board), this field needs to be cleared in order to pair your SID to the new TCD. Note that if the SID fails to connect to a BSSID-identified TCD, it will boot into [AP-Mode](#connecting-to-a-wifi-network) ("SID-AP").
 
 If you want to enter Car mode immediately after saving your settings, check **_Enable car mode now_**. You can also later enable Car mode by typing ```*991ok``` on the remote. ```*990ok``` disables Car mode.
 
