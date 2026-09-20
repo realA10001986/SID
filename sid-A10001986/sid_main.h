@@ -102,7 +102,7 @@ extern bool irLocked;
 extern bool irShowPosFBDisplay;
 extern bool irShowCmdFBDisplay;
 
-extern bool TCDconnected;
+extern bool TCDbyWire;
 
 extern bool FPBUnitIsOn;
 extern bool sidNM;
@@ -112,7 +112,6 @@ extern bool TTrunning;
 extern bool IRLearning;
 
 extern bool networkTimeTravel;
-extern bool networkTCDTT;
 extern bool networkReentry;
 extern bool networkAbort;
 extern bool networkAlarm;
@@ -120,7 +119,7 @@ extern uint16_t networkLead;
 extern uint16_t networkP1;
 
 extern uint32_t mqttDisp;
-#ifdef SID_HAVEMQTT
+#ifdef HAVE_MQTT
 extern char mqttMsg[];
 #endif
 

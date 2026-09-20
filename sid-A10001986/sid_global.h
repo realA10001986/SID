@@ -15,15 +15,15 @@
  ***                          Version Strings                          ***
  *************************************************************************/
 
-#define SID_VERSION       "V1.75"           // Do NOT change format.
-#define SID_VERSION_EXTRA "AUG232026"
+#define SID_VERSION       "V1.76"           // Do NOT change format.
+#define SID_VERSION_EXTRA "SEP202026"
 
 /*************************************************************************
  ***                           Miscellaneous                           ***
  *************************************************************************/
 
 // Uncomment for HomeAssistant MQTT protocol support
-#define SID_HAVEMQTT
+#define HAVE_MQTT
 
 // External time travel lead time, as defined by TCD firmware
 // If SID is connected to TCD by wire, and the option "Signal Time Travel
@@ -37,19 +37,6 @@
 
 //#define SID_DBG               // Generic except below
 //#define SID_DBG_NET           // Prop network related
-
-/*************************************************************************
- ***                  esp32-arduino version detection                  ***
- *************************************************************************/
-
-#if defined __has_include && __has_include(<esp_arduino_version.h>)
-#include <esp_arduino_version.h>
-#ifdef ESP_ARDUINO_VERSION_MAJOR
-    #if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(2,0,8)
-    #define HAVE_GETNEXTFILENAME
-    #endif
-#endif
-#endif
 
 /*************************************************************************
  ***                             GPIO pins                             ***

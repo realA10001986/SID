@@ -107,6 +107,20 @@
 
 /*  Changelog
  *  
+ *  2026/09/20 (A10001986) [1.76]
+ *    **********************************************************************************
+ *    ** If updating from below 1.70, please see boxed note at version 1.71 below     **
+ *    **********************************************************************************
+ *    - Car Mode: Automatically pair SID to currently connected TCD by means of the
+ *      TCD's BSSID upon first successful connection in Car Mode. This avoids connecting
+ *      to other people's TCDs if in close range (meet-ups, exhibitions).
+ *    - Key "9" on IR remote refills Plutonium (requires TCD with firmware >= 3.27, and
+ *      Dash Gauges), unless any of the games is running (where it is "quit").
+ *    - Protect the SID from uploading a wrong firmware by accident. The filename of
+ *      the firmware binary now must contain the word "sid". The check is case-
+ *      insensitive.
+ *    - Bonjour/mDNS: Send good-bye packet on controlled reboots
+ *    - Minor fixes in connection with feedback signals
  *  2026/08/23 (A10001986) [1.75]
  *    **********************************************************************************
  *    ** If updating from below 1.70, please see boxed note at version 1.71 below     **

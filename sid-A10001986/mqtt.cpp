@@ -52,7 +52,7 @@
 
 //#define MQTT_DBG
 
-#ifdef SID_HAVEMQTT
+#ifdef HAVE_MQTT
 
 #include "mqtt.h"
 

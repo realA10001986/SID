@@ -58,15 +58,10 @@
 
 #include "src/WiFiManager/WiFiManager.h"
 
-#ifndef WM_MDNS
-#define SID_MDNS
-#include <ESPmDNS.h>
-#endif
-
 #include "sid_settings.h"
 #include "sid_wifi.h"
 #include "sid_main.h"
-#ifdef SID_HAVEMQTT
+#ifdef HAVE_MQTT
 #include "mqtt.h"
 #endif
 
@@ -79,16 +74,18 @@ IPSettings ipsettings;
 WiFiManager wm;
 bool wifiSetupDone = false;
 
-#ifdef SID_HAVEMQTT
+#ifdef HAVE_MQTT
 WiFiClient mqttWClient;
 PubSubClient mqttClient(mqttWClient);
 #endif
 
 static const char tcdList[] = "<datalist id='tcda'><option value='TCD-AP%s'></option></datalist><datalist id='hnl'><option value='sid'></option></datalist>";
 
-static const char tcdSSIDp[] = "<div style='margin:0 0 10px 0;padding:0;font-size:80%%'>SSID of currently connected TCD is <b>TCD-AP%s</b> (%s password)</div>";
+static const char tcdSSID0[] = "<div style='margin:0 0 10px 0;padding:0;font-size:80%'>";
+static const char tcdSSIDp[] = "%sSSID of currently connected TCD is <b>TCD-AP%s</b></div>";
+static const char tcdSSIDq[] = "%sCurrently connected TCD has %s password configured</div>";
 static const char tcdAPPW1[] = "no";
-static const char tcdAPPW2[] = "with";
+static const char tcdAPPW2[] = "a";
 
 static const char *apChannelCustHTMLSrc[14] = {
     "'>WiFi channel",
@@ -107,7 +104,7 @@ static const char *apChannelCustHTMLSrc[14] = {
     ">11%s"
 };
 
-#ifdef SID_HAVEMQTT
+#ifdef HAVE_MQTT
 static const char *mqttpCustHTMLSrc[4] = {
     "'>Protocol version",
     "mprot",
@@ -129,12 +126,13 @@ static const char mqttMsgGenError[] = "Error";
 
 static const char *wmBuildTCDAPList(const char *dest, int op);
 static const char *wmBuildTCDSSID(const char *dest, int op);
+static const char *wmBuildTCDPW(const char *dest, int op);
 static const char *wmBuildApChnl(const char *dest, int op);
 static const char *wmBuildBestApChnl(const char *dest, int op);
 
 static const char *wmBuildHaveSD(const char *dest, int op);
 
-#ifdef SID_HAVEMQTT
+#ifdef HAVE_MQTT
 static const char *wmBuildMQTTprot(const char *dest, int op);
 static const char *wmBuildMQTTstate(const char *dest, int op);
 #endif
@@ -161,7 +159,7 @@ static const char badWiFi[]  = "<br><i>Operating in AP mode not recommended</i>"
 static const char bannerGen[] = "%s%s%s%s</div>";
 static const char haveNoSD[] = "<i>No SD card present</i>";
 
-#ifdef SID_HAVEMQTT
+#ifdef HAVE_MQTT
 static const char mqttStatus[] = "%s%s%s%s%s (%d)</div>";
 #endif
 
@@ -169,74 +167,70 @@ static const char mqttStatus[] = "%s%s%s%s%s (%d)</div>";
 
 WiFiManagerParameter custom_asel(wmBuildTCDAPList);
 
-WiFiManagerParameter custom_sectstart_cm("Car mode settings", WFM_SECTS_HEAD|WFM_HL);
-WiFiManagerParameter custom_cmhint("<div style='margin:0 0 10px 0;padding:0;font-size:80%;white-space:break-spaces;'>In Car mode, the device connects to the TCD's access point instead of the WiFi network configured above.</div>");
-WiFiManagerParameter custom_ssidcm("ssidcm", "Network name (SSID) of TCD-AP", settings.cm_ssid, 13, "pattern='[A-Za-z0-9\\-]+' placeholder='Example: TCD-AP' list='tcda'");
-WiFiManagerParameter custom_passcm("passcm", "Password for TCD-AP", settings.cm_pass, 8, "minlength='8' pattern='[A-Za-z0-9\\-]+'");
+WiFiManagerParameter custom_sectstart_cm("Car Mode settings", WFM_SECTS_HEAD|WFM_HL);
+WiFiManagerParameter custom_cmhint("<div style='margin:0 0 10px 0;padding:0;font-size:80%;white-space:break-spaces;'>In Car Mode, the device connects to the TCD's access point instead of the WiFi network configured above.</div>");
+WiFiManagerParameter custom_ssidcm("Network name (SSID) of TCD-AP", settings.cm_ssid, 13, "pattern='[A-Za-z0-9\\-]+' placeholder='Example: TCD-AP' list='tcda'");
 WiFiManagerParameter custom_tcdssid(wmBuildTCDSSID);
-WiFiManagerParameter custom_bssidcm("bsidcm", "TCD-AP BSSID (optional)", settings.cm_bssid, 17, "pattern='^([0-9A-Fa-f]{2}[:]){5}([0-9A-Fa-f]{2})$' placeholder='XX:XX:XX:XX:XX:XX'");
-WiFiManagerParameter custom_ecm("ecm", "Enable Car Mode now", settings.ecmKludge, "", WFM_LABEL_AFTER|WFM_IS_CHKBOX);
+WiFiManagerParameter custom_passcm("Password for TCD-AP", settings.cm_pass, 8, "minlength='8' pattern='[A-Za-z0-9\\-]+'");
+WiFiManagerParameter custom_tcdpw(wmBuildTCDPW);
+WiFiManagerParameter custom_bssidcm("TCD-AP BSSID<br><span>Will be filled out automatically after first connect if left empty.</span>", settings.cm_bssid, 17, "pattern='^([0-9A-Fa-f]{2}[:]){5}([0-9A-Fa-f]{2})$' placeholder='XX:XX:XX:XX:XX:XX'");
+WiFiManagerParameter custom_ecm("Enable Car Mode now", settings.ecmKludge, "", WFM_LABEL_AFTER|WFM_IS_CHKBOX);
 
-#if defined(SID_MDNS) || defined(WM_MDNS)
-#define HNTEXT "Hostname<br><span>The Config Portal is accessible at http://<i>hostname</i>.local<br>(Valid characters: a-z/0-9/-)</span>"
-#else
-#define HNTEXT "Hostname<br><span>(Valid characters: a-z/0-9/-)</span>"
-#endif
-WiFiManagerParameter custom_hostName("hostname", HNTEXT, settings.hostName, 31, "pattern='[A-Za-z0-9\\-]+' placeholder='Example: sid' list='hnl'", WFM_LABEL_BEFORE|WFM_SECTS);
+WiFiManagerParameter custom_hostName("Hostname<br><span>Network device ID. Config Portal URL: http://<i>hostname</i>.local<br>Valid characters: a-z/0-9/-</span>", settings.hostName, 31, "pattern='[A-Za-z0-9\\-]+' placeholder='sid' list='hnl'", WFM_LABEL_BEFORE|WFM_SECTS);
 
 WiFiManagerParameter custom_sectstart_wifi("WiFi connection: Other settings", WFM_SECTS|WFM_HL);
-WiFiManagerParameter custom_wifiConRetries("wifiret", "Connection attempts (1-10)", settings.wifiConRetries, 2, "type='number' min='1' max='10'");
+WiFiManagerParameter custom_wifiConRetries("Connection attempts (1-10)", settings.wifiConRetries, 2, "type='number' min='1' max='10'");
 
 WiFiManagerParameter custom_sectstart_ap("Access point (AP) mode settings", WFM_SECTS|WFM_HL);
-WiFiManagerParameter custom_sysID("sysID", "Network name (SSID) appendix<br><span>Will be appended to \"SID-AP\" [a-z/0-9/-]</span>", settings.systemID, 7, "pattern='[A-Za-z0-9\\-]+'");
-WiFiManagerParameter custom_appw("appw", "Password<br><span>Password to protect SID-AP. Empty or 8 characters [a-z/0-9/-]</span>", settings.appw, 8, "minlength='8' pattern='[A-Za-z0-9\\-]+'");
+WiFiManagerParameter custom_sysID("Network name (SSID) appendix<br><span>Will be appended to \"SID-AP\" [a-z/0-9/-]</span>", settings.systemID, 7, "pattern='[A-Za-z0-9\\-]+'");
+WiFiManagerParameter custom_appw("Password<br><span>Password to protect SID-AP. Empty or 8 characters [a-z/0-9/-]</span>", settings.appw, 8, "minlength='8' pattern='[A-Za-z0-9\\-]+'");
 WiFiManagerParameter custom_apch(wmBuildApChnl);
 WiFiManagerParameter custom_bapch(wmBuildBestApChnl);
-WiFiManagerParameter custom_wifiAPOffDelay("wifiAPoff", "Power save timer<br><span>(10-99[minutes]; 0=off)</span>", settings.wifiAPOffDelay, 2, "type='number' min='0' max='99' title='WiFi-AP will be shut down after chosen period. 0 means never.'");
+WiFiManagerParameter custom_wifiAPOffDelay("Power save timer<br><span>(10-99[minutes]; 0=off)</span>", settings.wifiAPOffDelay, 2, "type='number' min='0' max='99' title='WiFi-AP will be shut down after chosen period. 0 means never.'");
 WiFiManagerParameter custom_wifihint("<div style='margin:0;padding:0;font-size:80%'>Enter *77ok to re-enable Wifi when in power save mode</div>", WFM_FOOT);
 
 // Settings
 
 WiFiManagerParameter custom_hsel("<datalist id='tcdh'><option value='timecircuits'></option></datalist>");
 
-WiFiManagerParameter custom_sStrict("sStrict", "Adhere strictly to movie patterns<br><span>Check to strictly show movie patterns in idle modes 0-3 and with TCD-provided speed; uncheck to allow variations.</span>", settings.strictMode, "class='mt5' style='margin-bottom:0px'", WFM_LABEL_AFTER|WFM_IS_CHKBOX|WFM_SECTS_HEAD);
-WiFiManagerParameter custom_sTTANI("sTTANI", "Skip time tunnel animation", settings.skipTTAnim, "title='Check to skip the time tunnel animation'", WFM_LABEL_AFTER|WFM_IS_CHKBOX);
-WiFiManagerParameter custom_SApeaks("sap", "Show peaks in Spectrum Analyzer", settings.SApeaks, "", WFM_LABEL_AFTER|WFM_IS_CHKBOX);
-WiFiManagerParameter custom_SAmirror("sam", "Mirrored Spectrum Analyzer", settings.SAmirror, "", WFM_LABEL_AFTER|WFM_IS_CHKBOX);
-WiFiManagerParameter custom_PIRFB("pir", "Show positive IR feedback on display", settings.PIRFB, "", WFM_LABEL_AFTER|WFM_IS_CHKBOX);
-WiFiManagerParameter custom_PIRCFB("pirc", "Show IR command entry feedback on display", settings.PIRCFB, "class='mb10'", WFM_LABEL_AFTER|WFM_IS_CHKBOX);
-WiFiManagerParameter custom_ssDelay("ssDel", "Screen Saver timer (1-999[minutes]; 0=off)", settings.ssTimer, 3, "type='number' min='0' max='999'");
+WiFiManagerParameter custom_sStrict("Adhere strictly to movie patterns<br><span>Check to strictly show movie patterns in idle modes 0-3 and with TCD-provided speed; uncheck to allow variations.</span>", settings.strictMode, "class='mt5' style='margin-bottom:0px'", WFM_LABEL_AFTER|WFM_IS_CHKBOX|WFM_SECTS_HEAD);
+WiFiManagerParameter custom_sTTANI("Skip time tunnel animation", settings.skipTTAnim, "title='Check to skip the time tunnel animation'", WFM_LABEL_AFTER|WFM_IS_CHKBOX);
+WiFiManagerParameter custom_SApeaks("Show peaks in Spectrum Analyzer", settings.SApeaks, "", WFM_LABEL_AFTER|WFM_IS_CHKBOX);
+WiFiManagerParameter custom_SAmirror("Mirrored Spectrum Analyzer", settings.SAmirror, "", WFM_LABEL_AFTER|WFM_IS_CHKBOX);
+WiFiManagerParameter custom_PIRFB("Show positive IR feedback on display", settings.PIRFB, "", WFM_LABEL_AFTER|WFM_IS_CHKBOX);
+WiFiManagerParameter custom_PIRCFB("Show IR command entry feedback on display", settings.PIRCFB, "class='mb10'", WFM_LABEL_AFTER|WFM_IS_CHKBOX);
+WiFiManagerParameter custom_ssDelay("Screen Saver timer (1-999[minutes]; 0=off)", settings.ssTimer, 3, "type='number' min='0' max='999'");
 
 WiFiManagerParameter custom_sectstart_nw("Wireless communication (BTTF-Network)", WFM_SECTS|WFM_HL);
-WiFiManagerParameter custom_tcdIP("tcdIP", "Hostname or IP address of TCD", settings.tcdIP, 31, "pattern='(^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$)|([A-Za-z0-9\\-]+)' placeholder='Example: timecircuits' list='tcdh'");
-WiFiManagerParameter custom_uTCDS("uTCDS", "Adapt patterns 0-3 to TCD-provided speed<br><span>Speed from TCD (GPS, rotary encoder, remote control), if available, will overrule idle patterns 0-3</span>", settings.useTCDS, "class='mb0'", WFM_LABEL_AFTER|WFM_IS_CHKBOX);
-WiFiManagerParameter custom_uNM("uNM", "Follow TCD night-mode<br><span>If checked, the Screen Saver will activate when TCD is in night-mode.</span>", settings.useNM, "class='mb0'", WFM_LABEL_AFTER|WFM_IS_CHKBOX);
-WiFiManagerParameter custom_uFPO("uFPO", "Follow TCD fake power", settings.useFPO, "", WFM_LABEL_AFTER|WFM_IS_CHKBOX);
-WiFiManagerParameter custom_bttfnTT("bttfnTT", "'0' and button trigger BTTFN-wide TT<br><span>If checked, pressing '0' on the IR remote or pressing the Time Travel button triggers a BTTFN-wide TT</span>", settings.bttfnTT, "class='mb0'", WFM_LABEL_AFTER|WFM_IS_CHKBOX);
-WiFiManagerParameter custom_ssClock("ssClk", "Show clock when Screen Saver is active", settings.ssClock, "", WFM_LABEL_AFTER|WFM_IS_CHKBOX);
-WiFiManagerParameter custom_ssClockO("ssClkO", "Clock off in Night Mode", settings.ssClockOffNM, "class='mb0 mt5 ml20'", WFM_LABEL_AFTER|WFM_IS_CHKBOX);
+WiFiManagerParameter custom_tcdIP("Hostname of TCD", settings.tcdIP, 31, "pattern='(^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$)|([A-Za-z0-9\\-]+)' placeholder='Example: timecircuits' list='tcdh'");
+WiFiManagerParameter custom_uTCDS("Adapt patterns 0-3 to TCD-provided speed<br><span>Speed from TCD (GPS, rotary encoder, remote control), if available, will overrule idle patterns 0-3</span>", settings.useTCDS, "class='mb0'", WFM_LABEL_AFTER|WFM_IS_CHKBOX);
+WiFiManagerParameter custom_uFPO("Follow TCD fake power", settings.useFPO, "", WFM_LABEL_AFTER|WFM_IS_CHKBOX);
+WiFiManagerParameter custom_uNM("Follow TCD night-mode<br><span>If checked, the Screen Saver will activate when TCD is in night-mode.</span>", settings.useNM, "class='mb0'", WFM_LABEL_AFTER|WFM_IS_CHKBOX);
+WiFiManagerParameter custom_bttfnTT("'0' and button trigger BTTFN-wide Time Travel<br><span>If checked, pressing '0' on the IR remote or pressing the Time Travel button triggers a Tíme Travel on all BTTFN-connected props</span>", settings.bttfnTT, "class='mb0'", WFM_LABEL_AFTER|WFM_IS_CHKBOX);
+WiFiManagerParameter custom_ssClock("Show clock when Screen Saver is active", settings.ssClock, "", WFM_LABEL_AFTER|WFM_IS_CHKBOX);
+WiFiManagerParameter custom_ssClockO("Clock off in Night Mode", settings.ssClockOffNM, "class='mb0 mt5 ml20'", WFM_LABEL_AFTER|WFM_IS_CHKBOX);
 
-WiFiManagerParameter custom_TCDpresent("TCDpres", "TCD connected by wire", settings.TCDpresent, "title='Check if you have a Time Circuits Display connected via wire' class='mt5'", WFM_LABEL_AFTER|WFM_IS_CHKBOX|WFM_SECTS);
-WiFiManagerParameter custom_noETTOL("uEtNL", "TCD signals Time Travel without 5s lead", settings.noETTOLead, "class='mt5 ml20'", WFM_LABEL_AFTER|WFM_IS_CHKBOX);
+WiFiManagerParameter custom_TCDpresent("TCD connected by wire", settings.TCDpresent, "title='Check if you have a Time Circuits Display connected via wire' class='mt5'", WFM_LABEL_AFTER|WFM_IS_CHKBOX|WFM_SECTS);
+WiFiManagerParameter custom_noETTOL("TCD signals Time Travel without 5s lead", settings.noETTOLead, "class='mt5 ml20'", WFM_LABEL_AFTER|WFM_IS_CHKBOX);
 
 WiFiManagerParameter custom_haveSD(wmBuildHaveSD, WFM_SECTS);
-WiFiManagerParameter custom_CfgOnSD("CfgOnSD", "Save secondary settings on SD<br><span>Check this to avoid flash wear</span>", settings.CfgOnSD, "class='mt5 mb0'", WFM_LABEL_AFTER|WFM_IS_CHKBOX);
+WiFiManagerParameter custom_CfgOnSD("Save secondary settings on SD<br><span>Check this to avoid flash wear</span>", settings.CfgOnSD, "class='mt5 mb0'", WFM_LABEL_AFTER|WFM_IS_CHKBOX);
 
-WiFiManagerParameter custom_disDIR("dDIR", "Disable supplied IR control", settings.disDIR, "title='Check to disable the supplied IR remote control' class='mt5'", WFM_LABEL_AFTER|WFM_IS_CHKBOX|WFM_SECTS|WFM_FOOT);
+WiFiManagerParameter custom_disDIR("Disable supplied IR control", settings.disDIR, "title='Check to disable the supplied IR remote control' class='mt5'", WFM_LABEL_AFTER|WFM_IS_CHKBOX|WFM_SECTS|WFM_FOOT);
 
-#ifdef SID_HAVEMQTT
-WiFiManagerParameter custom_useMQTT("uMQTT", "Home Assistant support (MQTT)", settings.useMQTT, "class='mt5 mb10'", WFM_LABEL_AFTER|WFM_IS_CHKBOX|WFM_SECTS_HEAD);
+#ifdef HAVE_MQTT
+WiFiManagerParameter custom_useMQTT("Home Assistant support (MQTT)", settings.useMQTT, "class='mt5 mb10'", WFM_LABEL_AFTER|WFM_IS_CHKBOX|WFM_SECTS_HEAD);
 WiFiManagerParameter custom_state(wmBuildMQTTstate);
-WiFiManagerParameter custom_mqttServer("ha_server", "Broker IP[:port] or domain[:port]", settings.mqttServer, 79, "pattern='[a-zA-Z0-9\\.:\\-]+' placeholder='Example: 192.168.1.5'");
+WiFiManagerParameter custom_mqttServer("Broker IP[:port] or domain[:port]", settings.mqttServer, 79, "pattern='[a-zA-Z0-9\\.:\\-]+' placeholder='Example: 192.168.1.5'");
 WiFiManagerParameter custom_mqttVers(wmBuildMQTTprot);
-WiFiManagerParameter custom_mqttUser("ha_usr", "User[:Password]", settings.mqttUser, 63, "placeholder='Example: ronald:mySecret'");
-WiFiManagerParameter custom_mqttTopic("MQt", "Topic to display", settings.mqttTopic, 63, "placeholder='Optional. Example: home/alarm/status'", WFM_LABEL_BEFORE|WFM_SECTS|WFM_FOOT);
+WiFiManagerParameter custom_mqttUser("User[:Password]", settings.mqttUser, 63, "placeholder='Example: ronald:mySecret'");
+WiFiManagerParameter custom_mqttTopic("Topic to display", settings.mqttTopic, 63, "placeholder='Optional. Example: home/alarm/status'", WFM_LABEL_BEFORE|WFM_SECTS|WFM_FOOT);
 #endif // HAVEMQTT
 
 static const int8_t wifiMenu[] = {
     WM_MENU_WIFI,
     WM_MENU_PARAM,
-    #ifdef SID_HAVEMQTT
+    #ifdef HAVE_MQTT
     WM_MENU_PARAM2,
     #endif
     WM_MENU_SEP_F,
@@ -295,7 +289,7 @@ unsigned long wifiOnNow = 0;
 unsigned long wifiOffDelay     = 0;   // default: never
 unsigned long origWiFiOffDelay = 0;
 
-#ifdef SID_HAVEMQTT
+#ifdef HAVE_MQTT
 #define       MQTT_SHORT_INT  (30*1000)
 #define       MQTT_LONG_INT   (5*60*1000)
 static const char    emptyStr[1] = { 0 };
@@ -348,7 +342,7 @@ static void mystrcpyWiFiDelay(char *sv, WiFiManagerParameter *el);
 static void evalCB(char *sv, WiFiManagerParameter *el);
 static void setCBVal(WiFiManagerParameter *el, char *sv);
 
-#ifdef SID_HAVEMQTT
+#ifdef HAVE_MQTT
 static void strcpyutf8(char *dst, const char *src, unsigned int len);
 static void mqttPing();
 static bool mqttReconnect(bool force = false);
@@ -372,8 +366,9 @@ void wifi_setup()
       &custom_sectstart_cm,
       &custom_cmhint,
       &custom_ssidcm,
-      &custom_passcm,
       &custom_tcdssid,
+      &custom_passcm,
+      &custom_tcdpw,
       &custom_bssidcm,
       &custom_ecm,
 
@@ -408,8 +403,8 @@ void wifi_setup()
       &custom_sectstart_nw,   // 8
       &custom_tcdIP,
       &custom_uTCDS,
-      &custom_uNM,
       &custom_uFPO,
+      &custom_uNM,
       &custom_bttfnTT,
       &custom_ssClock,
       &custom_ssClockO,
@@ -425,7 +420,7 @@ void wifi_setup()
       NULL
     };
 
-    #ifdef SID_HAVEMQTT
+    #ifdef HAVE_MQTT
     WiFiManagerParameter *parm2Array[] = {
 
       &custom_useMQTT,
@@ -501,7 +496,7 @@ void wifi_setup()
     }
 
     // HA/MQTT
-    #ifdef SID_HAVEMQTT
+    #ifdef HAVE_MQTT
     wm.allocParms(WM_PARM_SETTINGS2, (sizeof(parm2Array) / sizeof(WiFiManagerParameter *)) - 1);
     temp = 0;
     while(parm2Array[temp]) {
@@ -510,9 +505,11 @@ void wifi_setup()
     }
     #endif
 
+    // WiFiParameters were initialized before settings were loaded.
+    // Update them to current values now.
     updateConfigPortalValues();
 
-    #ifdef SID_HAVEMQTT
+    #ifdef HAVE_MQTT
     useMQTT = evalBool(settings.useMQTT);
     #endif
 
@@ -530,7 +527,7 @@ void wifi_setup()
             // Delay to give the TCD some time
             // (differs accross the props)
             delay(1100);
-            #ifdef SID_HAVEMQTT
+            #ifdef HAVE_MQTT
             useMQTT = false;
             #endif
             connectedToTCDAP = true;
@@ -562,15 +559,9 @@ void wifi_setup()
     // Connect, but defer starting the CP
     wifiConnect(true);
 
-    #ifdef SID_MDNS
-    if(MDNS.begin(settings.hostName)) {
-        MDNS.addService("http", "tcp", 80);
-    }
-    #endif
-
     checkForUpdate();
 
-#ifdef SID_HAVEMQTT
+#ifdef HAVE_MQTT
     if((!settings.mqttServer[0]) || // No server -> no MQTT
        (wifiInAPMode))              // WiFi in AP mode -> no MQTT
         useMQTT = false;  
@@ -658,10 +649,25 @@ void wifi_setup()
 
     }
 #endif
-
-    // Start the Config Portal
+    
     if(WiFi.status() == WL_CONNECTED) {
+
+        // Start the Config Portal
         wifiStartCP();
+
+        // Marry us to the current TCD in carMode
+        if(carMode && !*settings.cm_bssid) {
+            uint8_t *tcdbssid = WiFi.BSSID();
+            if(tcdbssid) {
+                #ifdef SID_DBG_NET
+                Serial.printf("Now married to TCD with BSSID %02x:%02x:%02x:%02x:%02x:%02x\n", 
+                    tcdbssid[0], tcdbssid[1], tcdbssid[2], tcdbssid[3], tcdbssid[4], tcdbssid[5]);
+                #endif
+                sprintf(settings.cm_bssid, "%02x:%02x:%02x:%02x:%02x:%02x",
+                    tcdbssid[0], tcdbssid[1], tcdbssid[2], tcdbssid[3], tcdbssid[4], tcdbssid[5]);
+                write_settings();
+            }
+        }
     }
 
     wifiSetupDone = true;
@@ -678,7 +684,7 @@ void wifi_loop()
     if(!wifiSetupDone)
         return;
 
-#ifdef SID_HAVEMQTT
+#ifdef HAVE_MQTT
     if(useMQTT) {
         if(mqttClient.state() != MQTT_CONNECTING) {
             if(!mqttClient.connected()) {
@@ -843,7 +849,7 @@ void wifi_loop()
             // Note: Parameters that need to be grabbed from the server directly
             // through getServerParam() must be handled in saveParamsCallback()
 
-            #ifdef SID_HAVEMQTT
+            #ifdef HAVE_MQTT
             evalCB(settings.useMQTT, &custom_useMQTT);
             strcpytrim(settings.mqttServer, custom_mqttServer.getValue());
             strcpyutf8(settings.mqttUser, custom_mqttUser.getValue(), sizeof(settings.mqttUser));
@@ -1321,7 +1327,7 @@ static void saveParamsCallback(int paramspage)
     case 1:
         break;
     case 2:
-        #ifdef SID_HAVEMQTT
+        #ifdef HAVE_MQTT
         getServerParam("mprot", settings.mqttVers, 1, 0, 1, 0);
         #endif
         break;
@@ -1340,22 +1346,17 @@ static void preUpdateCallback()
 }
 
 // This is called after a firmware updated has finished.
-// parm = true of ok, false if error. WM reboots only 
-// if the update worked, ie when res is true.
+// parm = true of ok, false if error.
 static void postUpdateCallback(bool res)
 {
     Serial.flush();
     prepareReboot();
 
-    // WM does not reboot on OTA update errors.
-    // However, don't bother for that really
-    // rare case to put code here to restore
-    // under all possible circumstances, like
-    // fake-off, time-travel going on, ss, ....
-    if(!res) {
-        delay(1000);
-        esp_restart();
-    }
+    // WM sends a MDNS-good-bye and reboots after 
+    // this callback. Since we send the good-bye
+    // in prepareReboot(), no point in returning.
+    delay(1000);
+    esp_restart();
 }
 
 static bool preWiFiScanCallback()
@@ -1376,6 +1377,14 @@ static void setCMCallback(bool enable)
     else       wifiLoopSaveAction &= ~WLA_SET_CM_ON;
 }
 
+// Use this only ahead of reboots.
+void wifiMDNSGoodBye()
+{
+    #ifdef WM_MDNS
+    wm.sendMDNSgoodBye();
+    #endif
+}
+
 static void setBoolAndUpdCB(bool myBool, char *sett, WiFiManagerParameter *wmParm)
 {
     sett[0] = myBool ? '1' : '0';
@@ -1386,42 +1395,10 @@ static void setBoolAndUpdCB(bool myBool, char *sett, WiFiManagerParameter *wmPar
 static void updateConfigPortalValues()
 {
     // Make sure the settings form has the correct values
-
-    custom_ssidcm.setValue(settings.cm_ssid);
-    custom_passcm.setValue(settings.cm_pass);
-    custom_bssidcm.setValue(settings.cm_bssid);
-
-    custom_hostName.setValue(settings.hostName);
-    custom_wifiConRetries.setValue(settings.wifiConRetries);
-    
-    custom_sysID.setValue(settings.systemID);
-    custom_appw.setValue(settings.appw);
-    // ap channel done on-the-fly
-    custom_wifiAPOffDelay.setValue(settings.wifiAPOffDelay);
-
-    setCBVal(&custom_sTTANI, settings.skipTTAnim);
-    custom_ssDelay.setValue(settings.ssTimer);
-    
-    custom_tcdIP.setValue(settings.tcdIP);
-    setCBVal(&custom_uTCDS, settings.useTCDS);
-    setCBVal(&custom_uNM, settings.useNM);
-    setCBVal(&custom_uFPO, settings.useFPO);
-    setCBVal(&custom_bttfnTT, settings.bttfnTT);
-    setCBVal(&custom_ssClock, settings.ssClock);
-    setCBVal(&custom_ssClockO, settings.ssClockOffNM);
-
-    setCBVal(&custom_TCDpresent, settings.TCDpresent);
-    setCBVal(&custom_noETTOL, settings.noETTOLead);
-
-    setCBVal(&custom_CfgOnSD, settings.CfgOnSD);
-
-    setCBVal(&custom_disDIR, settings.disDIR);
-
-    #ifdef SID_HAVEMQTT
-    setCBVal(&custom_useMQTT, settings.useMQTT);
-    custom_mqttServer.setValue(settings.mqttServer);
-    custom_mqttUser.setValue(settings.mqttUser);
-    custom_mqttTopic.setValue(settings.mqttTopic);
+    wm.updateParameters(WM_PARM_WIFI);
+    wm.updateParameters(WM_PARM_SETTINGS);
+    #ifdef HAVE_MQTT
+    wm.updateParameters(WM_PARM_SETTINGS2);
     #endif
 }
 
@@ -1551,7 +1528,7 @@ static const char *wmBuildTCDSSID(const char *dest, int op)
     if(!bttfnHaveTCDSSID)
         return NULL;
 
-    unsigned int l = STRLEN(tcdSSIDp) + (TCDpwMarker ? STRLEN(tcdAPPW2) : STRLEN(tcdAPPW1)) + 4;
+    unsigned int l = STRLEN(tcdSSIDp) + STRLEN(tcdSSID0) + 4;
     l += strlen(TCDSSID);
 
     if(op == WM_CP_LEN) {
@@ -1561,7 +1538,31 @@ static const char *wmBuildTCDSSID(const char *dest, int op)
 
     char *str = (char *)malloc(l);
 
-    sprintf(str, tcdSSIDp, TCDSSID, TCDpwMarker ? tcdAPPW2 : tcdAPPW1);
+    sprintf(str, tcdSSIDp, tcdSSID0, TCDSSID);
+
+    return str;
+}
+
+static const char *wmBuildTCDPW(const char *dest, int op)
+{
+    if(op == WM_CP_DESTROY) {
+        if(dest) free((void *)dest);
+        return NULL;
+    }
+
+    if(!bttfnHaveTCDSSID)
+        return NULL;
+
+    unsigned int l = STRLEN(tcdSSIDq) + STRLEN(tcdSSID0) + (TCDpwMarker ? STRLEN(tcdAPPW2) : STRLEN(tcdAPPW1)) + 4;
+
+    if(op == WM_CP_LEN) {
+        wmLenBuf = l;
+        return (const char *)&wmLenBuf;
+    }
+
+    char *str = (char *)malloc(l);
+
+    sprintf(str, tcdSSIDq, tcdSSID0, TCDpwMarker ? tcdAPPW2 : tcdAPPW1);
 
     return str;
 }
@@ -1608,7 +1609,7 @@ static const char *wmBuildHaveSD(const char *dest, int op)
     return buildBanner(haveNoSD, col_r, op);
 }
 
-#ifdef SID_HAVEMQTT
+#ifdef HAVE_MQTT
 static const char *wmBuildMQTTprot(const char *dest, int op)
 {
     return wmBuildSelect(dest, op, mqttpCustHTMLSrc, 4, settings.mqttVers, false);
@@ -1871,12 +1872,20 @@ static void setCBVal(WiFiManagerParameter *el, char *sv)
     el->setValue((*sv == '0') ? "0" : "1");
 }
 
-#ifdef SID_HAVEMQTT
-// Filter out UTF8 and non-displayable characters
-static int16_t filterOutNonDisp(char *src, char *dst, int srcLen = 0, int maxChars = 99999)
+#ifdef HAVE_MQTT
+static unsigned int UTF8ByteSeqLen(unsigned char c)
 {
-    int i, j, slen = srcLen ? srcLen : strlen(src);
-    unsigned char c, e;
+    if(c >= 192 && c < 224) return 1;
+    if(c >= 224 && c < 240) return 2;
+    if(c >= 240 && c < 248) return 3;  // Invalid UTF8 >= 245, but consider 4-byte char anyway
+    return 0;
+}
+
+// Filter out UTF8 and non-displayable characters
+static int filterOutNonDisp(char *src, char *dst, int srcLen = 0, int maxChars = 99999)
+{
+    unsigned int i, j, e, slen = srcLen ? srcLen : strlen(src);
+    unsigned char c;
 
     for(i = 0, j = 0; i < slen && j < maxChars; i++) {
         c = (unsigned char)src[i];
@@ -1886,24 +1895,10 @@ static int16_t filterOutNonDisp(char *src, char *dst, int srcLen = 0, int maxCha
                 (c >= 'A' && c <= 'Z') ) {
                 dst[j++] = c; 
             }
+        } else if(!c) {
+            break;
         } else {
-            e = 0;
-            if     (c >= 192 && c < 224)  e = 1;
-            else if(c >= 224 && c < 240)  e = 2;
-            else if(c >= 240 && c < 245)  e = 3;    // yes, 245 (otherwise bad UTF8)
-            if(e) {
-                if((i + e) < slen) {
-                    /*
-                    for(k = i + 1, d = 0; k <= i + 1 + e; k++) {
-                        d |= (unsigned char)src[k];
-                    }
-                    if(d > 127 && d < 192) i += e;
-                    */
-                    i += e;   // Why check? Just skip.
-                } else {
-                    break;
-                }
-            }
+            i += UTF8ByteSeqLen(c);
         }
     }
     dst[j] = 0;
@@ -1913,22 +1908,15 @@ static int16_t filterOutNonDisp(char *src, char *dst, int srcLen = 0, int maxCha
 
 static void truncateUTF8(char *src)
 {
-    int i, slen = strlen(src);
-    unsigned char c, e;
+    unsigned int i, e, slen = strlen(src);
 
     for(i = 0; i < slen; i++) {
-        c = (unsigned char)src[i];
-        e = 0;
-        if     (c >= 192 && c < 224)  e = 1;
-        else if(c >= 224 && c < 240)  e = 2;
-        else if(c >= 240 && c < 248)  e = 3;  // Invalid UTF8 >= 245, but consider 4-byte char anyway
-        if(e) {
-            if((i + e) < slen) {
-                i += e;
-            } else {
+        if((e = UTF8ByteSeqLen((unsigned char)src[i]))) {
+            if((i + e) >= slen) {
                 src[i] = 0;
                 return;
             }
+            i += e;
         }
     }
 }
@@ -2024,11 +2012,9 @@ static void mqttCallback(char *topic, byte *payload, unsigned int length)
         case 1:
             // Trigger Time Travel (if not running already)
             // Ignore command if TCD is connected by wire
-            if(!TCDconnected && !TTrunning && !IRLearning && !sidBusy) {
+            if(!TCDbyWire && !TTrunning && !IRLearning && !sidBusy) {
                 networkTimeTravel = true;
-                networkTCDTT = true;
-                networkReentry = false;
-                networkAbort = false;
+                networkReentry = networkAbort = false;
                 if(strlen(tempBuf) == 20) {
                     networkLead = a2i(&tempBuf[11]);
                     networkP1 = a2i(&tempBuf[16]);
@@ -2041,7 +2027,7 @@ static void mqttCallback(char *topic, byte *payload, unsigned int length)
         case 2:   // Re-entry
             // Start re-entry (if TT currently running)
             // Ignore command if TCD is connected by wire
-            if(!TCDconnected && networkTCDTT) {
+            if(!TCDbyWire) {
                 if(TTrunning) networkReentry = true;
                 else networkTimeTravel = false;
             }
@@ -2049,7 +2035,7 @@ static void mqttCallback(char *topic, byte *payload, unsigned int length)
         case 3:   // Abort TT (TCD fake-powered down during TT)
             // Ignore command if TCD is connected by wire
             // (mainly because this is no network-triggered TT)
-            if(!TCDconnected && (TTrunning || networkTimeTravel) && networkTCDTT) {
+            if(!TCDbyWire && (TTrunning || networkTimeTravel)) {
                 networkAbort = true;
             }
             break;

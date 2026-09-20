@@ -91,7 +91,6 @@ static bool isTTKeyPressed = false;
 static bool isTTKeyHeld = false;
 
 bool networkTimeTravel = false;
-bool networkTCDTT      = false;
 bool networkReentry    = false;
 bool networkAbort      = false;
 bool networkAlarm      = false;
@@ -304,7 +303,7 @@ static const int TTampFacts[TT_AMP_STEPS] = {
 #define P1_DUR          5000    // time tunnel phase (stand-alone)
 #define P2_DUR          3000    // re-entry phase
 
-bool         TCDconnected = false;
+bool         TCDbyWire  = false;
 static bool  noETTOLead = false;
 
 static unsigned long brichgnow = 0;
@@ -408,7 +407,7 @@ static bool          remHoldKey = false;
 #define BTTFN_TYPE_SID     2    // SID
 #define BTTFN_TYPE_PCG     3    // Dash Gauges
 #define BTTFN_TYPE_VSR     4    // VSR
-#define BTTFN_TYPE_AUX     5    // Aux (user custom device)
+#define BTTFN_TYPE_AUX     5    // Aux (user custom device, Jukebox)
 #define BTTFN_TYPE_REMOTE  6    // Futaba remote control
 #define BTTFN_NOT_PREPARE  1
 #define BTTFN_NOT_TT       2
@@ -431,6 +430,7 @@ static bool          remHoldKey = false;
 #define BTTFN_REM_MAX_COMMAND   BTTFN_REMCMD_KP_BYE
 #define BTTFN_REMCMD_KEEPALIVE 101
 #define BTTFN_REMCMD_PS        102
+#define BTTFN_REMCMD_DGREFILL  103
 #define BTTFN_SSRC_NONE         0
 #define BTTFN_SSRC_GPS          1
 #define BTTFN_SSRC_ROTENC       2
@@ -538,7 +538,7 @@ static void showBaseLine(int variation = 20, uint16_t flags = 0);
 static bool showIdle(bool freezeBaseLine = false);
 static void play_startup();
 static void show_ts();
-static void timeTravel(bool TCDtriggered, uint16_t P0Dur, uint16_t P1Dur = 0);
+static void timeTravel(bool TCDtriggered, uint16_t P0Dur = P0_DUR, uint16_t P1Dur = 0);
 
 static void fadeOut();
 static void showChar(const char text);
@@ -615,8 +615,8 @@ void main_setup()
         maxIRctrls--;
     
     // Determine if Time Circuits Display is connected
-    // via wire, and is source of GPIO tt trigger
-    TCDconnected = evalBool(settings.TCDpresent);
+    // by wire and is source of GPIO tt trigger
+    TCDbyWire = evalBool(settings.TCDpresent);
     noETTOLead = evalBool(settings.noETTOLead);
 
     for(int i = 0; i < BTTFN_REM_MAX_COMMAND+1; i++) {
@@ -629,7 +629,7 @@ void main_setup()
 
     // Set up TT button / TCD trigger
     TTKey.attachPress(TTKeyPressed);
-    if(!TCDconnected) {
+    if(!TCDbyWire) {
         // If we are in fact a physical button, we need
         // reasonable values for debounce and press
         TTKey.setTiming(TT_DEBOUNCE, TT_PRESS_TIME, TT_HOLD_TIME);
@@ -901,7 +901,7 @@ void main_loop()
     } else if(isTTKeyPressed) {
         isTTKeyPressed = false;
         if(FPBUnitIsOn && !TTrunning) {
-            if(!TCDconnected && ssActive) {
+            if(!TCDbyWire && ssActive) {
                 // First button press when ss is active only deactivates SS
                 ssEnd();
             } else if(IRLearning) {
@@ -910,11 +910,12 @@ void main_loop()
                 Serial.println("main_loop: IR learning aborted");
                 #endif
             } else {
-                if(TCDconnected) {
+                if(TCDbyWire) {
                     ssEnd();
                 }
-                if(TCDconnected || !bttfnTT || !bttfn_trigger_tt()) {
-                    timeTravel(TCDconnected, (TCDconnected && noETTOLead) ? 0 : ETTO_LEAD);
+                if(TCDbyWire || !bttfnTT || !bttfn_trigger_tt()) {
+                    // P0 parm ignored for stand-alone TT
+                    timeTravel(TCDbyWire, noETTOLead ? 0 : ETTO_LEAD);
                 }
             }
         }
@@ -926,7 +927,7 @@ void main_loop()
         if(FPBUnitIsOn && !TTrunning) {
             if(!networkAbort) {
                 ssEnd();
-                timeTravel(networkTCDTT, networkLead, networkP1);
+                timeTravel(true, networkLead, networkP1);
             }
         }
     }
@@ -1047,10 +1048,10 @@ void main_loop()
             }
             if(TTP1) {   // Peak/"time tunnel" - ends with pin going LOW or MQTT "REENTRY" (or a long timeout)
 
-                if(((networkTCDTT && (!networkReentry && !networkAbort)) || 
-                  (!networkTCDTT && digitalRead(TT_IN_PIN)))               &&
-                  (millis() - TTstart <  P1_maxtimeout) ) {
-
+                if(((!TCDbyWire && !networkReentry && !networkAbort) || 
+                    (TCDbyWire && digitalRead(TT_IN_PIN)))               &&
+                   (millis() - TTstart <  P1_maxtimeout) ) {
+                    
                     if(TTFInt && (now - TTfUpdNow >= TTFInt)) {
                         if(TTLMTrigger) {
                             TTLMIdx++;
@@ -1897,8 +1898,8 @@ static void timeTravel(bool TCDtriggered, uint16_t P0Dur, uint16_t P1Dur)
     }
     TTsidBaseLineIdx = sidBaseLine;
     
-    if(TCDtriggered) {    // TCD-triggered TT (GPIO, BTTFN or MQTT) (synced with TCD)
-        extTT = true;
+    if((extTT = TCDtriggered)) {    
+        // TCD-triggered TT (BTTFN, MQTT-pub, GPIO) (synced with TCD)
         P0duration = P0Dur;
         #ifdef SID_DBG
         Serial.printf("P0 duration is %d\n", P0duration);
@@ -1920,8 +1921,8 @@ static void timeTravel(bool TCDtriggered, uint16_t P0Dur, uint16_t P1Dur)
             TTFInt = 0;
             TTFDelay = 0;
         }
-    } else {              // button/IR-triggered TT (stand-alone)
-        extTT = false;
+    } else {              
+        // button/IR/MQTT-cmd triggered TT (stand-alone)
         TTFDelay = 2500;
         if(TTcnt > 0) {
             TTFInt = (P0_DUR - TTFDelay) / (TTcnt + 1);
@@ -2360,7 +2361,7 @@ static void handleIRKey(int key)
     }
     
     switch(key) {
-    case 0:                           // 0: time travel           si: fall down   sn: -
+    case 0:                           // 0: time travel    si: fall down   sn: -
         if(irLocked) return;
         if(siActive) {
             si_fallDown();
@@ -2368,7 +2369,7 @@ static void handleIRKey(int key)
             // Nothing
         } else {
             if(!bttfnTT || !bttfn_trigger_tt()) {
-                timeTravel(false, ETTO_LEAD);
+                timeTravel(false);
             }
         }
         break;
@@ -2406,12 +2407,14 @@ static void handleIRKey(int key)
     case 8:                           // 8:
         if(irLocked) return;
         break;
-    case 9:                           // 9: si/sn: quit
+    case 9:                           // 9: send REFILL     si/sn: quit
         if(irLocked) return;
         if(siActive) {
             siddly_stop(); 
         } else if(snActive) {
             snake_stop(); 
+        } else {
+            bttfn_send_command(BTTFN_REMCMD_DGREFILL, 0, 0);
         }
         break;
     case 10:                          // * - start code input
@@ -2507,7 +2510,7 @@ static void handleIRKey(int key)
     }
 
     if(doInpReaction < 0) {
-        if(doInpReaction < -1 || TTrunning || siActive || snActive) {
+        if(doInpReaction < -10 || TTrunning || siActive || snActive) {
             startIRErrFeedback();
         } else {
             sid.specialSig(SID_SS_IRBADINP);
@@ -2637,7 +2640,7 @@ static void handleRemoteCommand()
 
     // Remote commands do not show generic positive IR feedback
     if(doInpReaction < 0) {
-        if(doInpReaction < -1 || TTrunning || siActive || snActive) {
+        if(doInpReaction < -10 || TTrunning || siActive || snActive) {
             startIRErrFeedback();
         } else {
             sid.specialSig(SID_SS_IRBADINP);
@@ -2869,19 +2872,25 @@ static int execute(bool isIR, bool injected)
                 case 991:
                     if(!injected) {
                         if(!TTrunning) {
-                            bool ocm = carMode;          
+                            bool ocm = carMode;
+                            inputReaction = 1;         
                             if(temp == 991) {
                                 if(*settings.cm_ssid) carMode = true;
+                                else inputReaction = -1;
                             } else {
                                 carMode = false;
                             }
                             if(ocm != carMode) {
                                 saveCarMode();
+                                if(isIR && irShowPosFBDisplay) {
+                                    sid.specialSig(SID_SS_IROK);
+                                    sid.show();
+                                    delay(1000);
+                                }
                                 prepareReboot();
                                 delay(1000);
                                 esp_restart();
                             }
-                            inputReaction = 1;
                         } else inputReaction = -1;
                     }
                     break;
@@ -2894,7 +2903,7 @@ static int execute(bool isIR, bool injected)
 
     case 4:                                               // 1000 - 9999 MQTT commands
 
-        #ifdef SID_HAVEMQTT
+        #ifdef HAVE_MQTT
         if(!isIR && !injected) {
                   
             temp = atoi(inputBuffer) - 1000;
@@ -2903,7 +2912,7 @@ static int execute(bool isIR, bool injected)
             case 0:
                 // Trigger stand-alone Time Travel
                 if(!TTrunning) {
-                    timeTravel(false, ETTO_LEAD);
+                    timeTravel(false);
                 }
                 break;
             }
@@ -2922,6 +2931,11 @@ static int execute(bool isIR, bool injected)
                 break;
             case 64738:
                 if(!injected) {
+                    if(isIR && irShowPosFBDisplay) {
+                        sid.specialSig(SID_SS_IROK);
+                        sid.show();
+                        delay(1000);
+                    }
                     prepareReboot();
                     delay(1000);
                     esp_restart();
@@ -3132,6 +3146,7 @@ void copyIRarray(uint32_t *irkeys, int index)
 
 void prepareReboot()
 {
+    wifiMDNSGoodBye();
     allOff();
     endIRfeedback();
     setTTOUT(LOW);
@@ -3455,11 +3470,9 @@ static void handle_tcd_notification(uint8_t *buf)
     case BTTFN_NOT_TT:
         // Trigger Time Travel (if not running already)
         // Ignore command if TCD is connected by wire
-        if(!TCDconnected && !TTrunning && !IRLearning && !sidBusy) {
+        if(!TCDbyWire && !TTrunning && !IRLearning && !sidBusy) {
             networkTimeTravel = true;
-            networkTCDTT = true;
-            networkReentry = false;
-            networkAbort = false;
+            networkReentry = networkAbort = false;
             networkLead = buf[6] | (buf[7] << 8);
             networkP1 = buf[8] | (buf[9] << 8);
         }
@@ -3467,7 +3480,7 @@ static void handle_tcd_notification(uint8_t *buf)
     case BTTFN_NOT_REENTRY:
         // Start re-entry (if TT currently running)
         // Ignore command if TCD is connected by wire
-        if(!TCDconnected && networkTCDTT) {
+        if(!TCDbyWire) {
             if(TTrunning) networkReentry = true;
             else networkTimeTravel = false;
         }
@@ -3475,7 +3488,7 @@ static void handle_tcd_notification(uint8_t *buf)
     case BTTFN_NOT_ABORT_TT:
         // Abort TT (if TT currently running)
         // Ignore command if TCD is connected by wire
-        if(!TCDconnected && (TTrunning || networkTimeTravel) && networkTCDTT) {
+        if(!TCDbyWire && (TTrunning || networkTimeTravel)) {
             networkAbort = true;
         }
         break;

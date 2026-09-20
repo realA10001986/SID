@@ -62,6 +62,8 @@ bool wifiOnWillBlock();
 void wifiStartCP();
 bool updateAvailable();
 
+void wifiMDNSGoodBye();
+
 void updateConfigPortalStrictValue();
 void updateConfigPortalSAValues();
 void updateConfigPortalIRFBValues();

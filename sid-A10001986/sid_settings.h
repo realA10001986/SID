@@ -180,7 +180,7 @@ struct Settings {
 
     char disDIR[2]          = MS(DEF_DISDIR);
 
-#ifdef SID_HAVEMQTT  
+#ifdef HAVE_MQTT  
     char useMQTT[2]         = "0";
     char mqttVers[2]        = "0"; // 0 = 3.1.1, 1 = 5.0
     char mqttServer[80]     = "";  // ip or domain [:port]  
