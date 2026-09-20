@@ -191,18 +191,18 @@ In order to only disable the supplied IR remote control, check the option **_Dis
      <td align="center" colspan="3">Single key actions</td>
     </tr>
     <tr>
-     <td align="center"><code>1</code><br>Games: New game</td>
-     <td align="center"><code>2</code><br>-</td>
-     <td align="center"><code>3</code><br>-</a></td>
+     <td align="center"><code>1</code><br>Games: New game<br>br></td>
+     <td align="center"><code>2</code><br>-<br>br></td>
+     <td align="center"><code>3</code><br>-<br>br></a></td>
     </tr>
     <tr>
-     <td align="center"><code>4</code><br>-</td>
-     <td align="center"><code>5</code><br>Games: Pause</td>
-     <td align="center"><code>6</code><br>-</td>
+     <td align="center"><code>4</code><br>-<br>br></td>
+     <td align="center"><code>5</code><br>Games: Pause<br>br></td>
+     <td align="center"><code>6</code><br>-<br>br></td>
     </tr>
     <tr>
-     <td align="center"><code>7</code><br>-</td>
-     <td align="center"><code>8</code><br>-</td>
+     <td align="center"><code>7</code><br>-<br>br></td>
+     <td align="center"><code>8</code><br>-<br>br></td>
      <td align="center"><code>9</code><br>Refill Plutonium<sup>2</sup><br>Games: Quit</td>
     </tr>
     <tr>
@@ -342,7 +342,7 @@ In order to only disable the supplied IR remote control, check the option **_Dis
     </tr>
 </table>
 
-1: Not supported through HA/MQTT [_INJECT_](#the-inject_x-command) command
+1: Not supported through HA/MQTT [_INJECT_](#the-inject_x-command) command<br/>
 2: Refills the "Plutonium Chamber". Requires TCD (3.27+) and [Dash Gauges](https://dg.out-a-ti.me).
 
 [Here](CheatSheet.pdf) is a cheat sheet for printing or screen-use.
