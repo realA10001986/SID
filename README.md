@@ -408,7 +408,7 @@ BTTFN requires the props all to be connected to the same network, such as, for e
 
 </details>
 
-To connect your SID to the TCD, just enter the TCD's hostname - usually "timecircuits" - in the **_Hostname or IP address of TCD_** field in the SID's Config Portal. On the TCD, no special configuration is required. 
+To connect your SID to the TCD, just enter the TCD's hostname - usually "timecircuits" - in the **_Hostname of TCD_** field in the SID's Config Portal. On the TCD, no special configuration is required. 
 
 Afterwards, the SID and the TCD can communicate wirelessly and 
 - play time travel sequences in sync,
@@ -533,7 +533,7 @@ This configuration can easily be achieved by putting both the TCD and the SID in
 #### SID
 
 One-time configuration steps:
-- Enter the Config Portal on the SID, click on *Settings* and check that the hostname of the TCD (usually "timecircuits") is present in the  **_Hostname or IP address of TCD_** under *Wireless communication (BTTF-Network)* settings; do not use an IP address.
+- Enter the Config Portal on the SID, click on *Settings* and check that the hostname of the TCD (usually "timecircuits") is present in the  **_Hostname of TCD_** under *Wireless communication (BTTF-Network)* settings.
 - Furthermore, on the *WiFi Configuration* page, check that the TCD's WiFi network name (SSID; usually "TCD-AP") and password (if the TCD is configured with a password) are present under *Car mode settings*.
 
 If everything is in place, you can enable Car mode on the SID by typing ```*991ok``` on the remote. The SID will reboot and attempt to connect to the TCD's AP.
