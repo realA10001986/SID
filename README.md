@@ -192,17 +192,17 @@ In order to only disable the supplied IR remote control, check the option **_Dis
     </tr>
     <tr>
      <td align="center"><code>1</code><br>Games: New game<br>br></td>
-     <td align="center"><code>2</code><br>-<br>br></td>
-     <td align="center"><code>3</code><br>-<br>br></a></td>
+     <td align="center"><code>2</code><br>-<br><br></td>
+     <td align="center"><code>3</code><br>-<br><br></a></td>
     </tr>
     <tr>
-     <td align="center"><code>4</code><br>-<br>br></td>
-     <td align="center"><code>5</code><br>Games: Pause<br>br></td>
-     <td align="center"><code>6</code><br>-<br>br></td>
+     <td align="center"><code>4</code><br>-<br><br></td>
+     <td align="center"><code>5</code><br>Games: Pause<br><br></td>
+     <td align="center"><code>6</code><br>-<br><br></td>
     </tr>
     <tr>
-     <td align="center"><code>7</code><br>-<br>br></td>
-     <td align="center"><code>8</code><br>-<br>br></td>
+     <td align="center"><code>7</code><br>-<br><br></td>
+     <td align="center"><code>8</code><br>-<br><br></td>
      <td align="center"><code>9</code><br>Refill Plutonium<sup>2</sup><br>Games: Quit</td>
     </tr>
     <tr>
