@@ -191,7 +191,7 @@ In order to only disable the supplied IR remote control, check the option **_Dis
      <td align="center" colspan="3">Single key actions</td>
     </tr>
     <tr>
-     <td align="center"><code>1</code><br>Games: New game<br<>br></td>
+     <td align="center"><code>1</code><br>Games: New game<br><br></td>
      <td align="center"><code>2</code><br>-<br><br></td>
      <td align="center"><code>3</code><br>-<br><br></a></td>
     </tr>
