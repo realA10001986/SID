@@ -203,7 +203,7 @@ In order to only disable the supplied IR remote control, check the option **_Dis
     <tr>
      <td align="center"><code>7</code><br>-</td>
      <td align="center"><code>8</code><br>-</td>
-     <td align="center"><code>9</code><br>Games: Quit</td>
+     <td align="center"><code>9</code><br>Refill Plutonium<sup>2</sup><br>Games: Quit</td>
     </tr>
     <tr>
      <td align="center"><code>*</code><br>Start command sequence</td>
@@ -343,6 +343,7 @@ In order to only disable the supplied IR remote control, check the option **_Dis
 </table>
 
 1: Not supported through HA/MQTT [_INJECT_](#the-inject_x-command) command
+2: Refills the "Plutonium Chamber". Requires TCD (3.27+) and [Dash Gauges](https://dg.out-a-ti.me).
 
 [Here](CheatSheet.pdf) is a cheat sheet for printing or screen-use.
 
