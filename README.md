@@ -178,7 +178,7 @@ To make the SID forget a learned IR remote control, type ```*654321ok```.
 
 ### Locking IR Control
 
-You can have your SID ignore IR commands from any IR remote control (be it the supplied standard one, be it one you had your SID learn) by entering ```*71ok```. After this sequence, the SID will ignore all IR commands until ```*71ok``` is entered again. The purpose of this function is to enable you to use the same remote for your SID and other props.
+You can have your SID ignore IR commands from any IR remote control (be it the supplied one, be it one you had your SID learn) by entering ```*71ok```. After this sequence, the SID will ignore all IR commands until ```*71ok``` is entered again. The purpose of this function is to enable you to use the same remote for your SID and other props.
 
 The status of the IR lock is saved 10 seconds after its last change, and is persistent across reboots.
 
