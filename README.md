@@ -725,7 +725,7 @@ If this option is checked and your TCD is equipped with a GPS receiver or a rota
 
 ##### &#9193; Follow TCD fake power
 
-If this option is checked, and your TCD is equipped with a fake power switch, the SID will also fake-power up/down. If fake power is off, no LED is active and the SID will ignore all input from buttons, knobs and the IR control.
+If this option is checked, and your TCD is equipped with a fake power switch, the SID will also fake-power up/down. If fake power is off, no LED is active and the SID will ignore all input from buttons and the IR control.
 
 ##### &#9193; Follow TCD night-mode
 
