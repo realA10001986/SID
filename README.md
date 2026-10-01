@@ -31,7 +31,7 @@ For information on updating the firmware of your SID, see [here](#firmware-insta
 
 >The following instructions only need to be followed once, on fresh SIDs. They do not need to be repeated after a firmware update.
 
-The first step is to put a **good-quality** ("endurance", "long life", ...) **microSD card into the card slot**. The maximum size is 32GB and the card must be FAT32 formatted. [More information](#sd-card)
+The first step is to put a **good-quality** ("endurance", "long life", ...) **and empty microSD card into the card slot**. The maximum size is 32GB and the card must be FAT32 formatted. [More information](#sd-card)
 
 The second step is to establish access to the SID's configuration website ("Config Portal") in order to configure your SID:
 
