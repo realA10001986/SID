@@ -553,7 +553,7 @@ After WiFi has been switched off due to timer expiration, it can be re-enabled b
 To update the firmware of your SID, 
 - download the firmware file provided in the [Release package](https://github.com/realA10001986/SID/releases) ("**sid-A10001986-Vx.xx.bin**" for A10001986 releases, "**SID_vX.YY.bin**" for CircuitSetup releases)
 - enter the [Config Portal](#the-config-portal),
-- click on "Update & Upload",
+- click on "Update",
 - select the downloaded firmware file in the _top_ file selector, and
 - click on *Update*.
 
