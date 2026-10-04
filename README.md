@@ -19,7 +19,6 @@ Features include
 - [Wireless communication](#bttf-network-bttfn) with [Time Circuits Display](https://circuitsetup.us/product/complete-time-circuits-display-kit/); used for synchronized time travels, speed-adapted patterns, alarm, night mode, fake power, remote control of SID through TCD keypad and [remote controlling](#remote-controlling-the-tcds-keypad) the TCD keypad.
 - [Home Assistant](#home-assistant--mqtt) (MQTT) support
 - [*Siddly*](#siddly) and [*Snake*](#snake) games
-- [SD card](#sd-card) support
 - built-in OTA installer for firmware updates
 - &#128007; &#129370; &#129370; &#127381;
 
@@ -29,9 +28,9 @@ For information on updating the firmware of your SID, see [here](#firmware-insta
 
 ## Initial Configuration
 
->The following instructions only need to be followed once, on fresh SIDs. They do not need to be repeated after a firmware update.
+**Some functions of your SID require an SD card.** The first step is therefore to put a **good-quality** ("endurance", "industrial", "long life", ...) **and empty microSD card into the card slot**. The SD card must be inserted before powering up the SID. It is not recognized if inserted while the SID is running. Furthermore, do not remove the SD card while the SID is powered.
 
-The first step is to put a **good-quality** ("endurance", "industrial", "long life", ...) **and empty microSD card into the card slot**. The maximum size is 32GB and the card must be FAT32 formatted. [More information](#sd-card)
+>SD/SDHC/SDXC cards up to 32GB are supported. The card needs to be FAT32-formatted (not exFAT). Transcend, Sandisk Ultra and Industrial, Verbatim Premium and Samsung Pro Endurance SDHC cards usually work fine. Some SD cards might not be recognized due to off-specs initialization quirks. SDUC cards are not supported.
 
 The second step is to establish access to the SID's configuration website ("Config Portal") in order to configure your SID:
 
@@ -377,14 +376,6 @@ Siddly is a simple game where puzzle pieces of various shapes fall down from the
 
 Snakes like apples (at least so I have heard). You control a snake that feels a profound urge to eat apples. After each eaten apple, the snake grows, and a new apple appears. Unfortunately, snakes don't like to hit their heads, so you need to watch out that the snake's head doesn't collide with its body.
 
-## SD Card
-
->Only SD/SDHC/SDXC cards up to 32GB are supported. Card needs to be FAT32-formatted (not exFAT). Transcend, Sandisk Ultra (as of firmware version 1.74) and Industrial, Verbatim Premium and Samsung Pro Endurance SDHC cards usually work fine. Some SD cards might not be recognized due to off-specs initialization quirks. SDUC cards are not supported.
-
-The SD card is used for saving [secondary settings](#-save-secondary-settings-on-sd), to avoid [Flash Wear](#flash-wear) on the SID's CPU. For instance, the chosen idle pattern (```*1x```), and the running state of the Spectrum Analyzer, is only stored on SD, so for your selection to be persistent across reboots, an SD card is required.
-
-The SD card must be inserted before powering up the device. It is not recognized if inserted while the SID is running. Furthermore, do not remove the SD card while the device is powered.
-
 ## Connecting a Time Circuits Display
 
 ### BTTF-Network ("BTTFN")
@@ -557,15 +548,14 @@ After WiFi has been switched off due to timer expiration, it can be re-enabled b
 
 > This command is also used to trigger a re-connection attempt in case your configured WiFi network was not available when the SID was trying to connect, see [here](#home-setup-with-a-pre-existing-local-wifi-network).
 
-## Flash Wear
-
-Flash memory has a somewhat limited lifetime. It can be written to only between 10.000 and 100.000 times before becoming unreliable. The firmware writes to the internal flash memory when saving settings and other data. Every time you change settings, data is written to flash memory.
-
-In order to reduce the number of write operations and thereby prolong the life of your SID, it is recommended to use a good-quality SD card and to check **_["Save secondary settings on SD"](#-save-secondary-settings-on-sd)_** in the Config Portal; some settings as well as learned IR codes are then stored on the SD card (which also suffers from wear but is easy to replace). See [here](#-save-secondary-settings-on-sd) for more information.
-
 ## Firmware Installation / Firmware Update
 
-To update the firmware of your SID, enter the [Config Portal](#the-config-portal), click on "Update", select the pre-compiled binary file ("**sid-A10001986-Vx.xx.bin**" or "**SID_vX.YY.bin**") provided in the [Release package](https://github.com/realA10001986/SID/releases) and click on *Update*.
+To update the firmware of your SID, 
+- download the firmware file provided in the [Release package](https://github.com/realA10001986/SID/releases) ("**sid-A10001986-Vx.xx.bin**" for A10001986 releases, "**SID_vX.YY.bin**" for CircuitSetup releases)
+- enter the [Config Portal](#the-config-portal),
+- click on "Update & Upload",
+- select the downloaded firmware file in the _top_ file selector, and
+- click on *Update*.
 
 <details>
 <summary>Installing on a fresh ESP32...</summary>
@@ -765,18 +755,14 @@ If your SID is connected wirelessly, this option has no effect.
 
 ##### &#9193; Save secondary settings on SD
 
-If this is checked, secondary settings (brightness, IR lock status, learned IR keys) are stored on the SD card (if one is present). This helps to minimize write operations to the internal flash memory and to prolong the lifetime of your SID. See [Flash Wear](#flash-wear).
+_Please leave this option checked. It is safe to have this option checked even with no SD card present._
 
-Apart from Flash Wear, there is another reason for using an SD card for settings: Writing data to internal flash memory can cause delays of up to 1.5 seconds, which interrupt sequences and have other undesired effects. The SID needs to save data from time to time, so for a smooth experience without unexpected and unwanted delays, please use an SD card and check this option.
-
-It is safe to have this option checked even with no SD card present.
+If this is checked, some settings are stored on the SD card. This helps to minimize write operations to the internal flash memory and to prolong the lifetime of your SID. Apart from Flash Wear, there is another reason for using an SD card for settings: The SID needs to save data from time to time. Writing data to internal flash memory can cause delays of up to 1.5 seconds, which might have undesired effects.
 
 If you want copy settings from one SD card to another, do as follows:
 - With the old SD card still in the slot, enter the Config Portal, turn off _Save secondary settings on SD_, and click "SAVE".
 - After the SID has rebooted, power it down, and swap the SD card for your new one.
 - Power-up the SID, enter the Config Portal, re-enable _Save secondary settings on SD_, and click "SAVE".
-
-This procedure ensures that all your settings are copied from the old to the new SD card.
 
 #### <ins>Hardware configuration settings</ins>
 
