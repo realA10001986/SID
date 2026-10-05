@@ -22,7 +22,7 @@ Features include
 - built-in OTA installer for firmware updates
 - &#128007; &#129370; &#129370; &#127381;
 
->This [repository](https://sid.out-a-ti.me) is the upstream source for CircuitSetup's releases. The only difference is that both code and documentation [here](https://sid.out-a-ti.me) might be ahead in development.
+>The [A10001986 repository](https://sid.out-a-ti.me) is the upstream source for CircuitSetup's releases. There are no differences between A10001986 and CircuitSetup releases of the same version.
 
 For information on updating the firmware of your SID, see [here](#firmware-installation--firmware-update).
 
@@ -551,7 +551,7 @@ After WiFi has been switched off due to timer expiration, it can be re-enabled b
 ## Firmware Installation / Firmware Update
 
 To update the firmware of your SID, 
-- download the firmware file provided in the [Release package](https://github.com/realA10001986/SID/releases) ("**sid-A10001986-Vx.xx.bin**" for A10001986 releases, "**SID_vX.YY.bin**" for CircuitSetup releases)
+- download the firmware file provided in the [Release package](https://github.com/realA10001986/SID/releases/latest) ("**sid-A10001986-Vx.xx.bin**" for A10001986 releases, "**SID_vX.YY.bin**" for CircuitSetup releases)
 - enter the [Config Portal](#the-config-portal),
 - click on "Update",
 - select the downloaded firmware file in the _top_ file selector, and
@@ -561,8 +561,6 @@ To update the firmware of your SID,
 <summary>Installing on a fresh ESP32...</summary>
 If you are using a fresh ESP32, please go <a href="https://install.out-a-ti.me">here</a> and follow the instructions, or - if you are a nerd and want to deal with source code, compilers'n'stuff - see _sid-A10001986.ino_ for detailed build and upload information.
 </details>
-
-*After a firmware update, a "wait" symbol (hourglass) might be shown for a short while after reboot. Do NOT unplug the device during this time.*
 
 ---
 
