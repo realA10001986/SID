@@ -562,6 +562,14 @@ To update the firmware of your SID,
 If you are using a fresh ESP32, please go <a href="https://install.out-a-ti.me">here</a> and follow the instructions, or - if you are a nerd and want to deal with source code, compilers'n'stuff - see _sid-A10001986.ino_ for detailed build and upload information.
 </details>
 
+<!--
+## Factory Reset
+
+To reset your SID to factory default settings, issue command sequence ```*697159ok``` twice in a row. The SID will reboot in AP-mode.
+
+-->
+
+
 ---
 
 ## Appendix A: The Config Portal
