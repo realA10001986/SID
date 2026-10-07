@@ -565,7 +565,9 @@ If you are using a fresh ESP32, please go <a href="https://install.out-a-ti.me">
 <!--
 ## Factory Reset
 
-To reset your SID to factory default settings, issue command sequence ```*697159ok``` twice in a row. The SID will reboot in AP-mode.
+To reset your SID to factory default settings, issue command sequence ```*697159ok``` twice in a row. 
+
+Since any configured WiFi connection is deleted as well, the SID will reboot in AP-mode.
 
 -->
 
