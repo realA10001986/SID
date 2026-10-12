@@ -333,6 +333,16 @@ In order to only disable the supplied IR remote control, check the option **_Dis
      <td align="left">Delete static IP address<br>and WiFi-AP password<sup>1</sup></td>
      <td align="left"><code>*123456ok</code></td><td><code>6123456</code></td>
     </tr>
+       <!--
+     <tr>
+     <td align="left">Delete SID-AP password<sup>1</sup></td>
+     <td align="left"><code>*123456ok</code></td><td><code>6123456</code></td>
+     </tr>
+    <tr>
+     <td align="left">Delete static IP configuration<sup>1</sup></td>
+     <td align="left"><code>*123457ok</code></td><td><code>6123457</code></td>
+     </tr>
+       -->
     <tr>
      <td align="left">Start IR remote <a href="#ir-learning">learning process</a><sup>1</sup></td>
      <td align="left"><code>*987654ok</code></td><td><code>6987654</code></td>
