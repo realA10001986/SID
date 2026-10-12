@@ -72,7 +72,7 @@ Click on "WiFi Configuration" and either select a network from the top of the pa
   
 >If there are several APs with identical SSID nearby, you can select a specific AP by its BSSID (AP's MAC address). You can either manually find out your AP's BSSID and enter it or have it filled out automatically: Click "Scan for networks", then "Show all". If you click on an AP, its BSSID will be copied into BSSID field in the form below. To see which AP is which, hover over the name to see its BSSID as a tooltip.
 
->Your SID requests an IP address via DHCP, unless you entered valid data in the fields for static IP addresses (IP, gateway, netmask, DNS). If the device is inaccessible as a result of incorrect static IPs, wait until it has completed its startup sequence, then type ```*123456ok``` on the IR remote; static IP data will be deleted and the device will return to DHCP after a reboot.
+>Your SID requests an IP address via DHCP, unless you entered valid data in the fields for static IP addresses (IP, gateway, netmask, DNS). If the device is inaccessible as a result of incorrect static IPs, wait until it has completed its startup sequence, then type ```*123456ok```<!--```*123457ok```--> on the IR remote; static IP data will be deleted and the device will return to DHCP after a reboot.
 
 </details>
 
@@ -649,7 +649,7 @@ By default, when your SID creates a WiFi network of its own ("AP-mode"), this ne
 
 By default, and if this field is empty, the SID's own WiFi network ("SID-AP") will be unprotected. If you want to protect your SID access point, enter your password here. It needs to be 8 characters in length and only characters A-Z, a-z, 0-9 and - are allowed.
 
-If you forget this password and are thereby locked out of your SID, enter ```*123456ok``` on the IR remote control; this deletes the WiFi password. Then power-down and power-up your SID and the access point will start unprotected.
+If you forget this password and are thereby locked out of your SID, enter ```*123456ok``` on the IR remote control; this deletes the WiFi password. Then power-down and power-up your SID and the access point will start unprotected.<!-- automatic reboot-->
 
 ##### &#9193; WiFi channel
 
