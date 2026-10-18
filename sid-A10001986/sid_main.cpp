@@ -4,6 +4,7 @@
  * (C) 2023-2026 Thomas Winischhofer (A10001986)
  * https://github.com/realA10001986/SID
  * https://sid.out-a-ti.me
+ * This code was written without the use of artificial intelligence.
  *
  * Main controller
  *
@@ -327,6 +328,8 @@ static bool          fpoOld = false;
 bool                 FPBUnitIsOn = true;
 int                  blockScan = 0;
 
+static bool          restoreToFact = false;
+
 /*
  * Leave first two columns at 0 here, those will be filled
  * by a user-provided ir_keys.txt file on the SD card, and 
@@ -465,6 +468,7 @@ static uint32_t      BTTFUDPID    = 0;
 static unsigned long lastBTTFNpacket = 0;
 static unsigned long lastBTTFNKA = 0;
 static unsigned long bttfnLastNotData = 0;
+static unsigned long BTTFNstartPolling = 0;
 static bool          BTTFNBootTO = false;
 static bool          haveTCDIP = false;
 static IPAddress     bttfnTcdIP;
@@ -480,6 +484,7 @@ static bool          TCDSupportsNOTData = false;
 static bool          TCDSupportsSSID = false;
 static bool          TCDhasTS = false;
 static bool          bttfnDataNotEnabled = false;
+static bool          BTTFNstopGrowInt = false;
 static uint32_t      tcdHostNameHash = 0;
 static byte          BTTFMCBuf[BTTF_PACKET_SIZE];
 static IPAddress     bttfnMcIP(224, 0, 0, 224);
@@ -1361,6 +1366,8 @@ void main_loop()
             remoteAllowed = remMode = remHoldKey = false;
             tcdSpeed = -1;
             lastBTTFNpacket = 0;
+            BTTFNstartPolling = millis();
+            BTTFNstopGrowInt = false;
             BTTFNBootTO = true;
         }
     }
@@ -2656,6 +2663,7 @@ static int execute(bool isIR, bool injected)
 {
     int  inputReaction = 0;
     bool isIRLocked = (isIR && !injected) ? irLocked : false;
+    bool oldRestoreToFact = restoreToFact;
     uint16_t temp;
     unsigned long now = millisNonZero();
 
@@ -2950,24 +2958,62 @@ static int execute(bool isIR, bool injected)
     case 6:
         if(!isIRLocked) {
             if(!TTrunning) {
-                if(!strcmp(inputBuffer, "123456") && !injected) {
-                    flushDelayedSave();
-                    deleteIpSettings();               // *123456OK deletes IP settings
-                    if(settings.appw[0]) {
-                        settings.appw[0] = 0;         //           and clears AP mode WiFi password
-                        write_settings();
+                if(!injected) {
+                    if(!strncmp(inputBuffer, "12345", 5)) {
+                        bool reb = false;
+                        switch(inputBuffer[5]) {
+                        case '6':                           // *123456ok deletes SID-AP password (and reboots if applicable)
+                            inputReaction = 1;
+                            if(settings.appw[0]) {
+                                settings.appw[0] = 0;
+                                write_settings();
+                                if(wifiInAPMode) reb = true;
+                            }
+                            break;
+                        case '7':                           // *123457ok deletes static IP config (and reboots if applicable)
+                            inputReaction = 1;
+                            reb = deleteIpSettings();
+                            break;
+                        }
+                        flushDelayedSave();
+                        if(reb) {
+                            if(isIR && irShowPosFBDisplay) {
+                                sid.specialSig(SID_SS_IROK);
+                                sid.show();
+                                delay(1000);
+                            }
+                            prepareReboot();
+                            delay(1000);
+                            esp_restart();
+                        }
+                    } else if(!strcmp(inputBuffer, "654321")) {
+                        deleteIRKeys();                   // *654321ok deletes learned IR remote
+                        for(int i = 0; i < NUM_IR_KEYS; i++) {
+                            remote_codes[i][REM_KEYS_LEARNED] = 0;
+                        }
+                        inputReaction = 1;
+                    } else if(!strcmp(inputBuffer, "987654")) {
+                        triggerIRLN = true;               // *987654ok initates IR learning. Timer for showing command feedback a bit.
+                        triggerIRLNNow = millis();
+                        inputReaction = 1;
+                    } else if(!strcmp(inputBuffer, "697159")) {
+                        if(!restoreToFact) {              // *697159ok restores factory defaults
+                            restoreToFact = true;         // (needs to be entered twice)
+                            inputReaction = 1;
+                        } else {
+                            if(isIR && irShowPosFBDisplay) {
+                                sid.specialSig(SID_SS_IROK);
+                                sid.show();
+                                delay(1000);
+                            }
+                            resettofactorydefault();
+                            prepareReboot();
+                            delay(1000);
+                            esp_restart();
+                        }
+                    } else {
+                        inputReaction = -1;
                     }
-                    inputReaction = 1;
-                } else if(!strcmp(inputBuffer, "654321") && !injected) {
-                    deleteIRKeys();                   // *654321OK deletes learned IR remote
-                    for(int i = 0; i < NUM_IR_KEYS; i++) {
-                        remote_codes[i][REM_KEYS_LEARNED] = 0;
-                    }
-                    inputReaction = 1;
-                } else if(!strcmp(inputBuffer, "987654") && !injected) {
-                    triggerIRLN = true;               // *987654OK initates IR learning. Timer for showing command feedback a bit.
-                    triggerIRLNNow = millis();
-                    inputReaction = 1;
                 } else {
                     inputReaction = -1;
                 }
@@ -2979,6 +3025,9 @@ static int execute(bool isIR, bool injected)
             inputReaction = -1;
         }
     }
+
+    if(oldRestoreToFact == restoreToFact)
+        restoreToFact = false;
     
     return inputReaction;
 }
@@ -3721,6 +3770,27 @@ static bool BTTFNSendRequest()
     return true;
 }
 
+static unsigned long BTTFNCalcPollInterval()
+{
+    if(!lastBTTFNpacket) {
+        // We never received anything. Grow polling interval
+        if(!BTTFNstopGrowInt) {
+            unsigned long pollingTime = millis() - BTTFNstartPolling;
+            if(pollingTime < 5*60*1000) {
+                return BTTFN_POLL_INT;
+            } else if(pollingTime < 10*60*1000) {
+                return BTTFN_POLL_INT * 3;
+            } else if(pollingTime < 30*60*1000) {
+                return BTTFN_POLL_INT * 6;
+            }
+            BTTFNstopGrowInt = true;
+        }
+        return BTTFN_POLL_INT * 30;
+    }
+
+    return bttfnSIDPollInt;
+}
+
 static bool bttfn_connected()
 {
     if(!useBTTFN)
@@ -3864,7 +3934,7 @@ void bttfn_loop()
         if(!BTTFNWiFiUp && (WiFi.status() == WL_CONNECTED)) {
             BTTFNUpdateNow = 0;
         }
-        if((!BTTFNUpdateNow) || (now - BTTFNUpdateNow > bttfnSIDPollInt)) {
+        if((!BTTFNUpdateNow) || (now - BTTFNUpdateNow > BTTFNCalcPollInterval())) {
             BTTFNSendRequest();
         }
     }

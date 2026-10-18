@@ -4,6 +4,7 @@
  * (C) 2023-2026 Thomas Winischhofer (A10001986)
  * https://github.com/realA10001986/SID
  * https://sid.out-a-ti.me
+ * This code was written without the use of artificial intelligence.
  *
  * Spectrum Analyzer
  *

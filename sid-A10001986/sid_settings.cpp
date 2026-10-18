@@ -4,6 +4,7 @@
  * (C) 2023-2026 Thomas Winischhofer (A10001986)
  * https://github.com/realA10001986/SID
  * https://sid.out-a-ti.me
+ * This code was written without the use of artificial intelligence.
  *
  * Settings & file handling
  * 
@@ -97,6 +98,9 @@
 #define DECLARE_D_JSON(x,n) DynamicJsonDocument n(x);
 #endif
 
+Settings settings;
+IPSettings ipsettings;
+
 // Secondary settings
 // Do not change or insert new values, this
 // struct is saved as such. Append new stuff.
@@ -124,10 +128,8 @@ static struct [[gnu::packed]] {
 
 static int      secSetValidBytes = 0;
 static uint32_t secSettingsHash  = 0;
-static bool     haveSecSettings  = false;
 static int      terSetValidBytes = 0;
 static uint32_t terSettingsHash  = 0;
-static bool     haveTerSettings  = false;
 
 static uint32_t mainConfigHash = 0;
 static uint32_t ipHash = 0;
@@ -140,7 +142,7 @@ static const char *secCfgName = "/sid2cfg";         // Secondary settings (flash
 static const char *terCfgName = "/sid3cfg";         // Tertiary settings (SD)
 
 #ifdef SETTINGS_TRANSITION_2
-static const char *obsFiles[] = {
+static const char * const obsFiles[] = {
     "/sidipcfg.json",  "/sidid.json",  "/sidbricfg.json", 
     "/sidirlcfg.json", "/sidipat.json", 
     NULL
@@ -150,7 +152,7 @@ static const char *obsFiles[] = {
 static const char fwfn[]      = "/sidfw.bin";
 static const char fwfnold[]   = "/sidfw.old";
 
-static const char *jsonNames[NUM_IR_KEYS] = {
+static const char * const jsonNames[NUM_IR_KEYS] = {
     "key0", "key1", "key2", "key3", "key4", 
     "key5", "key6", "key7", "key8", "key9", 
     "keySTAR", "keyHASH",
@@ -160,8 +162,8 @@ static const char *jsonNames[NUM_IR_KEYS] = {
 };
 
 static const char *fsNoAvail = "File System not available";
-static const char *failFileWrite = "Failed to open file for writing";
 #ifdef SID_DBG
+static const char *failFileWrite = "Failed to open file for writing";
 static const char *badConfig = "Settings bad/missing/incomplete; writing new file";
 #endif
 
@@ -635,7 +637,9 @@ bool evalBool(char *s)
 
 static bool read_settings(File configFile, int cfgReadCount)
 {
+    #ifdef SID_DBG
     const char *funcName = "read_settings";
+    #endif
     bool wd = false;
     size_t jsonSize = 0;
     DECLARE_D_JSON(JSON_SIZE,json);
@@ -805,6 +809,17 @@ static void removeObsFiles()
         MYNVS.remove(obsFiles[i]);
     }
     #endif
+}
+
+void resettofactorydefault()
+{
+    const char *fns[] = {
+        cfgName, ipCfgName, idName, irCfgName, secCfgName, terCfgName
+    };
+    for(int i = 0; i < sizeof(fns) / sizeof(fns[0]); i++) {
+        if(haveFS) MYNVS.remove(fns[i]);
+        if(haveSD) SD.remove(fns[i]);
+    }
 }
 
 /*
@@ -978,14 +993,12 @@ void settings_setup()
     // Load secondary config file
     if(loadConfigFile(secCfgName, (uint8_t *)&secSettings, sizeof(secSettings), secSetValidBytes)) {
         secSettingsHash = calcHash((uint8_t *)&secSettings, sizeof(secSettings));
-        haveSecSettings = true;
     }
 
     // Load tertiary config file (SD only)
     if(haveSD) {
         if(loadConfigFile(terCfgName, (uint8_t *)&terSettings, sizeof(terSettings), terSetValidBytes, 1)) {
             terSettingsHash = calcHash((uint8_t *)&terSettings, sizeof(terSettings));
-            haveTerSettings = true;
         }
     }
 
@@ -1102,12 +1115,7 @@ void deleteIRKeys()
 
 void loadBrightness()
 {
-    if(haveSecSettings) {
-        #ifdef SID_DBG
-        Serial.println("loadBrightness: extracting from secSettings");
-        #endif
-        sid.setBrightness(secSettings.brightness);
-    }
+    sid.setBrightness(secSettings.brightness);
 }
 
 
@@ -1128,12 +1136,7 @@ void saveBrightness()
 
 void loadIRLock()
 {
-    if(haveSecSettings) {
-        #ifdef SID_DBG
-        Serial.println("loadIRLock: extracting from secSettings");
-        #endif
-        irLocked = !!secSettings.irLocked;
-    }
+    irLocked = !!secSettings.irLocked;
 }
 
 void storeIRLock()
@@ -1155,12 +1158,7 @@ void saveIRLock()
 
 void loadStrict()
 {
-    if(haveSecSettings) {
-        #ifdef SID_DBG
-        Serial.println("loadStrict: extracting from secSettings");
-        #endif
-        strictMode = !!secSettings.strictMode;
-    }
+    strictMode = !!secSettings.strictMode;
 }
 
 void saveStrict()
@@ -1175,13 +1173,8 @@ void saveStrict()
 
 void loadSASettings()
 {
-    if(haveSecSettings) {
-        #ifdef SID_DBG
-        Serial.println("loadSASettings: extracting from secSettings");
-        #endif
-        doPeaks = !!secSettings.SApeaks;
-        doMirror = !!secSettings.SAmirror;
-    }
+    doPeaks = !!secSettings.SApeaks;
+    doMirror = !!secSettings.SAmirror;
 }
 
 void saveSASettings()
@@ -1197,12 +1190,7 @@ void saveSASettings()
 
 void loadPosIRFB()
 {
-    if(haveSecSettings) {
-        #ifdef SID_DBG
-        Serial.println("loadPosIRFB: extracting from secSettings");
-        #endif
-        irShowPosFBDisplay = !!secSettings.irShowPosFBDisplay;
-    }
+    irShowPosFBDisplay = !!secSettings.irShowPosFBDisplay;
 }
 
 void savePosIRFB()
@@ -1217,12 +1205,7 @@ void savePosIRFB()
 
 void loadIRCFB()
 {
-    if(haveSecSettings) {
-        #ifdef SID_DBG
-        Serial.println("loadIRCFB: extracting from secSettings");
-        #endif
-        irShowCmdFBDisplay = !!secSettings.irShowCmdFBDisplay;
-    }
+    irShowCmdFBDisplay = !!secSettings.irShowCmdFBDisplay;
 }
 
 void saveIRCFB()
@@ -1237,9 +1220,7 @@ void saveIRCFB()
 
 void loadUpdAvail()
 {
-    if(haveSecSettings) {
-        showUpdAvail = !!secSettings.showUpdAvail;
-    }
+    showUpdAvail = !!secSettings.showUpdAvail;
 }
 
 void saveUpdAvail()
@@ -1254,12 +1235,8 @@ void saveUpdAvail()
 
 void loadUpdVers(int &v, int& r)
 {
-    if(haveSecSettings) {
-        v = secSettings.updateV;
-        r = secSettings.updateR;
-    } else {
-        v = r = 0;
-    }
+    v = secSettings.updateV;
+    r = secSettings.updateR;
 }
 
 void saveUpdVers(int v, int r)
@@ -1288,9 +1265,7 @@ void saveAllSecCP()
 
 static void loadCarMode()
 {
-    if(haveSecSettings) {
-        carMode = !!secSettings.carMode;
-    }
+    carMode = !!secSettings.carMode;
 }
 
 void saveCarMode()
@@ -1305,13 +1280,8 @@ void saveCarMode()
 
 void loadIdlePat()
 {
-    if(haveTerSettings) {
-        #ifdef SID_DBG
-        Serial.println("loadIdlePat: extracting from terSettings");
-        #endif
-        if(terSettings.idleMode <= SID_MAX_IDLE_MODE) {
-            idleMode = terSettings.idleMode;
-        }
+    if(terSettings.idleMode <= SID_MAX_IDLE_MODE) {
+        idleMode = terSettings.idleMode;
     }
 }
 
@@ -1334,11 +1304,7 @@ void saveIdlePat()
 
 uint8_t loadBootMode()
 {
-    if(haveTerSettings) {
-        return terSettings.bootMode;
-    }
-
-    return 0;
+    return terSettings.bootMode;
 }
 
 void storeBootMode(uint8_t bootMode)
@@ -1406,8 +1372,10 @@ void writeIpSettings()
     saveConfigFile(ipCfgName, (uint8_t *)&ipsettings, sizeof(ipsettings), -1);
 }
 
-void deleteIpSettings()
+bool deleteIpSettings()
 {
+    bool ret = false;
+    
     #ifdef SID_DBG
     Serial.println("deleteIpSettings: Deleting ip config");
     #endif
@@ -1415,10 +1383,14 @@ void deleteIpSettings()
     ipHash = 0;
 
     if(FlashROMode) {
+        ret = SD.exists(ipCfgName);
         SD.remove(ipCfgName);
     } else if(haveFS) {
+        ret = MYNVS.exists(ipCfgName);
         MYNVS.remove(ipCfgName);
     }
+
+    return ret;
 }
 
 /*

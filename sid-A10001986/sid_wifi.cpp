@@ -4,6 +4,7 @@
  * (C) 2023-2026 Thomas Winischhofer (A10001986)
  * https://github.com/realA10001986/SID
  * https://sid.out-a-ti.me
+ * This code was written without the use of artificial intelligence.
  *
  * WiFi and Config Portal handling
  *
@@ -67,10 +68,6 @@
 
 #define STRLEN(x) (sizeof(x)-1)
 
-Settings settings;
-
-IPSettings ipsettings;
-
 WiFiManager wm;
 bool wifiSetupDone = false;
 
@@ -79,7 +76,7 @@ WiFiClient mqttWClient;
 PubSubClient mqttClient(mqttWClient);
 #endif
 
-static const char tcdList[] = "<datalist id='tcda'><option value='TCD-AP%s'></option></datalist><datalist id='hnl'><option value='sid'></option></datalist>";
+static const char tcdList[] = "<datalist id='tcda'><option value='TCD-AP%s'></option></datalist><datalist id='hnl'><option value='" DEF_HOSTNAME "'></option></datalist>";
 
 static const char tcdSSID0[] = "<div style='margin:0 0 10px 0;padding:0;font-size:80%'>";
 static const char tcdSSIDp[] = "%sSSID of currently connected TCD is <b>TCD-AP%s</b></div>";
@@ -87,7 +84,7 @@ static const char tcdSSIDq[] = "%sCurrently connected TCD has %s password config
 static const char tcdAPPW1[] = "no";
 static const char tcdAPPW2[] = "a";
 
-static const char *apChannelCustHTMLSrc[14] = {
+static const char * const apChannelCustHTMLSrc[14] = {
     "'>WiFi channel",
     "apchnl",
     ">Random%s1'",
@@ -105,7 +102,7 @@ static const char *apChannelCustHTMLSrc[14] = {
 };
 
 #ifdef HAVE_MQTT
-static const char *mqttpCustHTMLSrc[4] = {
+static const char * const mqttpCustHTMLSrc[4] = {
     "'>Protocol version",
     "mprot",
     ">3.1.1%s1'",
@@ -164,10 +161,13 @@ static const char mqttStatus[] = "%s%s%s%s%s (%d)</div>";
 #endif
 
 // WiFi Configuration
-
+// If first parameter does not have SECTS or SECTS_HEAD set, the WiFi Connection settings section will be left open
+WiFiManagerParameter custom_wifiConRetries("Connection attempts (1-10)", settings.wifiConRetries, 2, "type='number' min='1' max='10'");
 WiFiManagerParameter custom_asel(wmBuildTCDAPList);
 
-WiFiManagerParameter custom_sectstart_cm("Car Mode settings", WFM_SECTS_HEAD|WFM_HL);
+WiFiManagerParameter custom_hostName("Hostname<br><span>Your SID's ID on the network.<br>This ID determines the Config Portal URL: http://<i>hostname</i>.local<br>Valid characters: a-z/0-9/-</span>", settings.hostName, 31, "pattern='[A-Za-z0-9\\-]+' placeholder='" DEF_HOSTNAME "' list='hnl'", WFM_LABEL_BEFORE|WFM_SECTS);
+
+WiFiManagerParameter custom_sectstart_cm("Car Mode settings", WFM_SECTS|WFM_HL);
 WiFiManagerParameter custom_cmhint("<div style='margin:0 0 10px 0;padding:0;font-size:80%;white-space:break-spaces;'>In Car Mode, the device connects to the TCD's access point instead of the WiFi network configured above.</div>");
 WiFiManagerParameter custom_ssidcm("Network name (SSID) of TCD-AP", settings.cm_ssid, 13, "pattern='[A-Za-z0-9\\-]+' placeholder='Example: TCD-AP' list='tcda'");
 WiFiManagerParameter custom_tcdssid(wmBuildTCDSSID);
@@ -176,18 +176,13 @@ WiFiManagerParameter custom_tcdpw(wmBuildTCDPW);
 WiFiManagerParameter custom_bssidcm("TCD-AP BSSID<br><span>Will be filled out automatically after first connect if left empty.</span>", settings.cm_bssid, 17, "pattern='^([0-9A-Fa-f]{2}[:]){5}([0-9A-Fa-f]{2})$' placeholder='XX:XX:XX:XX:XX:XX'");
 WiFiManagerParameter custom_ecm("Enable Car Mode now", settings.ecmKludge, "", WFM_LABEL_AFTER|WFM_IS_CHKBOX);
 
-WiFiManagerParameter custom_hostName("Hostname<br><span>Network device ID. Config Portal URL: http://<i>hostname</i>.local<br>Valid characters: a-z/0-9/-</span>", settings.hostName, 31, "pattern='[A-Za-z0-9\\-]+' placeholder='sid' list='hnl'", WFM_LABEL_BEFORE|WFM_SECTS);
-
-WiFiManagerParameter custom_sectstart_wifi("WiFi connection: Other settings", WFM_SECTS|WFM_HL);
-WiFiManagerParameter custom_wifiConRetries("Connection attempts (1-10)", settings.wifiConRetries, 2, "type='number' min='1' max='10'");
-
-WiFiManagerParameter custom_sectstart_ap("Access point (AP) mode settings", WFM_SECTS|WFM_HL);
+WiFiManagerParameter custom_sectstart_ap("SID Access Point mode (SID-AP) settings", WFM_SECTS|WFM_HL);
 WiFiManagerParameter custom_sysID("Network name (SSID) appendix<br><span>Will be appended to \"SID-AP\" [a-z/0-9/-]</span>", settings.systemID, 7, "pattern='[A-Za-z0-9\\-]+'");
 WiFiManagerParameter custom_appw("Password<br><span>Password to protect SID-AP. Empty or 8 characters [a-z/0-9/-]</span>", settings.appw, 8, "minlength='8' pattern='[A-Za-z0-9\\-]+'");
 WiFiManagerParameter custom_apch(wmBuildApChnl);
 WiFiManagerParameter custom_bapch(wmBuildBestApChnl);
 WiFiManagerParameter custom_wifiAPOffDelay("Power save timer<br><span>(10-99[minutes]; 0=off)</span>", settings.wifiAPOffDelay, 2, "type='number' min='0' max='99' title='WiFi-AP will be shut down after chosen period. 0 means never.'");
-WiFiManagerParameter custom_wifihint("<div style='margin:0;padding:0;font-size:80%'>Enter *77ok to re-enable Wifi when in power save mode</div>", WFM_FOOT);
+WiFiManagerParameter custom_wifihint("<span style='white-space:normal;font-size:80%'>Enter *77ok to re-enable Wifi when in power save mode</span>", WFM_FOOT);
 
 // Settings
 
@@ -361,7 +356,10 @@ void wifi_setup()
 
     WiFiManagerParameter *wifiParmArray[] = {
 
+      &custom_wifiConRetries,
       &custom_asel,
+      
+      &custom_hostName,
       
       &custom_sectstart_cm,
       &custom_cmhint,
@@ -371,11 +369,6 @@ void wifi_setup()
       &custom_tcdpw,
       &custom_bssidcm,
       &custom_ecm,
-
-      &custom_hostName,
-
-      &custom_sectstart_wifi,
-      &custom_wifiConRetries,
 
       &custom_sectstart_ap,
       &custom_sysID,
@@ -552,7 +545,7 @@ void wifi_setup()
             IPAddress gw = stringToIp(ipsettings.gateway);
             IPAddress sn = stringToIp(ipsettings.netmask);
             IPAddress dns = stringToIp(ipsettings.dns);
-            wm.setSTAStaticIPConfig(ip, gw, sn, dns);
+            wm.setSTAStaticIPConfig(true, ip, gw, sn, dns);
         }
     }
 
@@ -1434,7 +1427,7 @@ static const char *buildBanner(const char *msg, const char *col, int op)
     return str;
 }
 
-static unsigned int calcSelectMenu(const char **theHTML, int cnt, char *setting, bool indent = false)
+static unsigned int calcSelectMenu(const char * const *theHTML, int cnt, char *setting, bool indent = false)
 {
     int sr = atoi(setting);
 
@@ -1457,7 +1450,7 @@ static unsigned int calcSelectMenu(const char **theHTML, int cnt, char *setting,
     return l + 8;
 }
 
-static void buildSelectMenu(char *target, const char **theHTML, int cnt, char *setting, bool indent = false)
+static void buildSelectMenu(char *target, const char * const *theHTML, int cnt, char *setting, bool indent = false)
 {
     int sr = atoi(setting);
 
@@ -1476,7 +1469,7 @@ static void buildSelectMenu(char *target, const char **theHTML, int cnt, char *s
     }
 }
 
-static const char *wmBuildSelect(const char *dest, int op, const char **src, int count, char *setting, bool indent = false)
+static const char *wmBuildSelect(const char *dest, int op, const char * const *src, int count, char *setting, bool indent = false)
 {
     if(op == WM_CP_DESTROY) {
         if(dest) free((void *)dest);
@@ -1792,7 +1785,7 @@ static bool isNumString(char *s)
 
 static void getServerParam(const char *name, char *destBuf, size_t length, int minval, int maxval, int defaultVal)
 {
-    int i;
+    int i = defaultVal;
     memset(destBuf, 0, length + 1);
     strncpy(destBuf, wm.server->arg(name).c_str(), length);
     if(*destBuf) {
@@ -1884,7 +1877,7 @@ static unsigned int UTF8ByteSeqLen(unsigned char c)
 // Filter out UTF8 and non-displayable characters
 static int filterOutNonDisp(char *src, char *dst, int srcLen = 0, int maxChars = 99999)
 {
-    unsigned int i, j, e, slen = srcLen ? srcLen : strlen(src);
+    unsigned int i, j, slen = srcLen ? srcLen : strlen(src);
     unsigned char c;
 
     for(i = 0, j = 0; i < slen && j < maxChars; i++) {
