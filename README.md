@@ -569,7 +569,7 @@ To update the firmware of your SID,
 
 <details>
 <summary>Installing on a fresh ESP32...</summary>
-If you are using a fresh ESP32, please go <a href="https://install.out-a-ti.me">here</a> and follow the instructions, or - if you are a nerd and want to deal with source code, compilers'n'stuff - see _sid-A10001986.ino_ for detailed build and upload information.
+If you are using a fresh ESP32, please go <a href="https://install.out-a-ti.me">here</a> and follow the instructions, or - if you are a nerd and want to deal with source code, compilers'n'stuff - see <a href="https://github.com/realA10001986/SID/blob/main/sid-A10001986/sid-A10001986.ino">sid-A10001986.ino</a> for detailed build and upload information.
 </details>
 
 <!--
