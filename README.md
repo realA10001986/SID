@@ -26,6 +26,13 @@ Features include
 
 For information on updating the firmware of your SID, see [here](#firmware-installation--firmware-update).
 
+#### What's new in 2.00
+
+- Re-arrange WiFi Configuration page for a better user experience
+- BTTFN: "Hostname of TCD" now defaults to "timecircuits" instead of being empty. As a result, a factory-fresh FC now connects to a TCD in the network without any user configuration changes.
+- IR command sequence ```*123456ok``` now only deletes SID-AP password, and ```*123457ok``` deletes static IP config. Both lead to a reboot if applicable.
+- IR command sequence ```*697159ok```, when entered twice, resets all settings to factory defaults.
+
 ## Initial Configuration
 
 **Some features of your SID require an SD card.** The first step is therefore to put a **good-quality** ("endurance", "industrial", "long life", ...) **and empty microSD card into the card slot**. The SD card must be inserted before powering up the SID. It is not recognized if inserted while the SID is running. Furthermore, do not remove the SD card while the SID is powered.
@@ -70,9 +77,9 @@ Click on "WiFi Configuration" and either select a network from the top of the pa
 <details>
 <summary>More...</summary>
   
->If there are several APs with identical SSID nearby, you can select a specific AP by its BSSID (AP's MAC address). You can either manually find out your AP's BSSID and enter it or have it filled out automatically: Click "Scan for networks", then "Show all". If you click on an AP, its BSSID will be copied into BSSID field in the form below. To see which AP is which, hover over the name to see its BSSID as a tooltip.
+>If there are several APs with identical SSID nearby, you can select a specific AP by its BSSID (AP's MAC address). You can either manually find out your AP's BSSID and enter it or have it filled out automatically: Click "Scan for networks", then "Show all APs". If you click on an AP, its BSSID will be copied into BSSID field in the form below. To see which AP is which, hover over the name to see its BSSID as a tooltip.
 
->Your SID requests an IP address via DHCP, unless you entered valid data in the fields for static IP addresses (IP, gateway, netmask, DNS). If the device is inaccessible as a result of incorrect static IPs, wait until it has completed its startup sequence, then type ```*123456ok```<!--```*123457ok```--> on the IR remote; static IP data will be deleted and the device will return to DHCP after a reboot.
+>Your SID requests an IP address via DHCP, unless you entered valid data in the fields for static IP addresses (IP, gateway, netmask, DNS). If the device is inaccessible as a result of incorrect static IPs, wait until it has completed its startup sequence, then type ```*123457ok``` on the IR remote; static IP data will be deleted and the device will return to DHCP after rebooting.
 
 </details>
 
@@ -329,11 +336,6 @@ In order to only disable the supplied IR remote control, check the option **_Dis
      <td align="left">Toggle firmware update signals at power-up</td>
      <td align="left"><code>*53281ok</code></td><td><code>6053281</code></td>
     </tr>
-    <tr>
-     <td align="left">Delete static IP address<br>and WiFi-AP password<sup>1</sup></td>
-     <td align="left"><code>*123456ok</code></td><td><code>6123456</code></td>
-    </tr>
-       <!--
      <tr>
      <td align="left">Delete SID-AP password<sup>1</sup></td>
      <td align="left"><code>*123456ok</code></td><td><code>6123456</code></td>
@@ -342,7 +344,6 @@ In order to only disable the supplied IR remote control, check the option **_Dis
      <td align="left">Delete static IP configuration<sup>1</sup></td>
      <td align="left"><code>*123457ok</code></td><td><code>6123457</code></td>
      </tr>
-       -->
     <tr>
      <td align="left">Start IR remote <a href="#ir-learning">learning process</a><sup>1</sup></td>
      <td align="left"><code>*987654ok</code></td><td><code>6987654</code></td>
@@ -564,7 +565,7 @@ To update the firmware of your SID,
 - download the firmware file provided in the [Release package](https://github.com/realA10001986/SID/releases/latest) ("**sid-A10001986-Vx.xx.bin**" for A10001986 releases, "**SID_vX.YY.bin**" for CircuitSetup releases)
 - enter the [Config Portal](#the-config-portal),
 - click on "Update",
-- select the downloaded firmware file in the _top_ file selector, and
+- select the downloaded firmware file in the file selector, and
 - click on *Update*.
 
 <details>
@@ -572,15 +573,11 @@ To update the firmware of your SID,
 If you are using a fresh ESP32, please go <a href="https://install.out-a-ti.me">here</a> and follow the instructions, or - if you are a nerd and want to deal with source code, compilers'n'stuff - see <a href="https://github.com/realA10001986/SID/blob/main/sid-A10001986/sid-A10001986.ino">sid-A10001986.ino</a> for detailed build and upload information.
 </details>
 
-<!--
 ## Factory Reset
 
 To reset your SID to factory default settings, issue command sequence ```*697159ok``` twice in a row. 
 
 Since any configured WiFi connection is deleted as well, the SID will reboot in AP-mode.
-
--->
-
 
 ---
 
@@ -604,9 +601,7 @@ This leads to the [HomeAssistant/MQTT Settings page](#hamqtt-settings).
 
 This leads to the firmware update page.
 
-To upload a new firmware, such as published in the [Release packages](https://github.com/realA10001986/SID/releases), select the "**sid-A10001986-Vx.xx.bin**" or "**SID_vX.YY.bin**" file as contained in the Release package in the file selector and click *Update*.
-
-See also [here](#firmware-installation--firmware-update).
+See [here](#firmware-installation--firmware-update) for firmware update instructions.
 
 ---
 
@@ -618,13 +613,27 @@ Through this page you can either connect your SID to your local WiFi network or 
 
 To connect your SID to your WiFi network, all you need to do is either to click on one of the networks listed at the top or to enter a __Network name (SSID)__, and optionally a __password__ (WPAx). If there is no list displayed, click on "Scan for Networks".
 
->By default, the SID requests an IP address via DHCP. However, you can also configure a static IP for the SID by entering the IP, netmask, gateway and DNS server. All four fields must be filled for a valid static IP configuration. If you want to stick to DHCP, leave those four fields empty. 
-
-If there are several APs with identical SSID nearby, the SID will connect to the first one it finds, which might not be the one with the strongest signal. It is therefore recommended to select the nearest/strongest AP by its BSSID (AP's MAC address, a unique identifier for a specific AP). You can either manually find out your AP's BSSID and enter it or have it filled out automatically: Click "Scan for Networks", then "Show all". If you click on an AP, its BSSID will be copied into BSSID field in the form below. To see which AP is which, hover over the name to see its BSSID as a tooltip.
+If there are several APs with identical SSID nearby, the SID will connect to the first one it finds, which might not be the one with the strongest signal. It is therefore recommended to select the nearest/strongest AP by its BSSID (AP's MAC address, a unique identifier for a specific AP). You can either manually find out your AP's BSSID and enter it or have it filled out automatically: Click "Scan for Networks", then "Show all APs". If you click on an AP, its BSSID will be copied into BSSID field in the form below. To see which AP is which, hover over the name to see its BSSID as a tooltip.
 
 ##### &#9193; Forget Saved WiFi Network
 
 Checking this box (and clicking SAVE) deletes the currently saved WiFi network (SSID and password as well as static IP data) and reboots the device; it will restart in "access point" (AP) mode. See [here](#connecting-to-a-wifi-network).
+
+##### &#9193; Static IP
+
+By default, the SID requests an IP address via DHCP. However, you can also configure a static IP for the SID by entering the IP, netmask, gateway and DNS server. All four fields must be filled for a valid static IP configuration. If you want to stick to DHCP, leave those four fields empty. 
+
+##### &#9193; WiFi connection attempts
+
+Number of times the firmware tries to reconnect to a WiFi network, before falling back to AP-mode. See [here](#connecting-to-a-wifi-network)
+
+##### &#9193; Hostname
+
+The device's hostname in the WiFi network. Defaults to 'sid'. This also is the domain name at which the Config Portal is accessible from a browser in the same local network. The URL of the Config Portal then is http://<i>hostname</i>.local (the default is http://sid.local)
+
+If you have more than one SID in your local network, please give them unique hostnames.
+
+_This setting applies to both AP-mode and when your SID is connected to a WiFi network._ 
 
 ##### &#9193; Car mode settings
 
@@ -637,18 +646,6 @@ The **_TCD-AP BSSID_** field is optional for you to fill out. The TCD displays i
 
 If you want to enter Car mode immediately after saving your settings, check **_Enable car mode now_**. You can also later enable Car mode by typing ```*991ok``` on the remote. ```*990ok``` disables Car mode.
 
-##### &#9193; Hostname
-
-The device's hostname in the WiFi network. Defaults to 'sid'. This also is the domain name at which the Config Portal is accessible from a browser in the same local network. The URL of the Config Portal then is http://<i>hostname</i>.local (the default is http://sid.local)
-
-If you have more than one SID in your local network, please give them unique hostnames.
-
-_This setting applies to both AP-mode and when your SID is connected to a WiFi network._ 
-
-##### &#9193; WiFi connection attempts
-
-Number of times the firmware tries to reconnect to a WiFi network, before falling back to AP-mode. See [here](#connecting-to-a-wifi-network)
-
 #### <ins>Settings for AP-mode</ins>
 
 ##### &#9193; Network name (SSID) appendix
@@ -659,7 +656,7 @@ By default, when your SID creates a WiFi network of its own ("AP-mode"), this ne
 
 By default, and if this field is empty, the SID's own WiFi network ("SID-AP") will be unprotected. If you want to protect your SID access point, enter your password here. It needs to be 8 characters in length and only characters A-Z, a-z, 0-9 and - are allowed.
 
-If you forget this password and are thereby locked out of your SID, enter ```*123456ok``` on the IR remote control; this deletes the WiFi password. Then power-down and power-up your SID and the access point will start unprotected.<!-- automatic reboot-->
+If you forget this password and are thereby locked out of your SID, enter ```*123456ok``` on the IR remote control; this deletes the WiFi password and reboots. Afterwards, the SID-AP access point will be unprotected.
 
 ##### &#9193; WiFi channel
 
