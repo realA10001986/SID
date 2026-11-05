@@ -1,3 +1,7 @@
+__Users of mobile devices__: You can easily download the update file(s) from the [Release](https://sidr.out-a-ti.me) page, under "Assets".
+
+___
+
 This folder holds the current SID firmware, ready for upload to your device.
 
 For installation instructions, see [here](../README.md#firmware-installation--firmware-update).
