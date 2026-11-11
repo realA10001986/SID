@@ -12,7 +12,7 @@ The hardware is available [here](https://circuitsetup.us/product/delorean-time-m
 
 Features include
 - movie accurate idle patterns
-- [Time Travel](#time-travel) function, triggered by button, [Time Circuits Display](https://circuitsetup.us/product/complete-time-circuits-display-kit/) or via [Home Assistant](#home-assistant--mqtt)
+- [Time Travel](#time-travel) sequence, triggered by button, [Time Circuits Display](https://circuitsetup.us/product/complete-time-circuits-display-kit/) or via [Home Assistant](#home-assistant--mqtt)
 - [IR remote controlled](#ir-remote-control); can learn keys from third-party remote
 - [Spectrum Analyzer](#spectrum-analyzer) mode via built-in microphone
 - advanced network-accessible [Config Portal](#the-config-portal) for setup (http://sid.local)
@@ -159,7 +159,7 @@ Apart from the feedback LED, your SID will also show some feedback signals on it
 - By default, after executing a command, SID will show a "success" signal. This kind of feedback can be disabled using command sequence ```*62ok``` or in the Config Portal.
 - If a command was unsuccessful or not recognized, a "bad input" signal will be shown.
 
-See [here](#appendix-b-led-signals) for all supported signals.
+See [here](#appendix-b-led-signals) for a list of signals.
 
 ### IR Learning
 
